@@ -138,4 +138,31 @@ CHANNEL_LAYERS = {
 
 # CORS settings
 CORS_ALLOW_ALL_ORIGINS = False
-CORS_ALLOWED_ORIGINS = config('CORS_ALLOWED_ORIGINS', default='').split(',')
+CORS_ALLOWED_ORIGINS = config('CORS_ALLOWED_ORIGINS', default='').split('')
+
+# Django admin and all features
+INSTALLED_APPS = [
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+    'django.contrib.sites',
+    # Third-party apps
+    'rest_framework',
+    'crispy_forms',
+    'crispy_bootstrap5',
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'channels',
+    'corsheaders',
+    'django_filters',
+    'widget_tweaks',
+    # Local apps
+    'accounts',
+    'internship',
+    'chat',
+    'dashboard',
+]
