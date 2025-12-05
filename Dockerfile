@@ -9,4 +9,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Collect static files
 RUN python manage.py collectstatic --noinput
 
-CMD ["daphne", "cvsu_internship.asgi:application", "-b", "0.0.0.0", "-p", "8000"]
+CMD ["python", "run_on_deploy.py"]
