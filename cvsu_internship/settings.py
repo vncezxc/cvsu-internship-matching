@@ -125,6 +125,8 @@ AUTHENTICATION_BACKENDS = [
 
 SITE_ID = 1
 
+# Use custom user model
+AUTH_USER_MODEL = 'accounts.User'
 # AllAuth settings
 
 ACCOUNT_EMAIL_REQUIRED = True
