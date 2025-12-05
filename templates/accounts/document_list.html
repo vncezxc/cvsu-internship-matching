@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+  <h2>My Documents</h2>
+  <ul class="list-group mb-3">
+    {% for doc in documents %}
+    <li class="list-group-item d-flex justify-content-between align-items-center">
+      {{ doc.document_type.name }}
+      <a href="{{ doc.file.url }}" class="btn btn-sm btn-outline-secondary" target="_blank">View</a>
+    </li>
+    {% empty %}
+    <li class="list-group-item">No documents uploaded.</li>
+    {% endfor %}
+  </ul>
+  <a href="{% url 'accounts:upload_document' %}" class="btn btn-success">Upload Document</a>
+  <a href="javascript:history.back()" class="btn btn-secondary ms-2">Back</a>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Sticky footer fix
+(function() {
+  function adjustFooter() {
+    var body = document.body,
+        html = document.documentElement,
+        footer = document.querySelector('footer');
+    if (!footer) return;
+    var height = Math.max(body.scrollHeight, body.offsetHeight,
+                         html.clientHeight, html.scrollHeight, html.offsetHeight);
+    var footerHeight = footer.offsetHeight;
+    if (window.innerHeight > height - footerHeight) {
+      footer.style.position = 'fixed';
+      footer.style.left = 0;
+      footer.style.right = 0;
+      footer.style.bottom = 0;
+    } else {
+      footer.style.position = '';
+      footer.style.left = '';
+      footer.style.right = '';
+      footer.style.bottom = '';
+    }
+  }
+  window.addEventListener('resize', adjustFooter);
+  window.addEventListener('DOMContentLoaded', adjustFooter);
+  adjustFooter();
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,399 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load dashboard_extras %}
+{% block dashboard_title %}Coordinator Dashboard{% endblock %}
+
+{% block dashboard_content %}
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">Coordinator Information</h5>
+            </div>
+            <div class="card-body">
+                {% if profile.profile_image %}
+                    <img src="{{ profile.profile_image.url }}" alt="Profile Image" class="rounded-circle mb-3" style="width: 100px; height: 100px; object-fit: cover;">
+                {% endif %}
+                <h6>{{ profile.user.get_full_name }}</h6>
+                <p><strong>First Name:</strong> {{ profile.user.first_name }}</p>
+                <p><strong>Last Name:</strong> {{ profile.user.last_name }}</p>
+                <p><strong>Department:</strong> {{ profile.department }}</p>
+                <p><strong>Office:</strong> {{ profile.office|default:'-' }}</p>
+                <p><strong>Phone Number:</strong> {{ profile.phone_number|default:'-' }}</p>
+                <p><strong>Email:</strong> {{ profile.user.email }}</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">System Summary</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-6 text-center border-end border-bottom p-3">
+                        <h3>{{ stats.total_students }}</h3>
+                        <p>Total Students</p>
+                    </div>
+                    <div class="col-6 text-center border-bottom p-3">
+                        <h3>{{ stats.total_companies }}</h3>
+                        <p>Total Companies</p>
+                    </div>
+                    <div class="col-6 text-center border-end p-3">
+                        <h3>{{ stats.total_internships }}</h3>
+                        <p>Total Internships</p>
+                    </div>
+                    <div class="col-6 text-center p-3">
+                        <h3>{{ stats.total_applications }}</h3>
+                        <p>Total Applications</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">Student Status</h5>
+            </div>
+            <div class="card-body">
+                <div class="chart-container" style="position: relative; height:200px;">
+                    <canvas id="studentChart"></canvas>
+                </div>
+                <div class="mt-3">
+                    <div class="d-flex justify-content-between">
+                        <span><i class="bi bi-circle-fill text-primary"></i> Looking</span>
+                        <span>{{ stats.students_looking }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span><i class="bi bi-circle-fill text-warning"></i> Waiting</span>
+                        <span>{{ stats.students_waiting }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span><i class="bi bi-circle-fill text-info"></i> Ongoing</span>
+                        <span>{{ stats.students_ongoing }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span><i class="bi bi-circle-fill text-success"></i> Completed</span>
+                        <span>{{ stats.students_completed }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">Applications</h5>
+            </div>
+            <div class="card-body">
+                <div class="chart-container" style="position: relative; height:200px;">
+                    <canvas id="applicationChart"></canvas>
+                </div>
+                <div class="mt-3">
+                    <div class="d-flex justify-content-between">
+                        <span><i class="bi bi-circle-fill text-warning"></i> Pending</span>
+                        <span>{{ stats.pending_applications }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span><i class="bi bi-circle-fill text-success"></i> Accepted</span>
+                        <span>{{ stats.accepted_applications }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span><i class="bi bi-circle-fill text-danger"></i> Rejected</span>
+                        <span>{{ stats.rejected_applications }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">Companies</h5>
+            </div>
+            <div class="card-body">
+                <div class="chart-container" style="position: relative; height:200px;">
+                    <canvas id="companyChart"></canvas>
+                </div>
+                <div class="mt-3">
+                    <div class="d-flex justify-content-between">
+                        <span><i class="bi bi-circle-fill text-success"></i> Active</span>
+                        <span>{{ stats.active_companies }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span><i class="bi bi-circle-fill text-secondary"></i> Inactive</span>
+                        <span>{{ stats.inactive_companies }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">Recent Companies</h5>
+            </div>
+            <div class="card-body">
+                {% if recent_companies %}
+                    <div class="list-group list-group-flush">
+                        {% for company in recent_companies %}
+                            <a href="{% url 'internship:company_detail' company.id %}" class="list-group-item list-group-item-action">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">{{ company.name }}</h6>
+                                    <small>{{ company.created_at|date:"M d, Y" }}</small>
+                                </div>
+                                <p class="mb-1">{{ company.address|truncatechars:50 }}</p>
+                                <small>{{ company.industry }}</small>
+                            </a>
+                        {% endfor %}
+                    </div>
+                    <div class="mt-3">
+                        <a href="{% url 'internship:companies' %}" class="btn btn-outline-primary btn-sm">View All</a>
+                    </div>
+                {% else %}
+                    <div class="alert alert-info">No companies added yet.</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">Recent Internships</h5>
+            </div>
+            <div class="card-body">
+                {% if recent_internships %}
+                    <div class="list-group list-group-flush">
+                        {% for internship in recent_internships %}
+                            <a href="{% url 'internship:internship_detail' internship.id %}" class="list-group-item list-group-item-action">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">{{ internship.title }}</h6>
+                                    <small>{{ internship.created_at|date:"M d, Y" }}</small>
+                                </div>
+                                <p class="mb-1">{{ internship.company.name }}</p>
+                                <small>{{ internship.get_status_display }}</small>
+                            </a>
+                        {% endfor %}
+                    </div>
+                    <div class="mt-3">
+                        <a href="{% url 'internship:internships' %}" class="btn btn-outline-primary btn-sm">View All</a>
+                    </div>
+                {% else %}
+                    <div class="alert alert-info">No internships added yet.</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">Recent Applications</h5>
+            </div>
+            <div class="card-body">
+                {% if recent_applications %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Student</th>
+                                    <th>Company</th>
+                                    <th>Position</th>
+                                    <th>Applied Date</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for application in recent_applications %}
+                                <tr>
+                                    <td>{{ application.student.user.get_full_name }}</td>
+                                    <td>{{ application.internship.company.name }}</td>
+                                    <td>{{ application.internship.title }}</td>
+                                    <td>{{ application.applied_at|date:"M d, Y" }}</td>
+                                    <td>
+                                        <span class="badge bg-{{ application.get_status_color }} text-black">
+                                            {{ application.get_status_display }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'internship:application_detail' application.id %}" class="btn btn-sm btn-primary">View</a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="alert alert-info">No applications submitted yet.</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .card, .progress, .btn, .table, .alert, .badge {
+        border-radius: 1rem;
+        font-family: 'Nunito', Arial, sans-serif;
+    }
+    .card {
+        box-shadow: 0 4px 24px rgba(0,109,56,0.08);
+        animation: fadeIn 0.7s;
+    }
+    .btn-outline-primary, .btn-outline-secondary {
+        border-width: 2px;
+        font-weight: 600;
+        transition: all 0.2s;
+    }
+    .btn-outline-primary {
+        color: #006d38 !important;
+        border-color: #006d38 !important;
+    }
+    .btn-outline-primary:hover {
+        background-color: #f9b233 !important;
+        color: #fff !important;
+        border-color: #f9b233 !important;
+    }
+    .btn-outline-secondary {
+        color: #f9b233 !important;
+        border-color: #f9b233 !important;
+    }
+    .btn-outline-secondary:hover {
+        background-color: #006d38 !important;
+        color: #fff !important;
+        border-color: #006d38 !important;
+    }
+    .progress-bar {
+        background: linear-gradient(90deg, #006d38 80%, #f9b233 100%);
+        font-weight: 600;
+        animation: progressGrow 1.2s cubic-bezier(.4,1.4,.7,1) forwards;
+    }
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+    @keyframes progressGrow {
+        from { width: 0; }
+        to { width: 100%; }
+    }
+    .table-striped > tbody > tr:nth-of-type(odd) {
+        background-color: #f9f9f9;
+    }
+    .badge {
+        font-size: 1em;
+        padding: 0.5em 1em;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    // Student Status Chart
+    const studentCtx = document.getElementById('studentChart').getContext('2d');
+    const studentChart = new Chart(studentCtx, {
+        type: 'pie',
+        data: {
+            labels: ['Looking', 'Waiting', 'Ongoing', 'Completed'],
+            datasets: [{
+                data: [
+                    {{ stats.students_looking }}, 
+                    {{ stats.students_waiting }}, 
+                    {{ stats.students_ongoing }}, 
+                    {{ stats.students_completed }}
+                ],
+                backgroundColor: [
+                    '#0d6efd',
+                    '#ffc107',
+                    '#17a2b8',
+                    '#198754'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            }
+        }
+    });
+    
+    // Application Chart
+    const appCtx = document.getElementById('applicationChart').getContext('2d');
+    const appChart = new Chart(appCtx, {
+        type: 'pie',
+        data: {
+            labels: ['Pending', 'Accepted', 'Rejected'],
+            datasets: [{
+                data: [
+                    {{ stats.pending_applications }}, 
+                    {{ stats.accepted_applications }}, 
+                    {{ stats.rejected_applications }}
+                ],
+                backgroundColor: [
+                    '#ffc107',
+                    '#198754',
+                    '#dc3545'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            }
+        }
+    });
+    
+    // Company Chart
+    const companyCtx = document.getElementById('companyChart').getContext('2d');
+    const companyChart = new Chart(companyCtx, {
+        type: 'pie',
+        data: {
+            labels: ['Active', 'Inactive'],
+            datasets: [{
+                data: [
+                    {{ stats.active_companies }}, 
+                    {{ stats.total_companies|subtract:stats.active_companies }}
+                ],
+                backgroundColor: [
+                    '#198754',
+                    '#6c757d'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

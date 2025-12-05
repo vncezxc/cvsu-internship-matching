@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% block title %}Upload CV{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Upload CV</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        {{ form|crispy }}
+                        <div class="mt-3 text-end">
+                            <a href="{% url 'accounts:profile' %}" class="btn btn-secondary me-2">Cancel</a>
+                            <button type="submit" class="btn btn-primary">Upload CV</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Sticky footer fix for short pages
+(function() {
+  function adjustFooter() {
+    var body = document.body,
+        html = document.documentElement,
+        footer = document.querySelector('footer');
+    if (!footer) return;
+    var height = Math.max(body.scrollHeight, body.offsetHeight,
+                         html.clientHeight, html.scrollHeight, html.offsetHeight);
+    var footerHeight = footer.offsetHeight;
+    if (window.innerHeight > height - footerHeight) {
+      footer.style.position = 'fixed';
+      footer.style.left = 0;
+      footer.style.right = 0;
+      footer.style.bottom = 0;
+    } else {
+      footer.style.position = '';
+      footer.style.left = '';
+      footer.style.right = '';
+      footer.style.bottom = '';
+    }
+  }
+  window.addEventListener('resize', adjustFooter);
+  window.addEventListener('DOMContentLoaded', adjustFooter);
+  adjustFooter();
+})();
+</script>
+{% endblock %}

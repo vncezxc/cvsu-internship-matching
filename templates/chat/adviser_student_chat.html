@@ -1,0 +1,8 @@
+{% extends 'chat/chat_room.html' %}
+{# Remove any extra message at the top by overriding a block if present #}
+{% block extra_css %}{{ block.super }}
+<style>
+  .alert { display: none !important; }
+</style>
+{% endblock %}
+

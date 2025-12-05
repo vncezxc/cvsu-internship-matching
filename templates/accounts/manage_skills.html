@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<div class="container mt-4">
+  <h2>Skills</h2>
+  <div class="mb-3">
+    <label class="form-label fw-bold">Suggested Skills</label>
+    <div class="mb-2">
+      <select id="id_course" class="form-select w-auto d-inline-block" style="min-width: 200px;" disabled>
+        <option value="{{ selected_course_id }}" selected>{{ selected_course_name }}</option>
+      </select>
+    </div>
+    <div id="skill-chips" class="mb-2"></div>
+    <label for="custom-skill-input" class="form-label">Add Custom Skill</label>
+    <div class="input-group mb-2">
+      <input type="text" id="custom-skill-input" class="form-control" placeholder="Type a skill and press Enter">
+      <button type="button" id="add-custom-skill" class="btn btn-outline-primary">Add</button>
+    </div>
+    <div id="selected-skills" class="mb-2"></div>
+    <form method="post" id="skills-form">
+      {% csrf_token %}
+      <input type="hidden" name="skills_json" id="id_skills_json">
+      <button type="submit" class="btn btn-success">Save Skills</button>
+      <a href="{% url 'accounts:profile' %}" class="btn btn-outline-secondary ms-2">Back to Profile</a>
+    </form>
+  </div>
+</div>
+<script>
+  var COURSE_SKILLS_MAP = {{ course_skill_map|safe }};
+  var INITIAL_SELECTED_SKILLS = [
+    {% for skill in skills %}{ id: {{ skill.id }}, name: "{{ skill.name|escapejs }}" },{% endfor %}
+  ];
+  var SELECTED_COURSE_ID = '{{ selected_course_id }}';
+</script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script src="{% static 'js/skills_autoload.js' %}"></script>
+{% endblock %}

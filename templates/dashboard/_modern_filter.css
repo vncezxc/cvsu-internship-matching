@@ -1,0 +1,47 @@
+/* Modern filter bar for dashboard reports */
+.reports-filter-bar {
+    background: #fff;
+    border-radius: 1.5rem;
+    box-shadow: 0 2px 12px rgba(0,109,56,0.10);
+    padding: 1.5rem 2rem 1rem 2rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.2rem;
+    align-items: flex-end;
+}
+.reports-filter-bar .form-group {
+    flex: 1 1 180px;
+    min-width: 160px;
+    margin-bottom: 0;
+}
+.reports-filter-bar label {
+    font-weight: 600;
+    color: #006d38;
+    margin-bottom: 0.3rem;
+}
+.reports-filter-bar select,
+.reports-filter-bar input[type="date"] {
+    border-radius: 0.7rem;
+    border: 1.5px solid #e0e0e0;
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+    background: #f8f9fa;
+    transition: border-color 0.2s;
+}
+.reports-filter-bar select:focus,
+.reports-filter-bar input[type="date"]:focus {
+    border-color: #006d38;
+    outline: none;
+}
+.reports-filter-bar .btn-primary {
+    border-radius: 0.7rem;
+    font-weight: 700;
+    background: linear-gradient(90deg, #006d38 60%, #f9b233 100%);
+    border: none;
+    box-shadow: 0 2px 8px rgba(0,109,56,0.08);
+    transition: background 0.2s;
+}
+.reports-filter-bar .btn-primary:hover {
+    background: linear-gradient(90deg, #f9b233 60%, #006d38 100%);
+}

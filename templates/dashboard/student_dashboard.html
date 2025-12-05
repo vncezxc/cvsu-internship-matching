@@ -1,0 +1,265 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load file_extras %}
+
+{% block dashboard_title %}Student Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+    .card, .progress, .btn, .table, .alert, .badge {
+        border-radius: 1rem;
+        font-family: 'Nunito', Arial, sans-serif;
+    }
+    .card {
+        box-shadow: 0 4px 24px rgba(0,109,56,0.08);
+        animation: fadeIn 0.7s;
+    }
+    .btn-outline-primary, .btn-outline-secondary {
+        border-width: 2px;
+        font-weight: 600;
+        transition: all 0.2s;
+    }
+    .btn-outline-primary {
+        color: #006d38 !important;
+        border-color: #006d38 !important;
+    }
+    .btn-outline-primary:hover {
+        background-color: #f9b233 !important;
+        color: #fff !important;
+        border-color: #f9b233 !important;
+    }
+    .btn-outline-secondary {
+        color: #f9b233 !important;
+        border-color: #f9b233 !important;
+    }
+    .btn-outline-secondary:hover {
+        background-color: #006d38 !important;
+        color: #fff !important;
+        border-color: #006d38 !important;
+    }
+    .progress-bar {
+        background: linear-gradient(90deg, #006d38 80%, #f9b233 100%);
+        font-weight: 600;
+        animation: progressGrow 1.2s cubic-bezier(.4,1.4,.7,1) forwards;
+    }
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+    @keyframes progressGrow {
+        from { width: 0; }
+        to { width: 100%; }
+    }
+    .table-striped > tbody > tr:nth-of-type(odd) {
+        background-color: #f9f9f9;
+    }
+    .badge {
+        font-size: 1em;
+        padding: 0.5em 1em;
+    }
+</style>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">Profile Overview</h5>
+            </div>
+            <div class="card-body">
+                {% if profile.profile_image %}
+                    <img src="{{ profile.profile_image.url }}" alt="Profile Image" class="rounded-circle mb-3" style="width: 100px; height: 100px; object-fit: cover;">
+                {% endif %}
+                <h6>{{ profile.user.get_full_name }}</h6>
+                <p><strong>First Name:</strong> {{ profile.user.first_name }}</p>
+                <p><strong>Last Name:</strong> {{ profile.user.last_name }}</p>
+                <p><strong>Email:</strong> {{ profile.user.email }}</p>
+                <p>{{ profile.course.name }} - {{ profile.section }}</p>
+                
+                <div class="progress mt-4 mb-2">
+                    <div class="progress-bar" role="progressbar" style="width: {{ profile_completion_percentage }}%;" aria-valuenow="{{ profile_completion_percentage }}" aria-valuemin="0" aria-valuemax="100">{{ profile_completion_percentage }}%</div>
+                </div>
+                <p class="text-muted small">Profile Completion</p>
+                
+                <div class="mt-4">
+                    <h6>OJT Status: <span class="badge bg-{{ profile.get_ojt_status_color }} text-white">{{ profile.get_ojt_status_display }}</span></h6>
+                    <h6>OJT Hours: {{ profile.ojt_hours_completed }} / {{ profile.ojt_hours_required }}</h6>
+                    {# Only advisers can update OJT hours. Students can only view. #}
+                    {% if request.user.is_adviser %}
+                    <form method="post" action="{% url 'dashboard:update_ojt_hours' profile.id %}" class="row g-2 align-items-center mt-2">
+                        {% csrf_token %}
+                        <div class="col-auto">
+                            <input type="number" name="hours" id="hours" class="form-control" min="0" max="{{ profile.ojt_hours_required }}" value="{{ profile.ojt_hours_completed }}" required>
+                        </div>
+                        <div class="col-auto">
+                            <button type="submit" class="btn btn-success">Update Hours</button>
+                        </div>
+                    </form>
+                    {% endif %}
+                </div>
+                
+                <div class="mt-4">
+                    <a href="{% url 'dashboard:submit_dtr' %}" class="btn btn-outline-success">Submit Weekly DTR</a>
+                    <a href="{% url 'accounts:edit_profile' %}" class="btn btn-outline-primary ms-2">Update Profile</a>
+                    <a href="{% url 'accounts:profile' %}" class="btn btn-outline-secondary ms-2">View Complete Profile</a>
+                    <a href="{% url 'dashboard:student_documents_view' %}" class="btn btn-outline-warning ms-2">My OJT Documents</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">Application Summary</h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col">
+                        <h3>{{ application_count }}</h3>
+                        <p>Total Applications</p>
+                    </div>
+                    <div class="col">
+                        <h3>{{ pending_count }}</h3>
+                        <p>Pending</p>
+                    </div>
+                    <div class="col">
+                        <h3>{{ accepted_count }}</h3>
+                        <p>Accepted</p>
+                    </div>
+                    <div class="col">
+                        <h3>{{ rejected_count }}</h3>
+                        <p>Rejected</p>
+                    </div>
+                </div>
+                
+                <a href="{% url 'internship:applications' %}" class="btn btn-outline-primary mt-4">View All Applications</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">Recent Applications</h5>
+            </div>
+            <div class="card-body">
+                {% if recent_applications %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Company</th>
+                                    <th>Position</th>
+                                    <th>Applied Date</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for application in recent_applications %}
+                                <tr>
+                                    <td>{{ application.internship.company.name }}</td>
+                                    <td>{{ application.internship.title }}</td>
+                                    <td>{{ application.applied_at|date:"M d, Y" }}</td>
+                                    <td>
+                                        <span class="badge bg-{{ application.get_status_color }} text-dark">
+                                            {{ application.get_status_display }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'internship:application_detail' application.id %}" class="btn btn-sm btn-primary">View</a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="alert alert-info">
+                        You haven't applied to any internships yet. 
+                        <a href="{% url 'internship:internships' %}" class="alert-link">Browse internships</a> to get started.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">Documents Completion</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered align-middle">
+                        <thead>
+                            <tr>
+                                <th>Document</th>
+                                <th>Description</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for doc in document_status %}
+                            <tr>
+                                <td>{{ doc.required.name }}</td>
+                                <td>{{ doc.required.description }}</td>
+                                <td>
+                                    {% if doc.uploaded %}
+                                        <span class="badge bg-success text-white">Uploaded</span>
+                                    {% else %}
+                                        <span class="badge bg-danger text-white">Missing</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if doc.required.id == 'cv' %}
+                                        {% if doc.uploaded %}
+                                            <a href="{{ doc.file }}" class="btn btn-sm btn-outline-secondary" target="_blank">View</a>
+                                            <a href="{% url 'accounts:delete_cv' %}" class="btn btn-sm btn-danger ms-1">Delete</a>
+                                        {% else %}
+                                            <a href="{% url 'accounts:upload_cv' %}" class="btn btn-sm btn-primary">Upload</a>
+                                        {% endif %}
+                                    {% else %}
+                                        {% if doc.uploaded %}
+                                            {% if doc.file|file_ext:'.jpg' or doc.file|file_ext:'.jpeg' or doc.file|file_ext:'.png' %}
+                                                <a href="{{ doc.file }}" target="_blank">
+                                                    <img src="{{ doc.file }}" alt="Preview" style="max-width: 80px; max-height: 80px; border-radius: 4px; border: 1px solid #ddd; margin-right: 8px;">
+                                                </a>
+                                            {% elif doc.file|file_ext:'.pdf' %}
+                                                <a href="{{ doc.file }}" target="_blank">
+                                                    <embed src="{{ doc.file }}" type="application/pdf" width="80" height="80" style="border-radius: 4px; border: 1px solid #ddd; margin-right: 8px;" />
+                                                </a>
+                                            {% elif doc.file|file_ext:'.xlsx' or doc.file|file_ext:'.xls' %}
+                                                <span class="badge bg-success"><i class="bi bi-file-earmark-excel"></i> Excel</span>
+                                            {% endif %}
+                                            <a href="{{ doc.file }}" class="btn btn-sm btn-outline-secondary" target="_blank">View</a>
+                                        {% else %}
+                                            <a href="{% url 'dashboard:upload_student_document' doc.required.id %}" class="btn btn-sm btn-primary">Upload</a>
+                                        {% endif %}
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="mt-3">
+                    <div class="progress">
+                        <div class="progress-bar bg-success" role="progressbar" style="width: {{ document_status|dictsort:'uploaded'|yesno:'100,0' }}%;" aria-valuenow="{{ document_status|dictsort:'uploaded'|yesno:'100,0' }}" aria-valuemin="0" aria-valuemax="100">
+                            {% with percent=document_completion_percent %}
+                            {{ percent }}%
+                            {% endwith %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

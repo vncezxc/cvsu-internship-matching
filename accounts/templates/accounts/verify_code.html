@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block title %}Verify Your Email{% endblock %}
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-sm animate__animated animate__fadeIn">
+                <div class="card-header bg-primary text-white text-center">
+                    <h3 class="mb-0">Email Verification</h3>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="id_code" class="form-label">Enter the 6-digit code sent to your email:</label>
+                            {{ form.code }}
+                        </div>
+                        <button type="submit" class="btn btn-success w-100">Verify</button>
+                    </form>
+                    {% if error %}
+                        <div class="alert alert-danger mt-3">{{ error }}</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

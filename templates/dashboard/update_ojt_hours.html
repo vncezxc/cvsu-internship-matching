@@ -1,0 +1,55 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block dashboard_title %}Update OJT Hours{% endblock %}
+
+{% block dashboard_content %}
+<div class="row mb-4">
+    <div class="col-12 d-flex justify-content-between align-items-center">
+        <a href="{% url 'dashboard:student_detail' student.id %}" class="btn btn-outline-primary">
+            <i class="bi bi-arrow-left"></i> Back to Student Details
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">Update OJT Hours for {{ student.user.get_full_name }}</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-4">
+                    <p class="mb-2"><strong>Current OJT Hours:</strong></p>
+                    <div class="d-flex align-items-center">
+                        <h3 class="me-2">{{ student.ojt_hours_completed }} / {{ student.ojt_hours_required }}</h3>
+                        <span class="text-muted">hours</span>
+                    </div>
+                    <div class="progress mt-2">
+                        <div class="progress-bar bg-success" role="progressbar" 
+                             style="width: {% widthratio student.ojt_hours_completed student.ojt_hours_required 100 %}%;" 
+                             aria-valuenow="{% widthratio student.ojt_hours_completed student.ojt_hours_required 100 %}" 
+                             aria-valuemin="0" aria-valuemax="100">
+                            {% widthratio student.ojt_hours_completed student.ojt_hours_required 100 %}%
+                        </div>
+                    </div>
+                </div>
+                {# Only advisers can update OJT hours. #}
+                {% if request.user.is_adviser %}
+                <form method="post" action="{% url 'dashboard:update_ojt_hours' student.id %}">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="hours" class="form-label">New Hours Completed</label>
+                        <input type="number" name="hours" id="hours" class="form-control" value="{{ student.ojt_hours_completed }}" min="0" max="{{ student.ojt_hours_required }}" required>
+                        <div class="form-text">Enter the total cumulative hours completed, not additional hours.</div>
+                    </div>
+                    <div class="text-end">
+                        <a href="{% url 'dashboard:student_detail' student.id %}" class="btn btn-secondary me-2">Cancel</a>
+                        <button type="submit" class="btn btn-primary">Update Hours</button>
+                    </div>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

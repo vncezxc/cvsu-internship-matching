@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% block title %}Verification Email Sent - CvSU Internship Matching{% endblock %}
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm animate__animated animate__fadeIn">
+                <div class="card-header bg-success text-white text-center">
+                    <h3 class="mb-0">Verification Email Sent</h3>
+                </div>
+                <div class="card-body text-center">
+                    <p class="lead">A verification email has been sent to your email address. Please check your inbox and follow the instructions to verify your account.</p>
+                    <p>If you did not receive the email, you can request another one below.</p>
+                    <form id="resend-verification-form" method="post" action="javascript:void(0);" class="mb-3">
+                        {% csrf_token %}
+                        <input type="email" name="email" class="form-control mb-2" placeholder="Enter your email again" required>
+                        <button type="submit" class="btn btn-outline-success">Resend Verification Email</button>
+                    </form>
+                    <div id="resend-verification-message" class="mt-2"></div>
+                    <script>
+                    document.getElementById('resend-verification-form').addEventListener('submit', function(e) {
+                        e.preventDefault();
+                        var form = this;
+                        var data = new FormData(form);
+                        fetch('/accounts/resend-verification/', {
+                            method: 'POST',
+                            body: data,
+                        })
+                        .then(response => response.json())
+                        .then(result => {
+                            var msgDiv = document.getElementById('resend-verification-message');
+                            if (result.success) {
+                                msgDiv.innerHTML = '<div class="alert alert-success">' + result.message + '</div>';
+                            } else {
+                                msgDiv.innerHTML = '<div class="alert alert-danger">' + result.message + '</div>';
+                            }
+                        })
+                        .catch(() => {
+                            document.getElementById('resend-verification-message').innerHTML = '<div class="alert alert-danger">An error occurred.</div>';
+                        });
+                    });
+                    </script>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

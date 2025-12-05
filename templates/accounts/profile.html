@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+  <div class="row align-items-center">
+    <div class="col-md-3 text-center">
+      {% if user.student_profile.profile_image %}
+        <img src="{{ user.student_profile.profile_image.url }}" class="img-fluid rounded-circle shadow" style="max-width: 150px;" alt="Profile Image">
+      {% elif user.student_profile.avatar %}
+        <img src="{{ user.student_profile.avatar.url }}" class="img-fluid rounded-circle shadow" style="max-width: 150px;" alt="Avatar">
+      {% else %}
+        <img src="/static/images/default-profile.png" class="img-fluid rounded-circle shadow" style="max-width: 150px;" alt="Profile Image">
+      {% endif %}
+    </div>
+    <div class="col-md-9">
+      <h2>{{ user.get_full_name }}</h2>
+      <p><strong>Student ID:</strong> {{ user.student_profile.student_id }}</p>
+      <p><strong>Email:</strong> {{ user.email }}</p>
+      <p><strong>Course:</strong> {{ user.student_profile.course.name }}</p>
+      <p><strong>Section:</strong> {{ user.student_profile.section }}</p>
+      <a href="{% url 'accounts:edit_profile' %}" class="btn btn-outline-primary">Edit Profile</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

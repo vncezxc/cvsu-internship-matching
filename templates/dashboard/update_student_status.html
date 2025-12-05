@@ -1,0 +1,51 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block dashboard_title %}Update Student Status{% endblock %}
+
+{% block dashboard_content %}
+<div class="row mb-4">
+    <div class="col-12 d-flex justify-content-between align-items-center">
+        <a href="{% url 'dashboard:student_detail' student.id %}" class="btn btn-outline-primary">
+            <i class="bi bi-arrow-left"></i> Back to Student Details
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">Update OJT Status for {{ student.user.get_full_name }}</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-4">
+                    <p class="mb-2"><strong>Current Status:</strong></p>
+                    <p>
+                        <span class="badge bg-{{ student.get_ojt_status_color }} fs-5">
+                            {{ student.get_ojt_status_display }}
+                        </span>
+                    </p>
+                </div>
+                
+                <form method="post" action="{% url 'dashboard:update_student_status' student.id %}">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="status" class="form-label">New Status</label>
+                        <select name="status" id="status" class="form-select">
+                            {% for status_code, status_name in statuses %}
+                                <option value="{{ status_code }}" {% if student.ojt_status == status_code %}selected{% endif %}>
+                                    {{ status_name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="text-end">
+                        <a href="{% url 'dashboard:student_detail' student.id %}" class="btn btn-secondary me-2">Cancel</a>
+                        <button type="submit" class="btn btn-primary">Update Status</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

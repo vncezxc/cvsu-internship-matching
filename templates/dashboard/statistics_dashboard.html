@@ -1,0 +1,30 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% block dashboard_content %}
+<h2>Statistics</h2>
+<div class="row">
+    <div class="col-md-4">
+        <div class="card mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Total Students</h5>
+                <p class="card-text">{{ total_students }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Total Companies</h5>
+                <p class="card-text">{{ total_companies }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Active Internships</h5>
+                <p class="card-text">{{ active_internships }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

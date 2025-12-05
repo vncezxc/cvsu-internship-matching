@@ -1,0 +1,48 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load widget_tweaks %}
+{% block dashboard_title %}Submit Weekly DTR{% endblock %}
+
+{% block dashboard_content %}
+<style>
+  .dtr-form-label { font-weight: 600; color: #2c3e50; }
+  .dtr-form-help { font-size: 0.95em; color: #6c757d; margin-bottom: 0.5rem; }
+  .dtr-form-card { box-shadow: 0 2px 16px rgba(44,62,80,0.08); border-radius: 1rem; }
+  .dtr-form-btn { min-width: 140px; font-weight: 600; letter-spacing: 0.5px; }
+</style>
+<div class="row justify-content-center">
+    <div class="col-md-7 col-lg-6">
+        <div class="card dtr-form-card mt-4">
+            <div class="card-header bg-primary text-white py-3">
+                <h5 class="card-title mb-0"><i class="bi bi-clock-history me-2"></i>Submit Weekly DTR</h5>
+            </div>
+            <div class="card-body p-4">
+                <form method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="id_week_start" class="form-label dtr-form-label">Week Start</label>
+                        {{ form.week_start|add_class:'form-control' }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="id_week_end" class="form-label dtr-form-label">Week End</label>
+                        {{ form.week_end|add_class:'form-control' }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="id_file" class="form-label dtr-form-label">DTR File</label>
+                        {{ form.file|add_class:'form-control' }}
+                        <div class="dtr-form-help">Upload a PDF or image of your DTR for the week.</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="id_hours_rendered" class="form-label dtr-form-label">Hours Rendered</label>
+                        {{ form.hours_rendered|add_class:'form-control' }}
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mt-4">
+                        <button type="submit" class="btn btn-success dtr-form-btn"><i class="bi bi-upload me-1"></i>Submit DTR</button>
+                        <a href="{% url 'dashboard:student_dashboard' %}" class="btn btn-outline-secondary dtr-form-btn">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% comment %} Requires django-widget-tweaks for add_class filter. {% endcomment %}
+{% endblock %}

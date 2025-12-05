@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/png" href="{% static 'images/logo (2).png' %}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}CVSU Bacoor Internship Matching System{% endblock %}</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Leaflet CSS for maps -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/static/css/main.css">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body, h1, h2, h3, h4, h5, h6, .navbar, .btn, .card, .accordion {
+            font-family: 'Nunito', Arial, sans-serif;
+        }
+        .navbar, .bg-success, .btn-success {
+            background-color: #006d38 !important;
+        }
+        .btn-success, .progress-bar.bg-success {
+            background-color: #006d38 !important;
+            border-color: #006d38 !important;
+        }
+        .btn-outline-success {
+            color: #006d38 !important;
+            border-color: #006d38 !important;
+        }
+        .btn-outline-success:hover {
+            background-color: #f9b233 !important;
+            color: #fff !important;
+            border-color: #f9b233 !important;
+        }
+        .navbar-brand, .navbar-nav .nav-link.active, .navbar-nav .nav-link {
+            color: #f9b233 !important;
+        }
+        .navbar-nav .nav-link:hover {
+            color: #fff700 !important;
+        }
+        .footer, .bg-dark {
+            background-color: #003300 !important;
+        }
+        .text-success {
+            color: #006d38 !important;
+        }
+        .bg-light {
+            background-color: #f9f9f9 !important;
+        }
+        .card {
+            border-radius: 1rem;
+        }
+        .btn, .card, .progress-bar {
+            transition: all 0.2s;
+        }
+        .btn:hover {
+            transform: translateY(-2px) scale(1.03);
+            box-shadow: 0 4px 16px rgba(0,109,56,0.08);
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-success">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center" href="{% url 'home' %}">
+                <span style="display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; height: 44px; width: 44px; margin-right: 0.5rem; background: #fff;">
+                    <img src="{% static 'images/logo (2).png' %}" alt="CVSU Logo" height="36" style="display: block; margin: auto; filter: drop-shadow(0 0 2px #006d38);">
+                </span>
+                <span>CVSU Internship Matching</span>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'home' %}">Home</a>
+                    </li>
+                    {% if user.is_authenticated %}
+                        {% if user.is_student %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'dashboard:student_dashboard' %}">Dashboard</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'internship:matches' %}">Matches</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'chat:chat_list' %}">Messages</a>
+                            </li>
+                        {% elif user.is_adviser %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'dashboard:adviser_dashboard' %}">Dashboard</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'dashboard:student_list' %}">Students</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'chat:chat_list' %}">Messages</a>
+                            </li>
+                        {% elif user.is_coordinator %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'dashboard:coordinator_dashboard' %}">Dashboard</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'chat:chat_list' %}">Messages</a>
+                            </li>
+                        {% endif %}
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-user-circle"></i> {{ user.username }}
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                                {% if user.is_student %}
+                                    <li><a class="dropdown-item" href="{% url 'accounts:profile' %}">Profile</a></li>
+                                {% elif user.is_adviser %}
+                                    <li><a class="dropdown-item" href="{% url 'accounts:adviser_profile' %}">Profile</a></li>
+                                {% elif user.is_coordinator %}
+                                    <li><a class="dropdown-item" href="{% url 'accounts:coordinator_profile' %}">Profile</a></li>
+                                {% endif %}
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="{% url 'account_logout' %}">Logout</a></li>
+                            </ul>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="/accounts/login/">Login</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/accounts/register/student/">Register</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Messages -->
+    {% block hide_django_messages %}{% endblock %}
+    {% if not hide_django_messages %}
+    <div class="container mt-3">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+    {% endif %}
+    <script>
+      // Prevent auto-dismiss of alerts (Bootstrap 5 default is manual close)
+      // If you want to auto-dismiss after a period, uncomment below:
+      // setTimeout(function() {
+      //   var alerts = document.querySelectorAll('.alert');
+      //   alerts.forEach(function(alert) {
+      //     var bsAlert = new bootstrap.Alert(alert);
+      //     bsAlert.close();
+      //   });
+      // }, 8000);
+    </script>
+
+    <!-- Main Content -->
+    <main class="container py-4">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white py-4 mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4">
+                    <h5>CVSU Internship Matching</h5>
+                    <p>Connecting students with the right internship opportunities at Cavite State University Bacoor Campus.</p>
+                </div>
+                <div class="col-md-4">
+                    <h5>Quick Links</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="{% url 'home' %}" class="text-white">Home</a></li>
+                        {% if user.is_authenticated %}
+                            <li><a href="{% url 'account_logout' %}" class="text-white">Logout</a></li>
+                        {% else %}
+                            <li><a href="/auth/login/" class="text-white">Login</a></li>
+                            <li><a href="/accounts/register/student/" class="text-white">Register</a></li>
+                        {% endif %}
+                        <li><a href="{% url 'about' %}" class="text-white">About</a></li>
+                        <li><a href="{% url 'contact' %}" class="text-white">Contact</a></li>
+                        <li><a href="{% url 'faq' %}" class="text-white">FAQ</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <h5>Contact Us</h5>
+                    <address>
+                        <p><i class="fas fa-map-marker-alt"></i> Cavite State University - Bacoor Campus</p>
+                        <p><i class="fas fa-phone"></i> (046) 123-4567</p>
+                        <p><i class="fas fa-envelope"></i> ojt@cvsu.edu.ph</p>
+                    </address>
+                </div>
+            </div>
+            <hr>
+            <div class="text-center">
+                <p>&copy; {% now "Y" %} CVSU Internship Matching System. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap 5 JS Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Custom JS -->
+    <script src="/static/js/main.js"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

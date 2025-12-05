@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+  <h2>Delete Document</h2>
+  <p>Are you sure you want to delete <strong>{{ document.document_type.name }}</strong>?</p>
+  <form method="post">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-danger">Delete</button>
+    <a href="{% url 'accounts:profile' %}" class="btn btn-secondary">Cancel</a>
+    <a href="{% url 'accounts:profile' %}" class="btn btn-outline-secondary ms-2">Back to Profile</a>
+  </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Sticky footer fix for short pages
+(function() {
+  function adjustFooter() {
+    var body = document.body,
+        html = document.documentElement,
+        footer = document.querySelector('footer');
+    if (!footer) return;
+    var height = Math.max(body.scrollHeight, body.offsetHeight,
+                         html.clientHeight, html.scrollHeight, html.offsetHeight);
+    var footerHeight = footer.offsetHeight;
+    if (window.innerHeight > height - footerHeight) {
+      footer.style.position = 'fixed';
+      footer.style.left = 0;
+      footer.style.right = 0;
+      footer.style.bottom = 0;
+    } else {
+      footer.style.position = '';
+      footer.style.left = '';
+      footer.style.right = '';
+      footer.style.bottom = '';
+    }
+  }
+  window.addEventListener('resize', adjustFooter);
+  window.addEventListener('DOMContentLoaded', adjustFooter);
+  adjustFooter();
+})();
+</script>
+{% endblock %}

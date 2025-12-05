@@ -1,0 +1,13 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% block dashboard_title %}Upload Document{% endblock %}
+{% block dashboard_content %}
+<div class="container mt-4">
+    <h2>Upload: {{ required_doc.name }}</h2>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-primary">Upload</button>
+        <a href="{% url 'dashboard:student_dashboard' %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}

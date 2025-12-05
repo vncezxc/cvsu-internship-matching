@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% block title %}FAQ - CvSU Bacoor{% endblock %}
+{% block content %}
+<div class="container py-5">
+    <h1 class="fw-bold text-success mb-4">Frequently Asked Questions</h1>
+    <div class="accordion" id="faqAccordion">
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="faq1">
+                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse1" aria-expanded="true" aria-controls="collapse1">
+                    How do I register as a student?
+                </button>
+            </h2>
+            <div id="collapse1" class="accordion-collapse collapse show" aria-labelledby="faq1" data-bs-parent="#faqAccordion">
+                <div class="accordion-body">
+                    Click the Register button on the home page and fill out the required information. Use your CvSU email for faster verification.
+                </div>
+            </div>
+        </div>
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="faq2">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse2" aria-expanded="false" aria-controls="collapse2">
+                    How do I upload my OJT documents?
+                </button>
+            </h2>
+            <div id="collapse2" class="accordion-collapse collapse" aria-labelledby="faq2" data-bs-parent="#faqAccordion">
+                <div class="accordion-body">
+                    Go to your dashboard, scroll to the Documents Completion section, and upload the required files.
+                </div>
+            </div>
+        </div>
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="faq3">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse3" aria-expanded="false" aria-controls="collapse3">
+                    Who can I contact for technical support?
+                </button>
+            </h2>
+            <div id="collapse3" class="accordion-collapse collapse" aria-labelledby="faq3" data-bs-parent="#faqAccordion">
+                <div class="accordion-body">
+                    Email <a href="mailto:info@bacoor.cvsu.edu.ph">info@bacoor.cvsu.edu.ph</a> or visit the Contact page for more options.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

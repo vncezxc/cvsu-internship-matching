@@ -1,0 +1,53 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block dashboard_title %}DTR Submissions{% endblock %}
+
+{% block dashboard_content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">Weekly DTR Submissions</h5>
+            </div>
+            <div class="card-body">
+                {% if dtrs %}
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Student</th>
+                                <th>Week</th>
+                                <th>Hours</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        {% for dtr in dtrs %}
+                            <tr>
+                                <td>{{ dtr.student.user.get_full_name }}</td>
+                                <td>{{ dtr.week_start }} - {{ dtr.week_end }}</td>
+                                <td>{{ dtr.hours_rendered }}</td>
+                                <td>
+                                    {% if dtr.approved %}
+                                        <span class="badge bg-success">Approved</span>
+                                    {% else %}
+                                        <span class="badge bg-warning text-dark">Pending/Rejected</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{% url 'dashboard:review_dtr' dtr.id %}" class="btn btn-sm btn-outline-primary">Review</a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                    <div class="alert alert-info">No DTR submissions found.</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

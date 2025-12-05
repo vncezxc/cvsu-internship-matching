@@ -1,0 +1,5 @@
+{% extends 'chat/chat_room.html' %}
+{% block chat_room_context %}
+    {% with chat_title=chat_title chat_avatar=chat_avatar messages=messages room=chat_room current_user=current_user %}
+    {% endwith %}
+{% endblock %}

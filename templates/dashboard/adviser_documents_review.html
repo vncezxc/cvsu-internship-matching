@@ -1,0 +1,78 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load dashboard_extras %}
+{% block dashboard_title %}Student Documents Review{% endblock %}
+{% block dashboard_content %}
+<div class="container py-4">
+  <h3 class="mb-4">Student Documents Review</h3>
+  <div class="table-responsive">
+    <table class="table table-bordered align-middle">
+      <thead class="table-light">
+        <tr>
+          <th>Student</th>
+          <th>Document</th>
+          <th>Template</th>
+          <th>Student Upload</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for student in advisees %}
+          {% for doc in required_docs %}
+            <tr>
+              {% if forloop.first %}
+                <td rowspan="{{ required_docs|length }}">{{ student.get_full_name }}</td>
+              {% endif %}
+              <td>{{ doc.name }}</td>
+              <td>
+                {% if doc.template_file %}
+                  <a href="{{ doc.template_file.url }}" target="_blank" class="btn btn-sm btn-outline-primary">Download</a>
+                {% else %}
+                  <span class="text-muted">No template</span>
+                {% endif %}
+              </td>
+              <td>
+                {% with stu_doc=doc_map|get_item:student.id|get_item:doc.id %}
+                  {% if stu_doc %}
+                    <a href="{{ stu_doc.file.url }}" target="_blank" class="btn btn-sm btn-outline-success">View</a>
+                  {% else %}
+                    <span class="text-muted">Not uploaded</span>
+                  {% endif %}
+                {% endwith %}
+              </td>
+              <td>
+                {% with stu_doc=doc_map|get_item:student.id|get_item:doc.id %}
+                  {% if stu_doc %}
+                    {% if stu_doc.approved %}
+                      <span class="badge bg-success">Approved</span>
+                    {% else %}
+                      <span class="badge bg-warning text-dark">Pending</span>
+                    {% endif %}
+                  {% else %}
+                    <span class="badge bg-secondary">N/A</span>
+                  {% endif %}
+                {% endwith %}
+              </td>
+              <td>
+                {% with stu_doc=doc_map|get_item:student.id|get_item:doc.id %}
+                  {% if stu_doc and not stu_doc.approved %}
+                    <form method="post" style="display:inline;">
+                      {% csrf_token %}
+                      <input type="hidden" name="doc_id" value="{{ stu_doc.id }}">
+                      <button type="submit" class="btn btn-sm btn-success">Accept</button>
+                    </form>
+                  {% else %}
+                    <span class="text-muted">-</span>
+                  {% endif %}
+                {% endwith %}
+              </td>
+            </tr>
+          {% endfor %}
+        {% empty %}
+          <tr><td colspan="6" class="text-center">No students or documents found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

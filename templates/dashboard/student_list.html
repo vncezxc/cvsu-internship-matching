@@ -1,0 +1,136 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block dashboard_title %}Manage Students{% endblock %}
+
+{% block dashboard_content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">Filter Students</h5>
+            </div>
+            <div class="card-body">
+                <form method="get" class="row g-3">
+                    <div class="col-md-3">
+                        <label for="course" class="form-label">Course</label>
+                        <select name="course" id="course" class="form-select">
+                            <option value="">All Courses</option>
+                            {% for course in courses %}
+                                <option value="{{ course.id }}" {% if course_filter == course.id|stringformat:"s" %}selected{% endif %}>
+                                    {{ course.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="section" class="form-label">Section</label>
+                        <select name="section" id="section" class="form-select">
+                            <option value="">All Sections</option>
+                            {% for section in sections %}
+                                <option value="{{ section }}" {% if section_filter == section %}selected{% endif %}>
+                                    {{ section }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="status" class="form-label">OJT Status</label>
+                        <select name="status" id="status" class="form-select">
+                            <option value="">All Statuses</option>
+                            <option value="LOOKING" {% if status_filter == 'LOOKING' %}selected{% endif %}>Looking</option>
+                            <option value="WAITING" {% if status_filter == 'WAITING' %}selected{% endif %}>Waiting</option>
+                            <option value="ONGOING" {% if status_filter == 'ONGOING' %}selected{% endif %}>Ongoing</option>
+                            <option value="COMPLETED" {% if status_filter == 'COMPLETED' %}selected{% endif %}>Completed</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary me-2">Filter</button>
+                        <a href="{% url 'dashboard:student_list' %}" class="btn btn-secondary">Reset</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">Student List</h5>
+                <div>
+                    <a href="{% url 'dashboard:reports' %}" class="btn btn-light btn-sm">
+                        <i class="bi bi-file-earmark-arrow-down"></i> Export
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                {% if students %}
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Course</th>
+                                    <th>Section</th>
+                                    <th>OJT Status</th>
+                                    <th>Requirements</th>
+                                    <th>OJT Hours</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for student in students %}
+                                <tr>
+                                    <td>{{ student.user.get_full_name }}</td>
+                                    <td>{{ student.user.email }}</td>
+                                    <td>{{ student.course.name }}</td>
+                                    <td>{{ student.section }}</td>
+                                    <td>
+                                        <span class="badge bg-{{ student.get_ojt_status_color }} text-white">
+                                            {{ student.get_ojt_status_display }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if student.requirements_complete %}
+                                            <span class="badge bg-success">
+                                                <i class="bi bi-check2-circle"></i> Complete
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-danger" data-bs-toggle="tooltip" title="{{ student.missing_requirements|join:', ' }}">
+                                                <i class="bi bi-exclamation-circle"></i> Missing
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ student.ojt_hours_completed }} / {{ student.ojt_hours_required }}</td>
+                                    <td>
+                                        <a href="{% url 'dashboard:student_detail' student.id %}" class="btn btn-sm btn-primary">
+                                            <i class="bi bi-eye"></i> View
+                                        </a>
+                                        <a href="{% url 'dashboard:update_student_status' student.id %}" class="btn btn-sm btn-outline-secondary">
+                                            <i class="bi bi-pencil"></i> Status
+                                        </a>
+                                        {# Only advisers can update OJT hours. #}
+                                        {% if request.user.is_adviser %}
+                                        <a href="{% url 'dashboard:update_ojt_hours' student.id %}" class="btn btn-sm btn-outline-secondary">
+                                            <i class="bi bi-clock"></i> Hours
+                                        </a>
+                                        {% endif %}
+                                        <a href="{% url 'chat:adviser_student_chat' student.user.id %}" class="btn btn-sm btn-outline-info">
+                                            <i class="bi bi-chat"></i> Chat
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="alert alert-info">No students found matching the selected criteria.</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

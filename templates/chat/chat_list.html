@@ -1,0 +1,246 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}My Chats{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col">
+            <h2><i class="fas fa-comments me-2"></i>My Chats</h2>
+            <p class="text-muted">Connect with advisers, coordinators, and students</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-4 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">Chat Rooms</h5>
+                    <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#newChatModal">
+                        <i class="fas fa-plus"></i> New Chat
+                    </button>
+                </div>
+                <div class="list-group list-group-flush" style="max-height:60vh;overflow-y:auto;">
+                    {% if rooms_info %}
+                        {% for info in rooms_info %}
+                            <a href="{% url 'chat:room' info.id %}" class="list-group-item list-group-item-action d-flex align-items-center gap-2 py-3 {% if info.room.id == active_room.id %}active{% endif %}">
+                                <img src="{{ info.avatar }}" class="rounded-circle" style="width:40px;height:40px;object-fit:cover;">
+                                <div class="flex-grow-1">
+                                    <div class="fw-semibold">{{ info.name }}</div>
+                                    <div class="small text-muted text-truncate" style="max-width:180px;">
+                                        {% if info.last_message %}
+                                            {% if info.last_message.sender == request.user %}
+                                                <span class="text-muted">You:</span>
+                                            {% else %}
+                                                <span class="text-muted">{{ info.last_message.sender.get_full_name|default:info.last_message.sender.username }}:</span>
+                                            {% endif %}
+                                            {{ info.last_message.content|truncatechars:40 }}
+                                        {% else %}
+                                            <span class="text-muted">No messages yet</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="text-end">
+                                    {% if info.last_message %}
+                                        <small class="text-muted d-block">{{ info.last_message.timestamp|date:"h:i A" }}</small>
+                                    {% endif %}
+                                    {% if info.unread_count > 0 %}
+                                        <span class="badge bg-danger rounded-pill">{{ info.unread_count }}</span>
+                                    {% endif %}
+                                </div>
+                            </a>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center py-4 text-muted">No chats yet.</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-8">
+            {% if active_room %}
+                <div class="card shadow-sm">
+                    <div class="card-header bg-white">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="card-title mb-0">
+                                {% for participant in active_room.participants.all %}
+                                    {% if participant != request.user %}
+                                        {{ participant.get_full_name|default:participant.username }}{% if not forloop.last %}, {% endif %}
+                                    {% endif %}
+                                {% endfor %}
+                            </h5>
+                            <div>
+                                <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="tooltip" title="Call">
+                                    <i class="fas fa-phone"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-secondary ms-1" data-bs-toggle="tooltip" title="Video Call">
+                                    <i class="fas fa-video"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body chat-messages" id="chat-messages" style="height: 400px; overflow-y: auto;">
+                        {% for message in messages %}
+                            <div class="message mb-3 {% if message.sender == request.user %}sent{% else %}received{% endif %}">
+                                <div class="message-content {% if message.sender == request.user %}bg-primary text-white{% else %}bg-light{% endif %} p-2 rounded">
+                                    {{ message.content }}
+                                </div>
+                                <div class="message-meta d-flex justify-content-between align-items-center small text-muted mt-1">
+                                    <span>{{ message.sender.get_full_name|default:message.sender.username }}</span>
+                                    <span>{{ message.timestamp|date:"h:i A" }}</span>
+                                </div>
+                            </div>
+                        {% empty %}
+                            <div class="text-center py-5 text-muted">
+                                <i class="far fa-comments fa-3x mb-3"></i>
+                                <p>No messages yet. Start the conversation!</p>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <div class="card-footer bg-white">
+                        <form id="chat-form" class="d-flex">
+                            <input type="text" id="chat-message-input" class="form-control me-2" placeholder="Type a message...">
+                            <button type="submit" id="chat-message-submit" class="btn btn-primary">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            {% else %}
+                <div class="card shadow-sm">
+                    <div class="card-body text-center py-5">
+                        <i class="far fa-comment-alt fa-5x text-muted mb-4"></i>
+                        <h4>Select a conversation</h4>
+                        <p class="text-muted">Choose an existing conversation or start a new one</p>
+                        <button class="btn btn-primary mt-2" data-bs-toggle="modal" data-bs-target="#newChatModal">
+                            <i class="fas fa-plus me-1"></i> New Chat
+                        </button>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- New Chat Modal -->
+<div class="modal fade" id="newChatModal" tabindex="-1" aria-labelledby="newChatModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="newChatModalLabel">Start a New Conversation</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form action="{% url 'chat:new_chat' %}" method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="user-select" class="form-label">Select a user to chat with</label>
+                        <select class="form-select" id="user-select" name="user_id" required>
+                            <option value="" selected disabled>Choose a user...</option>
+                            
+                            {% if advisers %}
+                            <optgroup label="OJT Advisers">
+                                {% for adviser in advisers %}
+                                <option value="{{ adviser.id }}">{{ adviser.get_full_name|default:adviser.username }}</option>
+                                {% endfor %}
+                            </optgroup>
+                            {% endif %}
+                            
+                            {% if coordinators %}
+                            <optgroup label="OJT Coordinators">
+                                {% for coordinator in coordinators %}
+                                <option value="{{ coordinator.id }}">{{ coordinator.get_full_name|default:coordinator.username }}</option>
+                                {% endfor %}
+                            </optgroup>
+                            {% endif %}
+                            
+                            {% if students %}
+                            <optgroup label="Students">
+                                {% for student in students %}
+                                <option value="{{ student.id }}">{{ student.get_full_name|default:student.username }}</option>
+                                {% endfor %}
+                            </optgroup>
+                            {% endif %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="initial-message" class="form-label">Initial message (optional)</label>
+                        <textarea class="form-control" id="initial-message" name="initial_message" rows="3"></textarea>
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">Start Conversation</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+{% if active_room %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Scroll to bottom of messages
+        const messagesContainer = document.getElementById('chat-messages');
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        
+        // WebSocket setup
+        const roomId = {{ active_room.id }};
+        const chatSocket = new WebSocket(
+            'ws://' + window.location.host + '/ws/chat/' + roomId + '/'
+        );
+        
+        chatSocket.onmessage = function(e) {
+            const data = JSON.parse(e.data);
+            addMessage(data.message, data.sender_id === {{ request.user.id }});
+        };
+        
+        chatSocket.onclose = function(e) {
+            console.error('Chat socket closed unexpectedly');
+        };
+        
+        document.getElementById('chat-message-input').focus();
+        document.getElementById('chat-message-input').onkeyup = function(e) {
+            if (e.key === 'Enter') {
+                document.getElementById('chat-message-submit').click();
+            }
+        };
+        
+        document.getElementById('chat-form').onsubmit = function(e) {
+            e.preventDefault();
+            const messageInputDom = document.getElementById('chat-message-input');
+            const message = messageInputDom.value.trim();
+            
+            if (message) {
+                chatSocket.send(JSON.stringify({
+                    'message': message
+                }));
+                messageInputDom.value = '';
+            }
+        };
+        
+        function addMessage(content, isSent) {
+            const currentTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            const senderName = isSent ? 'You' : '{{ participant_name }}';
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message mb-3 ${isSent ? 'sent' : 'received'}`;
+            
+            messageDiv.innerHTML = `
+                <div class="message-content ${isSent ? 'bg-primary text-white' : 'bg-light'} p-2 rounded">
+                    ${content}
+                </div>
+                <div class="message-meta d-flex justify-content-between align-items-center small text-muted mt-1">
+                    <span>${senderName}</span>
+                    <span>${currentTime}</span>
+                </div>
+            `;
+            
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+    });
+</script>
+{% endif %}
+{% endblock %}
+{% endblock %}

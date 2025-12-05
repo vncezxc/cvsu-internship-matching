@@ -1,0 +1,249 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load file_extras %}
+
+{% block dashboard_title %}Student Details{% endblock %}
+
+{% block dashboard_content %}
+<div class="row mb-4">
+    <div class="col-12 d-flex justify-content-between align-items-center">
+        <a href="{% url 'dashboard:student_list' %}" class="btn btn-outline-primary">
+            <i class="bi bi-arrow-left"></i> Back to Student List
+        </a>
+        <div>
+            <a href="{% url 'dashboard:update_student_status' student.id %}" class="btn btn-outline-secondary">
+                <i class="bi bi-pencil"></i> Update Status
+            </a>
+            {# Only advisers can update OJT hours. #}
+            {% if request.user.is_adviser %}
+            <a href="{% url 'dashboard:update_ojt_hours' student.id %}" class="btn btn-outline-info">
+                <i class="bi bi-clock"></i> Update Hours
+            </a>
+            {% endif %}
+            <a href="{% url 'chat:adviser_student_chat' student.user.id %}" class="btn btn-outline-success">
+                <i class="bi bi-chat"></i> Start Chat
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">Student Information</h5>
+            </div>
+            <div class="card-body">
+                {% if student.profile_picture %}
+                    <div class="text-center mb-3">
+                        <img src="{{ student.profile_picture.url }}" alt="Profile Picture" class="rounded-circle img-fluid" style="max-width: 150px;">
+                    </div>
+                {% endif %}
+                
+                <h5 class="mb-3">{{ student.user.get_full_name }}</h5>
+                
+                <div class="mb-3">
+                    <p class="mb-1"><strong>Student ID:</strong> {{ student.student_id }}</p>
+                    <p class="mb-1"><strong>Email:</strong> {{ student.user.email }}</p>
+                    <p class="mb-1"><strong>Course:</strong> {{ student.course.name }}</p>
+                    <p class="mb-1"><strong>Section:</strong> {{ student.section }}</p>
+                    <p class="mb-1"><strong>Year Level:</strong> {{ student.year_level }}</p>
+                    <p class="mb-1"><strong>Contact:</strong> {{ student.phone_number }}</p>
+                </div>
+                
+                <div class="progress mt-4 mb-2">
+                    <div class="progress-bar" role="progressbar" style="width: {{ profile_completion_percentage }}%;"
+                         aria-valuenow="{{ profile_completion_percentage }}" aria-valuemin="0" aria-valuemax="100">
+                        {{ profile_completion_percentage }}%
+                    </div>
+                </div>
+                <p class="text-muted small">Profile Completion</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">OJT Status</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Current Status</h6>
+                        <p>
+                            <span class="badge bg-{{ student.get_ojt_status_color }} fs-6 text-white">
+                                {{ student.get_ojt_status_display }}
+                            </span>
+                        </p>
+                        <p class="mt-3">
+                            <a href="{% url 'dashboard:update_student_status' student.id %}" class="btn btn-sm btn-outline-primary">
+                                Change Status
+                            </a>
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>OJT Hours Completed</h6>
+                        <div class="d-flex align-items-center">
+                            <h3 class="me-2">{{ student.ojt_hours_completed }} / {{ student.ojt_hours_required }}</h3>
+                            <span class="text-muted">hours</span>
+                        </div>
+                        <div class="progress mt-2 mb-3">
+                            <div class="progress-bar bg-success" role="progressbar" 
+                                 style="width: {% widthratio student.ojt_hours_completed student.ojt_hours_required 100 %}%;" 
+                                 aria-valuenow="{% widthratio student.ojt_hours_completed student.ojt_hours_required 100 %}" 
+                                 aria-valuemin="0" aria-valuemax="100">
+                                {% widthratio student.ojt_hours_completed student.ojt_hours_required 100 %}%
+                            </div>
+                        </div>
+                        {# Only advisers can update OJT hours. #}
+                        {% if request.user.is_adviser %}
+                        <p>
+                            <a href="{% url 'dashboard:update_ojt_hours' student.id %}" class="btn btn-sm btn-outline-primary">
+                                Update Hours
+                            </a>
+                        </p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">Skill Set</h5>
+            </div>
+            <div class="card-body">
+                {% if student.skills.all %}
+                    <div class="mb-3">
+                        {% for skill in student.skills.all %}
+                            <span class="badge bg-primary text-white me-2 mb-2">{{ skill.name }}</span>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-muted">No skills added yet.</p>
+                {% endif %}
+                
+                {% if student.bio %}
+                    <h6 class="mt-4">Bio</h6>
+                    <p>{{ student.bio }}</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">Applications</h5>
+            </div>
+            <div class="card-body">
+                {% if applications %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Company</th>
+                                    <th>Position</th>
+                                    <th>Applied Date</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for application in applications %}
+                                <tr>
+                                    <td>{{ application.internship.company.name }}</td>
+                                    <td>{{ application.internship.title }}</td>
+                                    <td>{{ application.applied_at|date:"M d, Y" }}</td>
+                                    <td>
+                                        <span class="badge bg-{{ application.get_status_color }} text-black">
+                                            {{ application.get_status_display }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'internship:application_detail' application.id %}" class="btn btn-sm btn-primary">View</a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="alert alert-info">
+                        This student hasn't applied to any internships yet.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">Required Documents <span class="badge bg-success ms-2">{{ document_completion_percent }}%</span></h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered align-middle">
+                        <thead>
+                            <tr>
+                                <th>Document</th>
+                                <th>Description</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for doc in document_status %}
+                            <tr>
+                                <td>{{ doc.required.name }}</td>
+                                <td>{{ doc.required.description }}</td>
+                                <td>
+                                    {% if doc.uploaded %}
+                                        <span class="badge bg-success text-white">Uploaded</span>
+                                    {% else %}
+                                        <span class="badge bg-danger text-white">Missing</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if doc.uploaded %}
+                                        {% if doc.file|file_ext:'.jpg' or doc.file|file_ext:'.jpeg' or doc.file|file_ext:'.png' %}
+                                            <a href="{{ doc.file }}" target="_blank">
+                                                <img src="{{ doc.file }}" alt="Preview" style="max-width: 80px; max-height: 80px; border-radius: 4px; border: 1px solid #ddd; margin-right: 8px;">
+                                            </a>
+                                        {% elif doc.file|file_ext:'.pdf' %}
+                                            <a href="{{ doc.file }}" target="_blank">
+                                                <embed src="{{ doc.file }}" type="application/pdf" width="80" height="80" style="border-radius: 4px; border: 1px solid #ddd; margin-right: 8px;" />
+                                            </a>
+                                        {% elif doc.file|file_ext:'.xlsx' or doc.file|file_ext:'.xls' %}
+                                            <span class="badge bg-success"><i class="bi bi-file-earmark-excel"></i> Excel</span>
+                                        {% endif %}
+                                        <a href="{{ doc.file }}" class="btn btn-sm btn-outline-secondary" target="_blank">View</a>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="mt-3">
+                    <div class="progress">
+                        <div class="progress-bar bg-success" role="progressbar" style="width: {{ document_completion_percent }}%;" aria-valuenow="{{ document_completion_percent }}" aria-valuemin="0" aria-valuemax="100">
+                            {{ document_completion_percent }}%
+                        </div>
+                    </div>
+                </div>
+                {% if missing_documents %}
+                <div class="alert alert-warning mt-3">
+                    <strong>Missing Documents:</strong> {{ missing_documents|join:', ' }}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

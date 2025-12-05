@@ -1,0 +1,13 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% block dashboard_title %}Delete Required Document{% endblock %}
+{% block dashboard_content %}
+<div class="container mt-4">
+    <h2>Delete Required Document</h2>
+    <p>Are you sure you want to delete <strong>{{ document.name }}</strong>?</p>
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Delete</button>
+        <a href="{% url 'dashboard:required_documents_list' %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}

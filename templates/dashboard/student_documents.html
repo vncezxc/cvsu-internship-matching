@@ -1,0 +1,71 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load dashboard_extras %}
+{% block dashboard_title %}My OJT Documents{% endblock %}
+{% block dashboard_content %}
+<div class="container py-4">
+  <h3 class="mb-4">My OJT Documents</h3>
+  <div class="table-responsive">
+    <table class="table table-bordered align-middle">
+      <thead class="table-light">
+        <tr>
+          <th>Document</th>
+          <th>Template</th>
+          <th>My Upload</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for doc in required_docs %}
+          <tr>
+            <td>{{ doc.name }}</td>
+            <td>
+              {% if doc.template_file %}
+                <a href="{{ doc.template_file.url }}" target="_blank" class="btn btn-sm btn-outline-primary">Download</a>
+              {% else %}
+                <span class="text-muted">No template</span>
+              {% endif %}
+            </td>
+            <td>
+              {% with stu_doc=doc_map|get_item:doc.id %}
+                {% if stu_doc %}
+                  <a href="{{ stu_doc.file.url }}" target="_blank" class="btn btn-sm btn-outline-success">View</a>
+                {% else %}
+                  <span class="text-muted">Not uploaded</span>
+                {% endif %}
+              {% endwith %}
+            </td>
+            <td>
+              {% with stu_doc=doc_map|get_item:doc.id %}
+                {% if stu_doc %}
+                  {% if stu_doc.approved %}
+                    <span class="badge bg-success">Approved</span>
+                  {% else %}
+                    <span class="badge bg-warning text-dark">Pending</span>
+                  {% endif %}
+                {% else %}
+                  <span class="badge bg-secondary">N/A</span>
+                {% endif %}
+              {% endwith %}
+            </td>
+            <td>
+              <form method="post" enctype="multipart/form-data" style="display:inline;">
+                {% csrf_token %}
+                <input type="hidden" name="doc_id" value="{{ doc.id }}">
+                <input type="file" name="file" accept=".pdf,.docx" required class="form-control form-control-sm mb-2">
+                <button type="submit" class="btn btn-sm btn-primary">Upload</button>
+              </form>
+              {% if doc.name|lower == 'moa' and doc.template_file %}
+                <a href="{% url 'dashboard:edit_moa' doc.id %}" class="btn btn-sm btn-warning mt-2">Edit MOA</a>
+                <a href="{% url 'dashboard:download_edited_moa' doc.id %}" class="btn btn-sm btn-info mt-2">Download Edited MOA</a>
+              {% endif %}
+            </td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="5" class="text-center">No required documents found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

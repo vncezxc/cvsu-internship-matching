@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+  <h2>My Chats (Adviser)</h2>
+  <div class="row">
+    <div class="col-md-6">
+      <h4>Students</h4>
+      <ul class="list-group">
+        {% for student in students %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          {{ student.get_full_name }}
+          <a href="{% url 'chat:adviser_student_chat' student.id %}" class="btn btn-primary btn-sm">Chat</a>
+        </li>
+        {% empty %}
+        <li class="list-group-item">No students found.</li>
+        {% endfor %}
+      </ul>
+    </div>
+    <div class="col-md-6">
+      <h4>Coordinators</h4>
+      <ul class="list-group">
+        {% for coordinator in coordinators %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          {{ coordinator.get_full_name }}
+          <a href="{% url 'chat:adviser_coordinator_chat' coordinator.id %}" class="btn btn-primary btn-sm">Chat</a>
+        </li>
+        {% empty %}
+        <li class="list-group-item">No coordinators found.</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+  <div class="mt-4">
+    <h4>Chat Rooms</h4>
+    <ul class="list-group">
+      {% for room in chat_rooms %}
+      <li class="list-group-item">{{ room }}</li>
+      {% empty %}
+      <li class="list-group-item">No chat rooms yet.</li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+  <h2>Update Location</h2>
+  <form method="post">
+    {% csrf_token %}
+    {{ form|crispy }}
+    <div id="map" style="height: 350px; margin-bottom: 1rem;"></div>
+    <button type="submit" class="btn btn-primary">Update</button>
+    <a href="{% url 'accounts:profile' %}" class="btn btn-secondary">Cancel</a>
+  </form>
+</div>
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    var latInput = document.getElementById('id_latitude');
+    var lngInput = document.getElementById('id_longitude');
+    var lat = parseFloat(latInput.value) || 14.2294;
+    var lng = parseFloat(lngInput.value) || 120.9367;
+    var map = L.map('map').setView([lat, lng], 15);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '© OpenStreetMap'
+    }).addTo(map);
+    var marker = L.marker([lat, lng], {draggable:true}).addTo(map);
+    function updateInputs(e) {
+      var pos = e.latlng || marker.getLatLng();
+      latInput.value = pos.lat.toFixed(6);
+      lngInput.value = pos.lng.toFixed(6);
+      marker.setLatLng(pos);
+    }
+    map.on('click', updateInputs);
+    marker.on('dragend', updateInputs);
+  });
+</script>
+{% endblock %}

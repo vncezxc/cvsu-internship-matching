@@ -1,0 +1,196 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Student Profile{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-lg-4">
+            <!-- Profile Card -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-body text-center">
+                    <div class="mb-4">
+                        {% if profile.profile_image %}
+                            <img src="{{ profile.profile_image.url }}" alt="Profile Image" class="rounded-circle mx-auto mb-4" style="width: 120px; height: 120px; object-fit: cover; display: block;">
+                        {% else %}
+                            <div class="avatar-placeholder bg-primary text-white rounded-circle mx-auto mb-4" style="width: 120px; height: 120px; display: flex; align-items: center; justify-content: center; font-size: 3rem;">
+                                {{ profile.user.first_name|first }}{{ profile.user.last_name|first }}
+                            </div>
+                        {% endif %}
+                        <h4>{{ profile.user.get_full_name }}</h4>
+                        <p class="text-muted">Student ID: {{ profile.student_id }}</p>
+                        <p class="text-muted">
+                            <i class="fas fa-user-graduate me-2"></i>Student
+                        </p>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'accounts:edit_profile' %}" class="btn btn-primary">
+                            <i class="fas fa-user-edit me-2"></i>Edit Profile
+                        </a>
+                        <a href="{% url 'accounts:change_password' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-key me-2"></i>Change Password
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Contact Information -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-white">
+                    <h5 class="card-title mb-0">Contact Information</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled">
+                        <li class="mb-2">
+                            <i class="fas fa-envelope me-2"></i>
+                            <a href="mailto:{{ profile.user.email }}">{{ profile.user.email }}</a>
+                        </li>
+                        <li>
+                            <i class="fas fa-map-marker-alt me-2"></i>
+                            {% if profile.street %}
+                                {{ profile.get_full_address }}
+                            {% else %}
+                                <span class="text-muted">No address provided</span>
+                            {% endif %}
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Academic Information -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-white">
+                    <h5 class="card-title mb-0">Academic Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <h6>Student ID</h6>
+                        <p>{{ profile.student_id }}</p>
+                    </div>
+                    <div class="mb-3">
+                        <h6>Course</h6>
+                        {% if profile.course %}
+                            <p>{{ profile.course.name }} ({{ profile.course.code }})</p>
+                        {% else %}
+                            <p class="text-muted">No course selected</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <h6>Year & Section</h6>
+                        <p>{{ profile.get_year_level_display }}{% if profile.section %} - {{ profile.section }}{% endif %}</p>
+                    </div>
+                    
+                </div>
+            </div>
+            
+            <!-- Location -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-white">
+                    <h5 class="card-title mb-0">Location</h5>
+                </div>
+                <div class="card-body">
+                    {% if profile.latitude and profile.longitude %}
+                    <div id="student-map" style="height: 200px;"></div>
+                    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+                    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+                    <script>
+                      document.addEventListener('DOMContentLoaded', function() {
+                        var map = L.map('student-map').setView([{{ profile.latitude }}, {{ profile.longitude }}], 16);
+                        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                          maxZoom: 19,
+                          attribution: '© OpenStreetMap'
+                        }).addTo(map);
+                        L.marker([{{ profile.latitude }}, {{ profile.longitude }}]).addTo(map);
+                      });
+                    </script>
+                    {% else %}
+                    <p class="text-muted">No location set.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-8">
+            <!-- OJT Progress -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">OJT Progress</h5>
+                    <span class="badge bg-primary text-white">{{ profile.get_progress_percentage }}% Complete</span>
+                </div>
+                <div class="card-body">
+                    <div class="progress mb-3" style="height: 20px;">
+                        <div class="progress-bar" role="progressbar" style="width: {{ profile.get_progress_percentage }}%;"
+                             aria-valuenow="{{ profile.get_progress_percentage }}" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                    <div class="d-flex justify-content-between text-muted">
+                        <span>{{ profile.ojt_hours_completed }} hours completed</span>
+                        <span>{{ profile.ojt_hours_required }} hours required</span>
+                    </div>
+                    <div class="mt-3 text-center">
+                        <form method="post" action="{% url 'accounts:update_ojt_status' %}" class="d-inline-block">
+                            {% csrf_token %}
+                            <label for="ojt_status" class="form-label fw-bold">OJT Status:</label>
+                            <select name="ojt_status" id="ojt_status" class="form-select d-inline-block w-auto align-middle" style="min-width: 150px;">
+                                {% for value, label in profile.student_ojt_status_choices %}
+                                    <option value="{{ value }}" {% if profile.ojt_status == value %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                            <button type="submit" class="btn btn-sm btn-success ms-2">Update</button>
+                        </form>
+                        <span class="badge bg-{{ profile.get_ojt_status_color }} ms-2 text-white" style="font-size:1rem;">{{ profile.get_ojt_status_display }}</span>
+                    </div>
+                    <div class="mt-3 text-center">
+                        <a href="{% url 'internship:applications' %}" class="btn btn-outline-primary me-2">
+                            <i class="fas fa-file-alt me-1"></i> Applications
+                        </a>
+                        <a href="{% url 'internship:matches' %}" class="btn btn-primary">
+                            <i class="fas fa-search me-1"></i> Find Internships
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Skills -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">Skills</h5>
+                    <a href="{% url 'accounts:manage_skills' %}" class="btn btn-sm btn-primary">
+                        <i class="fas fa-plus me-1"></i> Add Skills
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if profile.skills.all %}
+                        <div class="mb-3">
+                            {% for skill in profile.skills.all %}
+                                <span class="badge bg-primary text-white me-2 mb-2">{{ skill.name }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            You haven't added any skills yet. Adding skills will help match you with the right internships.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Documents -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">OJT Documents</h5>
+                    <a href="{% url 'dashboard:student_documents_view' %}" class="btn btn-sm btn-warning">
+                        <i class="fas fa-folder-open me-1"></i> Manage OJT Documents
+                    </a>
+                </div>
+                <div class="card-body">
+                    <p>View, download templates, and upload your required OJT documents for adviser review.</p>
+                    <a href="{% url 'dashboard:student_documents_view' %}" class="btn btn-outline-warning">Go to My OJT Documents</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

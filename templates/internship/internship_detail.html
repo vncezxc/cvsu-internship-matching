@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+{% block title %}Internship Details{% endblock %}
+{% block content %}
+<div class="container py-4">
+  <div class="row g-4">
+    <div class="col-lg-8">
+      <div class="card shadow-sm mb-4 border-0">
+        <div class="card-header bg-gradient bg-primary text-white d-flex align-items-center justify-content-between rounded-top">
+          <div>
+            <h3 class="mb-0 fw-bold">{{ internship.title }}</h3>
+            <div class="small mt-1">
+              <span class="me-2"><i class="bi bi-building"></i> <a class="text-white text-decoration-underline" href="{% url 'internship:company_detail' internship.company.id %}">{{ internship.company.name }}</a></span>
+              <span class="me-2"><i class="bi bi-people"></i> {{ internship.slots_available }} slots</span>
+              <span class="me-2"><i class="bi bi-calendar-plus"></i> {{ internship.created_at|date:"M d, Y h:i A" }}</span>
+              <span><i class="bi bi-calendar-check"></i> Updated: {{ internship.updated_at|date:"M d, Y h:i A" }}</span>
+            </div>
+          </div>
+          <span class="badge fs-6 px-3 py-2 {% if internship.is_active %}bg-success text-dark{% else %}bg-secondary text-dark{% endif %}">{% if internship.is_active %}Active{% else %}Inactive{% endif %}</span>
+        </div>
+        <div class="card-body pb-2">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <div class="mb-2">
+                <strong><i class="bi bi-mortarboard-fill text-primary me-1"></i> Recommended Courses:</strong>
+                <div class="d-flex flex-wrap gap-1 mt-1">
+                  {% for course in internship.recommended_courses.all %}
+                    <span class="badge bg-info text-dark px-2 py-1"><i class="bi bi-bookmark-star-fill me-1"></i>{{ course.name }}</span>
+                  {% empty %}
+                    <span class="text-muted"><i class="bi bi-dash-circle"></i> None</span>
+                  {% endfor %}
+                </div>
+              </div>
+              <div class="mb-2">
+                <strong><i class="bi bi-tools text-warning me-1"></i> Required Skills:</strong>
+                <div class="d-flex flex-wrap gap-1 mt-1">
+                  {% for skill in internship.required_skills.all %}
+                    <span class="badge bg-warning text-dark px-2 py-1"><i class="bi bi-lightning-charge-fill me-1"></i>{{ skill.name }}</span>
+                  {% empty %}
+                    <span class="text-muted"><i class="bi bi-dash-circle"></i> None</span>
+                  {% endfor %}
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="mb-2"><strong>Description:</strong>
+                <div class="text-muted small border rounded p-2 bg-light"><i class="bi bi-card-text"></i> {{ internship.description|linebreaksbr }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card shadow-sm border-0">
+        <div class="card-header bg-light d-flex align-items-center justify-content-between rounded-top">
+          <h5 class="mb-0 fw-semibold">Applications</h5>
+          <span class="badge bg-primary text-dark">{{ applications|length }} total</span>
+        </div>
+        <div class="card-body p-0">
+          {% if applications %}
+            <div class="table-responsive">
+              <table class="table table-sm table-hover align-middle mb-0">
+                <thead class="table-light">
+                  <tr>
+                    <th>Student</th>
+                    <th>Match</th>
+                    <th>Status</th>
+                    <th>Applied</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for app in applications %}
+                  <tr>
+                    <td>{{ app.student.get_full_name }}</td>
+                    <td><span class="fw-bold">{{ app.match_score }}%</span></td>
+                    <td><span class="badge bg-{{ app.get_status_display|lower }} text-dark">{{ app.get_status_display }}</span></td>
+                    <td class="text-muted small">{{ app.applied_at|date:"M d, Y h:i A" }}</td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          {% else %}
+            <div class="alert alert-info m-0">No applications yet.</div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-4">
+      <div class="card shadow-sm border-0">
+        <div class="card-header bg-light rounded-top">
+          <h5 class="mb-0 fw-semibold">Company Info</h5>
+        </div>
+        <div class="card-body">
+          <div class="mb-2"><strong><i class="bi bi-building"></i> Name:</strong> {{ internship.company.name }}</div>
+          <div class="mb-2"><strong><i class="bi bi-envelope"></i> Email:</strong> {{ internship.company.company_email }}</div>
+          <div class="mb-2"><strong><i class="bi bi-telephone"></i> Phone:</strong> {{ internship.company.phone_number }}</div>
+          <div class="mb-2"><strong><i class="bi bi-geo-alt"></i> Address:</strong> <span class="text-muted small">{{ internship.company.get_full_address }}</span></div>
+          {% if internship.company.location_link %}
+            <a href="{{ internship.company.location_link }}" target="_blank" class="btn btn-outline-primary btn-sm mt-2 w-100"><i class="bi bi-geo-alt"></i> View on Map</a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<style>
+  .card-header.bg-gradient {
+    background: linear-gradient(90deg, #0d6efd 0%, #0a58ca 100%);
+  }
+</style>
+{% endblock %}

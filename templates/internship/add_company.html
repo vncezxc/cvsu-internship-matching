@@ -1,0 +1,246 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% block title %}Add Company{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'internship:companies' %}">Companies</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Add Company</li>
+                </ol>
+            </nav>
+            <h2 class="mb-3"><i class="fas fa-plus-circle me-2"></i>Add New Company</h2>
+        </div>
+    </div>
+    <div class="row g-3">
+        <div class="col-lg-8">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Company Information</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data" novalidate>
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                {% for error in form.non_field_errors %}
+                                    <div>{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        {% csrf_token %}
+                        <div class="row g-2">
+                            <div class="col-md-6">
+                                {{ form.name|as_crispy_field }}
+                                {% if form.name.errors %}
+                                    <div class="text-danger small">{% for error in form.name.errors %}{{ error }}<br>{% endfor %}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.company_email|as_crispy_field }}
+                                {% if form.company_email.errors %}
+                                    <div class="text-danger small">{% for error in form.company_email.errors %}{{ error }}<br>{% endfor %}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.company_type|as_crispy_field }}
+                                {% if form.company_type.errors %}
+                                    <div class="text-danger small">{% for error in form.company_type.errors %}{{ error }}<br>{% endfor %}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.hr_email|as_crispy_field }}
+                                {% if form.hr_email.errors %}
+                                    <div class="text-danger small">{% for error in form.hr_email.errors %}{{ error }}<br>{% endfor %}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.phone_number|as_crispy_field }}
+                                {% if form.phone_number.errors %}
+                                    <div class="text-danger small">{% for error in form.phone_number.errors %}{{ error }}<br>{% endfor %}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-12">
+                                {{ form.description|as_crispy_field }}
+                                {% if form.description.errors %}
+                                    <div class="text-danger small">{% for error in form.description.errors %}{{ error }}<br>{% endfor %}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.status|as_crispy_field }}
+                                {% if form.status.errors %}
+                                    <div class="text-danger small">{% for error in form.status.errors %}{{ error }}<br>{% endfor %}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.has_incentives|as_crispy_field }}
+                                {% if form.has_incentives.errors %}
+                                    <div class="text-danger small">{% for error in form.has_incentives.errors %}{{ error }}<br>{% endfor %}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-12">
+                                {{ form.incentives_details|as_crispy_field }}
+                                {% if form.incentives_details.errors %}
+                                    <div class="text-danger small">{% for error in form.incentives_details.errors %}{{ error }}<br>{% endfor %}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.logo|as_crispy_field }}
+                                {% if form.logo.errors %}
+                                    <div class="text-danger small">{% for error in form.logo.errors %}{{ error }}<br>{% endfor %}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.banner_image|as_crispy_field }}
+                                {% if form.banner_image.errors %}
+                                    <div class="text-danger small">{% for error in form.banner_image.errors %}{{ error }}<br>{% endfor %}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-12">
+                                {{ form.location_link|as_crispy_field }}
+                                {% if form.location_link.errors %}
+                                    <div class="text-danger small">{% for error in form.location_link.errors %}{{ error }}<br>{% endfor %}</div>
+                                {% endif %}
+                            </div>
+                            <input type="hidden" name="latitude" id="id_latitude" value="{{ form.latitude.value|default_if_none:'' }}">
+                            <input type="hidden" name="longitude" id="id_longitude" value="{{ form.longitude.value|default_if_none:'' }}">
+                        </div>
+                        <hr>
+                        <div class="row g-2">
+                            <div class="col-md-6">{{ form.street|as_crispy_field }}</div>
+                            <div class="col-md-6">{{ form.barangay|as_crispy_field }}</div>
+                            <div class="col-md-6">{{ form.city|as_crispy_field }}</div>
+                            <div class="col-md-6">{{ form.province|as_crispy_field }}</div>
+                        </div>
+                        <div class="mt-3 mb-3">
+                            <label class="form-label fw-bold">Pin Company Location</label>
+                            <div id="company-map" style="height: 250px; border-radius: 8px; overflow: hidden;"></div>
+                            <div class="form-text">Drag the marker or click on the map to set the company location. The map link will update automatically.</div>
+                        </div>
+                        <div class="d-flex justify-content-between mt-3">
+                            <a href="{% url 'internship:companies' %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-1"></i> Back to Companies
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i> Save Company
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-white border-bottom-0">
+                    <h5 class="card-title mb-0">Tips for Adding a Company</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled">
+                        <li class="mb-2">
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                            <strong>Complete all information</strong>
+                            <p class="text-muted small mb-0">Make sure to fill in all required fields for the company profile.</p>
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                            <strong>Verify contact information</strong>
+                            <p class="text-muted small mb-0">Double-check email addresses and phone numbers for accuracy.</p>
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-map-marker-alt text-success me-2"></i>
+                            <strong>Set correct location</strong>
+                            <p class="text-muted small mb-0">Use the map tool to precisely locate the company for students.</p>
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-image text-success me-2"></i>
+                            <strong>Add a company logo</strong>
+                            <p class="text-muted small mb-0">A logo helps students recognize the company more easily.</p>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    var latInput = document.getElementById('id_latitude');
+    var lngInput = document.getElementById('id_longitude');
+    var linkInput = document.getElementById('id_location_link');
+    var lat = parseFloat(latInput && latInput.value) || 14.2294;
+    var lng = parseFloat(lngInput && lngInput.value) || 120.9367;
+    var map = L.map('company-map').setView([lat, lng], 15);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '© OpenStreetMap'
+    }).addTo(map);
+    var marker = L.marker([lat, lng], {draggable:true}).addTo(map);
+
+    function updateInputs(e) {
+      var pos = e.latlng || marker.getLatLng();
+      if (latInput) latInput.value = pos.lat.toFixed(6);
+      if (lngInput) lngInput.value = pos.lng.toFixed(6);
+      marker.setLatLng(pos);
+      if (linkInput) {
+        linkInput.value = `https://www.openstreetmap.org/?mlat=${pos.lat.toFixed(6)}&mlon=${pos.lng.toFixed(6)}#map=18/${pos.lat.toFixed(6)}/${pos.lng.toFixed(6)}`;
+      }
+    }
+
+    // Listen for manual changes to latitude/longitude fields
+    if (latInput && lngInput) {
+      function updateMapFromLatLng() {
+        var newLat = parseFloat(latInput.value);
+        var newLng = parseFloat(lngInput.value);
+        if (!isNaN(newLat) && !isNaN(newLng)) {
+          map.setView([newLat, newLng], 15);
+          marker.setLatLng([newLat, newLng]);
+          if (linkInput) {
+            linkInput.value = `https://www.openstreetmap.org/?mlat=${newLat.toFixed(6)}&mlon=${newLng.toFixed(6)}#map=18/${newLat.toFixed(6)}/${newLng.toFixed(6)}`;
+          }
+        }
+      }
+      latInput.addEventListener('input', updateMapFromLatLng);
+      lngInput.addEventListener('input', updateMapFromLatLng);
+    }
+
+    // Listen for manual changes to location_link field
+    if (linkInput) {
+      function updateMapFromLink() {
+        var val = linkInput.value.trim();
+        var latlng = null;
+        // Accept plain lat,lng (with or without spaces)
+        var plainMatch = val.match(/^([-\d.]+)\s*,\s*([-\d.]+)$/);
+        if (plainMatch) {
+          latlng = [parseFloat(plainMatch[1]), parseFloat(plainMatch[2])];
+        } else {
+          // OpenStreetMap
+          var osmMatch = val.match(/mlat=([-\d.]+)&mlon=([-\d.]+)/);
+          if (osmMatch) {
+            latlng = [parseFloat(osmMatch[1]), parseFloat(osmMatch[2])];
+          } else {
+            // Google Maps: @lat,lng,zoomz
+            var gmapsMatch = val.match(/@([-\d.]+),([-\d.]+),/);
+            if (gmapsMatch) {
+              latlng = [parseFloat(gmapsMatch[1]), parseFloat(gmapsMatch[2])];
+            }
+          }
+        }
+        if (latlng && !isNaN(latlng[0]) && !isNaN(latlng[1])) {
+          if (latInput) latInput.value = latlng[0].toFixed(6);
+          if (lngInput) lngInput.value = latlng[1].toFixed(6);
+          map.setView(latlng, 15);
+          marker.setLatLng(latlng);
+        }
+      }
+      linkInput.addEventListener('input', updateMapFromLink);
+      linkInput.addEventListener('change', updateMapFromLink);
+    }
+
+    map.on('click', updateInputs);
+    marker.on('dragend', updateInputs);
+  });
+</script>
+{% endblock %}

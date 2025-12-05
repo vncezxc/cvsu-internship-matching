@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<div class="container mt-4">
+  <h2>My Chats (Coordinator)</h2>
+  <div class="row">
+    <div class="col-md-6 mb-4">
+      <h4>Advisers</h4>
+      <ul class="list-group">
+        {% for adviser in advisers %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          <span class="d-flex align-items-center">
+            <img src="{% if adviser.adviser_profile.avatar %}{{ adviser.adviser_profile.avatar.url }}{% else %}{% static 'images/default_avatar.png' %}{% endif %}" class="rounded-circle me-2" style="width:36px;height:36px;object-fit:cover;">
+            {{ adviser.get_full_name }}
+          </span>
+          <a href="{% url 'chat:coordinator_adviser_chat' adviser.id %}" class="btn btn-primary btn-sm">Chat</a>
+        </li>
+        {% empty %}
+        <li class="list-group-item">No advisers found.</li>
+        {% endfor %}
+      </ul>
+    </div>
+    <div class="col-md-6 mb-4">
+      <h4>Chat Rooms</h4>
+      <div class="list-group list-group-flush" style="max-height:60vh;overflow-y:auto;">
+        {% if rooms_info %}
+          {% for info in rooms_info %}
+            <a href="{% url 'chat:room' info.id %}" class="list-group-item list-group-item-action d-flex align-items-center gap-2 py-3">
+              <img src="{{ info.avatar }}" class="rounded-circle" style="width:40px;height:40px;object-fit:cover;">
+              <div class="flex-grow-1">
+                <div class="fw-semibold">{{ info.name }}</div>
+                <div class="small text-muted text-truncate" style="max-width:180px;">
+                  {% if info.last_message %}
+                    {% if info.last_message.sender == request.user %}
+                      <span class="text-muted">You:</span>
+                    {% else %}
+                      <span class="text-muted">{{ info.last_message.sender.get_full_name|default:info.last_message.sender.username }}:</span>
+                    {% endif %}
+                    {{ info.last_message.content|truncatechars:40 }}
+                  {% else %}
+                    <span class="text-muted">No messages yet</span>
+                  {% endif %}
+                </div>
+              </div>
+              <div class="text-end">
+                {% if info.last_message %}
+                  <small class="text-muted d-block">{{ info.last_message.timestamp|date:"h:i A" }}</small>
+                {% endif %}
+                {% if info.unread_count > 0 %}
+                  <span class="badge bg-danger rounded-pill">{{ info.unread_count }}</span>
+                {% endif %}
+              </div>
+            </a>
+          {% endfor %}
+        {% else %}
+          <div class="text-center py-4 text-muted">No chat rooms yet.</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

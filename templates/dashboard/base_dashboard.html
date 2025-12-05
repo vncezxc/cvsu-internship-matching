@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - CVSU Internship Matching{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3 col-lg-2 d-md-block bg-light sidebar">
+            <div class="position-sticky pt-3">
+                <div class="p-3 mb-3 bg-primary text-white rounded">
+                    <h5>{{ user.get_full_name }}</h5>
+                    <p class="mb-0">
+                        {% if user.is_student %}Student
+                        {% elif user.is_adviser %}OJT Adviser
+                        {% elif user.is_coordinator %}OJT Coordinator
+                        {% endif %}
+                    </p>
+                </div>
+
+                <ul class="nav flex-column">
+                    {% if user.is_student %}
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.resolver_match.url_name == 'student_dashboard' %}active{% endif %}"
+                               href="{% url 'dashboard:student_dashboard' %}">
+                                <i class="bi bi-house-door"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'dashboard:submit_dtr' %}">
+                                <i class="bi bi-clock-history"></i> Submit Weekly DTR
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'accounts:profile' %}">
+                                <i class="bi bi-person"></i> My Profile
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'internship:applications' %}">
+                                <i class="bi bi-file-earmark-text"></i> My Applications
+                            </a>
+                        </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'student_documents_view' %}active{% endif %}" href="{% url 'dashboard:student_documents_view' %}">
+                            <i class="bi bi-clipboard-check"></i> My OJT Documents
+                        </a>
+                    </li>
+                    {% elif user.is_adviser %}
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.resolver_match.url_name == 'adviser_dashboard' %}active{% endif %}"
+                               href="{% url 'dashboard:adviser_dashboard' %}">
+                                <i class="bi bi-house-door"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'dashboard:adviser_dtr_list' %}">
+                                <i class="bi bi-clock-history"></i> Review DTR Submissions
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'accounts:adviser_profile' %}">
+                                <i class="bi bi-person"></i> My Profile
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.resolver_match.url_name == 'student_list' %}active{% endif %}"
+                               href="{% url 'dashboard:student_list' %}">
+                                <i class="bi bi-people"></i> Manage Students
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.resolver_match.url_name == 'reports' %}active{% endif %}"
+                               href="{% url 'dashboard:reports' %}">
+                                <i class="bi bi-file-earmark-bar-graph"></i> Reports
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.resolver_match.url_name == 'adviser_documents_review' %}active{% endif %}" href="{% url 'dashboard:adviser_documents_review' %}">
+                                <i class="bi bi-clipboard-check"></i> Review OJT Documents
+                            </a>
+                        </li>
+                    {% elif user.is_coordinator %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'internship:companies' %}"><i class="bi bi-building"></i> Company Listing</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'internship:internships' %}"><i class="bi bi-briefcase"></i> Internship Placement Status</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'accounts:user_list' %}"><i class="bi bi-people"></i> Users Center</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.resolver_match.url_name == 'reports' %}active{% endif %}" href="{% url 'dashboard:reports' %}"><i class="bi bi-file-earmark-bar-graph"></i> Student Status Report</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.resolver_match.url_name == 'required_documents_list' %}active{% endif %}" href="{% url 'dashboard:required_documents_list' %}"><i class="bi bi-clipboard-check"></i> Documents Center</a>
+                        </li>
+                    {% endif %}
+                </ul>
+                
+                <hr>
+                <div class="nav flex-column">
+                    <a class="nav-link text-danger" href="{% url 'account_logout' %}">
+                        <i class="bi bi-box-arrow-right"></i> Logout
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main content -->
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h1 class="h2">{% block dashboard_title %}Dashboard{% endblock %}</h1>
+            </div>
+
+            {% if messages %}
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                {% endfor %}
+            {% endif %}
+
+            {% block dashboard_content %}{% endblock %}
+        </main>
+    </div>
+</div>
+{% endblock %}

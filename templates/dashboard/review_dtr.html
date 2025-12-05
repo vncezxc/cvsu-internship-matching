@@ -1,0 +1,32 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block dashboard_title %}Review DTR{% endblock %}
+
+{% block dashboard_content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">Review DTR for {{ dtr.student.user.get_full_name }}</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Week:</strong> {{ dtr.week_start }} - {{ dtr.week_end }}</p>
+                <p><strong>Hours Rendered:</strong> {{ dtr.hours_rendered }}</p>
+                <p><strong>File:</strong> <a href="{{ dtr.file.url }}" target="_blank">Download/View</a></p>
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="remarks" class="form-label">Remarks</label>
+                        <textarea name="remarks" id="remarks" class="form-control" rows="3">{{ dtr.remarks }}</textarea>
+                    </div>
+                    <div class="d-flex justify-content-end">
+                        <button type="submit" name="action" value="approve" class="btn btn-success me-2">Approve</button>
+                        <button type="submit" name="action" value="reject" class="btn btn-danger">Reject</button>
+                        <a href="{% url 'dashboard:adviser_dtr_list' %}" class="btn btn-secondary ms-2">Back</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

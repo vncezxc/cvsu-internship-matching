@@ -1,0 +1,9 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% block dashboard_content %}
+<h2>Edit Coordinator Profile</h2>
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-primary">Save Changes</button>
+</form>
+{% endblock %}

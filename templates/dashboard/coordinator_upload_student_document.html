@@ -1,0 +1,26 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% block dashboard_title %}Upload/Update Student Document{% endblock %}
+{% block dashboard_content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">Upload/Update Document for {{ student.user.get_full_name }}</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="file" class="form-label">Document File</label>
+                            {{ form.file }}
+                        </div>
+                        <button type="submit" class="btn btn-success">Upload/Update</button>
+                        <a href="{% url 'dashboard:coordinator_documents_overview' %}" class="btn btn-secondary ms-2">Cancel</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

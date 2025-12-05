@@ -1,0 +1,58 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load crispy_forms_tags %}
+
+{% block dashboard_title %}{{ action }} Required Document{% endblock %}
+{% block dashboard_content %}
+<div class="container py-4">
+  <div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+      <div class="card shadow-sm border-0">
+        <div class="card-header bg-gradient bg-primary text-white rounded-top d-flex align-items-center">
+          <i class="bi bi-file-earmark-plus-fill fs-3 me-2"></i>
+          <h4 class="mb-0 fw-bold">{{ action }} Required Document</h4>
+        </div>
+        <div class="card-body">
+          <form method="post" enctype="multipart/form-data" novalidate>
+            {% csrf_token %}
+            {% if form.non_field_errors %}
+              <div class="alert alert-danger">
+                {% for error in form.non_field_errors %}
+                  <div>{{ error }}</div>
+                {% endfor %}
+              </div>
+            {% endif %}
+            <div class="mb-3">
+            <div class="mb-3">
+              <label for="id_template_file" class="form-label fw-semibold"><i class="bi bi-file-earmark-arrow-up text-success me-1"></i> Template File (PDF/DOCX)</label>
+              {{ form.template_file|as_crispy_field }}
+              {% if form.template_file.help_text %}<div class="form-text">{{ form.template_file.help_text }}</div>{% endif %}
+            </div>
+              <label for="id_name" class="form-label fw-semibold"><i class="bi bi-tag-fill text-primary me-1"></i> Name</label>
+              {{ form.name|as_crispy_field }}
+            </div>
+            <div class="mb-3">
+              <label for="id_description" class="form-label fw-semibold"><i class="bi bi-card-text text-secondary me-1"></i> Description</label>
+              {{ form.description|as_crispy_field }}
+            </div>
+            <div class="mb-3">
+              <div class="form-check">
+                {{ form.is_required|as_crispy_field }}
+                <label class="form-check-label ms-2" for="id_is_required"><i class="bi bi-exclamation-circle-fill text-danger me-1"></i> Required?</label>
+              </div>
+            </div>
+            <div class="d-flex justify-content-end gap-2 mt-4">
+              <a href="{% url 'dashboard:required_documents_list' %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Cancel</a>
+              <button type="submit" class="btn btn-primary"><i class="bi bi-save"></i> {{ action }}</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<style>
+  .card-header.bg-gradient {
+    background: linear-gradient(90deg, #0d6efd 0%, #0a58ca 100%);
+  }
+</style>
+{% endblock %}

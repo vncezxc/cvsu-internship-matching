@@ -1,0 +1,217 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Apply for Internship{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'internship:matches' %}">Internship Matches</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Apply</li>
+                </ol>
+            </nav>
+            <h2><i class="fas fa-paper-plane me-2"></i>Apply for Internship</h2>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-white">
+                    <h5 class="card-title mb-0">
+                        {{ internship.title }}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-4">
+                        <div class="d-flex align-items-center mb-3">
+                            {% if internship.company.logo %}
+                                <img src="{{ internship.company.logo.url }}" alt="{{ internship.company.name }}" class="me-3" style="max-height: 50px;">
+                            {% else %}
+                                <div class="bg-secondary text-white rounded-circle p-3 me-3" style="width: 50px; height: 50px; display: flex; align-items: center; justify-content: center;">
+                                    <i class="fas fa-building"></i>
+                                </div>
+                            {% endif %}
+                            <div>
+                                <h5 class="mb-0">{{ internship.company.name }}</h5>
+                                <p class="text-muted mb-0">
+                                    <i class="fas fa-map-marker-alt me-1"></i>
+                                    {{ internship.company.get_full_address }}
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <strong>Description:</strong>
+                            <p class="mt-1">{{ internship.description }}</p>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <strong>Recommended Courses:</strong>
+                                <ul class="list-unstyled mt-1">
+                                    {% for course in internship.recommended_courses.all %}
+                                        <li>
+                                            <i class="fas fa-graduation-cap me-1"></i>
+                                            {{ course.name }}
+                                            {% if course == profile.course %}
+                                                <span class="badge bg-success text-dark ms-1">Your Course</span>
+                                            {% endif %}
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <strong>Available Slots:</strong>
+                                <p class="mt-1">{{ internship.slots_available }}</p>
+                                
+                                <strong>Match Score:</strong>
+                                <div class="progress mt-1 mb-2" style="height: 10px;">
+                                    <div class="progress-bar bg-primary" role="progressbar" style="width: {{ match_score }}%;" aria-valuenow="{{ match_score }}" aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>
+                                <p class="mb-0"><span class="badge bg-primary text-dark">{{ match_score }}%</span> match with your profile</p>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <strong>Required Skills:</strong>
+                            <div class="mt-1">
+                                {% for skill in internship.required_skills.all %}
+                                    <span class="badge {% if skill in profile.skills.all %}bg-success text-dark{% else %}bg-secondary text-dark{% endif %} me-1 mb-1">{{ skill.name }}</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        {% if internship.company.has_incentives %}
+                            <div class="mb-3">
+                                <strong>Incentives:</strong>
+                                <p class="mt-1">{{ internship.company.incentives_details }}</p>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    {# Map with line and distance between student and company #}
+                    {% if internship.company.latitude and internship.company.longitude and profile.latitude and profile.longitude %}
+                    <div class="mb-3">
+                        <div id="map-apply" style="height: 220px; margin-bottom: 1rem;"></div>
+                        <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+                        <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+                        <script>
+                          document.addEventListener('DOMContentLoaded', function() {
+                            var map = L.map('map-apply').setView([
+                              {{ internship.company.latitude }},
+                              {{ internship.company.longitude }}
+                            ], 13);
+                            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                              maxZoom: 19,
+                              attribution: '© OpenStreetMap'
+                            }).addTo(map);
+                            // Company marker
+                            var companyMarker = L.marker([
+                              {{ internship.company.latitude }},
+                              {{ internship.company.longitude }}
+                            ]).addTo(map).bindPopup('Company: {{ internship.company.name|escapejs }}');
+                            // Student marker
+                            var studentMarker = L.marker([
+                              {{ profile.latitude }},
+                              {{ profile.longitude }}
+                            ], {icon: L.icon({iconUrl: 'https://cdn-icons-png.flaticon.com/512/149/149071.png', iconSize: [32,32]})}).addTo(map).bindPopup('You (Student)');
+                            // Draw line between student and company
+                            var latlngs = [
+                              [{{ profile.latitude }}, {{ profile.longitude }}],
+                              [{{ internship.company.latitude }}, {{ internship.company.longitude }}]
+                            ];
+                            var polyline = L.polyline(latlngs, {color: 'blue', weight: 3, dashArray: '6, 8'}).addTo(map);
+                            map.fitBounds(polyline.getBounds(), {padding: [30, 30]});
+                          });
+                        </script>
+                        <div class="mb-2">
+                            <span class="badge bg-info text-dark">Distance: {{ distance_km|default:'-' }} km</span>
+                            <span class="text-muted ms-2">(Line shows route from your location to the company)</span>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <div class="alert alert-info">
+                                <h5 class="alert-heading">Before you apply</h5>
+                                <p>By submitting this application:</p>
+                                <ul>
+                                    <li>Your CV will be shared with the company.</li>
+                                    <li>Your application will be visible to your OJT adviser.</li>
+                                    <li>You may be contacted by the company via your registered email.</li>
+                                </ul>
+                                <p class="mb-0">Make sure your CV and profile are up-to-date.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'internship:matches' %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-1"></i> Back to Matches
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-paper-plane me-1"></i> Submit Application
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-white">
+                    <h5 class="card-title mb-0">Your Profile</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="mb-0">CV Status</h6>
+                        {% if profile.cv %}
+                            <span class="badge bg-success text-dark">Uploaded</span>
+                        {% else %}
+                            <span class="badge bg-danger text-dark">Missing</span>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="mb-0">Course</h6>
+                        <span>{{ profile.course.code }}</span>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <h6>Your Skills</h6>
+                        <div>
+                            {% for skill in profile.skills.all %}
+                                <span class="badge {% if skill in internship.required_skills.all %}bg-success text-dark{% else %}bg-primary text-dark{% endif %} me-1 mb-1">{{ skill.name }}</span>
+                            {% empty %}
+                                <span class="text-muted">No skills added yet</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'accounts:edit_profile' %}" class="btn btn-outline-secondary btn-sm">
+                            <i class="fas fa-user-edit me-1"></i> Edit Profile
+                        </a>
+                        {% if not profile.cv %}
+                            <a href="{% url 'accounts:upload_cv' %}" class="btn btn-danger btn-sm">
+                                <i class="fas fa-file-upload me-1"></i> Upload CV
+                            </a>
+                        {% else %}
+                            <a href="{{ profile.cv.url }}" target="_blank" class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-file-pdf me-1"></i> View CV
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

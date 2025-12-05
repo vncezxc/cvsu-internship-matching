@@ -1,0 +1,505 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ company.name }} | Company Details{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Company Info Section */
+    .company-info-row {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-start;
+        gap: 2.5rem;
+    }
+    .company-info-main {
+        flex: 2 1 320px;
+        min-width: 260px;
+    }
+    .company-info-main h2 {
+        font-size: 2.1rem;
+        font-weight: 800;
+        color: #0a58ca;
+        margin-bottom: 0.2em;
+    }
+    .company-info-main .company-address {
+        font-size: 1.08em;
+        color: #6c757d;
+        margin-bottom: 0.7em;
+    }
+    .company-info-main h5 {
+        font-size: 1.15em;
+        font-weight: 700;
+        margin-top: 1.2em;
+        margin-bottom: 0.5em;
+        color: #006d38;
+    }
+    .company-info-main p {
+        font-size: 1.05em;
+        margin-bottom: 0.7em;
+    }
+    .company-contact-list {
+        list-style: none;
+        padding: 0;
+        margin: 0 0 1.2em 0;
+    }
+    .company-contact-list li {
+        margin-bottom: 0.5em;
+        font-size: 1.07em;
+        display: flex;
+        align-items: center;
+        gap: 0.5em;
+    }
+    .company-contact-list a {
+        color: #0a58ca;
+        text-decoration: none;
+        font-weight: 600;
+        transition: color 0.2s;
+    }
+    .company-contact-list a:hover {
+        color: #f9b233;
+        text-decoration: underline;
+    }
+    .company-info-location {
+        flex: 1 1 260px;
+        min-width: 220px;
+        margin-top: 0.5em;
+    }
+    .company-info-location h5 {
+        font-size: 1.1em;
+        font-weight: 700;
+        color: #006d38;
+        margin-bottom: 0.7em;
+    }
+    .company-info-location .small {
+        font-size: 0.98em;
+        color: #6c757d;
+    }
+    @media (max-width: 991px) {
+        .company-info-row {
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+        .company-info-location {
+            margin-top: 0;
+        }
+    }
+
+    /* General Styles */
+    body {
+        background: linear-gradient(120deg, #f9f9f9 0%, #e6f4ea 100%);
+        font-family: 'Nunito', Arial, sans-serif;
+    }
+    .card, .progress, .btn, .table, .alert, .badge {
+        border-radius: 1.25rem;
+        font-family: inherit;
+    }
+    .card {
+        box-shadow: 0 6px 32px rgba(0,109,56,0.10);
+        animation: fadeIn 0.7s;
+        border: none;
+    }
+    .card-header {
+        background: linear-gradient(90deg, #0d6efd 0%, #0a58ca 100%);
+        color: #fff;
+        border-top-left-radius: 1.25rem;
+        border-top-right-radius: 1.25rem;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+    }
+    .btn-outline-primary, .btn-outline-secondary, .btn-primary {
+        border-width: 2px;
+        font-weight: 600;
+        transition: all 0.2s;
+        box-shadow: 0 2px 8px rgba(13,110,253,0.08);
+    }
+    .btn-outline-primary {
+        color: #006d38 !important;
+        border-color: #006d38 !important;
+        background: #fff;
+    }
+    .btn-outline-primary:hover, .btn-primary:hover {
+        background-color: #f9b233 !important;
+        color: #fff !important;
+        border-color: #f9b233 !important;
+        box-shadow: 0 4px 16px rgba(249,178,51,0.15);
+    }
+    .btn-outline-secondary {
+        color: #f9b233 !important;
+        border-color: #f9b233 !important;
+        background: #fff;
+    }
+    .btn-outline-secondary:hover {
+        background-color: #006d38 !important;
+        color: #fff !important;
+        border-color: #006d38 !important;
+    }
+    .btn-primary {
+        background: linear-gradient(90deg, #0d6efd 0%, #0a58ca 100%);
+        border: none;
+    }
+    .badge {
+        font-size: 1em;
+        padding: 0.5em 1.2em;
+        letter-spacing: 0.5px;
+        box-shadow: 0 2px 8px rgba(13,110,253,0.08);
+    }
+    .chip-skill {
+        display: inline-block;
+        background: #495057;
+        color: #fff;
+        border-radius: 2em;
+        padding: 0.4em 1.1em;
+        font-size: 1em;
+        margin: 0.2em 0.2em 0.2em 0;
+        font-weight: 500;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+        transition: background 0.2s;
+    }
+    .chip-skill:hover {
+        background: #0a58ca;
+        color: #fff;
+    }
+    .internship-list-item {
+        background: #f8fafc;
+        border-radius: 1.25rem;
+        margin-bottom: 1.2em;
+        padding: 1.2em 1.5em;
+        box-shadow: 0 2px 8px rgba(13,110,253,0.07);
+        border: 1px solid #e6e6e6;
+        transition: box-shadow 0.2s, border 0.2s;
+    }
+    .internship-list-item:hover {
+        box-shadow: 0 6px 24px rgba(13,110,253,0.13);
+        border: 1px solid #b6d4fe;
+    }
+    .internship-title {
+        font-size: 1.2em;
+        font-weight: 700;
+        color: #0a58ca;
+    }
+    .internship-slots {
+        background: #e6f4ea;
+        color: #006d38;
+        font-weight: 600;
+        border-radius: 1em;
+        padding: 0.3em 1em;
+        font-size: 0.95em;
+    }
+    .internship-apply-btn {
+        font-size: 1em;
+        padding: 0.4em 1.2em;
+        border-radius: 2em;
+        font-weight: 600;
+        box-shadow: 0 2px 8px rgba(13,110,253,0.10);
+    }
+    .breadcrumb {
+        background: #f9f9f9;
+        border-radius: 1.25rem;
+        padding: 0.75rem 1.25rem;
+        font-size: 1.1em;
+        font-weight: 500;
+    }
+    .breadcrumb-item.active {
+        color: #0a58ca !important;
+        font-weight: 700;
+    }
+    .shadow-sm {
+        box-shadow: 0 6px 32px rgba(0,109,56,0.10) !important;
+    }
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    {% if request.user.is_coordinator %}
+                    <li class="breadcrumb-item"><a href="{% url 'internship:companies' %}">Companies</a></li>
+                    {% else %}
+                    <li class="breadcrumb-item"><a href="{% url 'internship:matches' %}">Internship Matches</a></li>
+                    {% endif %}
+                    <li class="breadcrumb-item active" aria-current="page">{{ company.name }}</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Company Information -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <div class="company-info-row mb-4">
+                        <div class="company-info-main">
+                            <div class="d-flex align-items-center mb-3">
+                                {% if company.logo %}
+                                    <img src="{{ company.logo.url }}" alt="{{ company.name }}" class="me-3" style="max-height: 80px; border-radius: 1.2em; box-shadow: 0 2px 8px rgba(13,110,253,0.10); background: #fff; padding: 0.5rem;">
+                                {% else %}
+                                    <div class="bg-secondary text-white rounded-circle p-3 me-3" style="width: 80px; height: 80px; display: flex; align-items: center; justify-content: center;">
+                                        <i class="fas fa-building fa-2x"></i>
+                                    </div>
+                                {% endif %}
+                                <div>
+                                    <h2>{{ company.name }}</h2>
+                                    <div class="company-address"><i class="fas fa-map-marker-alt me-1"></i> {{ company.get_full_address }}</div>
+                                </div>
+                            </div>
+                            <h5>About the Company</h5>
+                            <p>{{ company.description }}</p>
+                            <h5>Contact Information</h5>
+                            <ul class="company-contact-list">
+                                <li><i class="fas fa-envelope"></i> <a href="mailto:{{ company.company_email }}">{{ company.company_email }}</a></li>
+                                <li><i class="fas fa-user-tie"></i> HR Email: <a href="mailto:{{ company.hr_email }}">{{ company.hr_email }}</a></li>
+                                <li><i class="fas fa-phone"></i> <a href="tel:{{ company.phone_number }}">{{ company.phone_number }}</a></li>
+                            </ul>
+                            
+                            {% if request.user.is_coordinator %}
+                            <div class="mt-3">
+                                <a href="{% url 'internship:toggle_company_status' company.id %}" class="btn {% if company.status == 'ACTIVE' %}btn-danger{% else %}btn-success{% endif %}">
+                                    <i class="fas {% if company.status == 'ACTIVE' %}fa-times{% else %}fa-check{% endif %} me-1"></i>
+                                    {% if company.status == 'ACTIVE' %}Deactivate{% else %}Activate{% endif %}
+                                </a>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="company-info-location">
+                            <h5>Location</h5>
+                            <div id="company-map" style="height: 220px; border-radius: 8px; margin-bottom: 0.5rem;"></div>
+                            <div class="d-grid gap-1 mb-2">
+                                <a href="https://www.openstreetmap.org/?mlat={{ company.latitude }}&mlon={{ company.longitude }}#map=18/{{ company.latitude }}/{{ company.longitude }}" target="_blank" class="btn btn-outline-primary btn-sm">
+                                    <i class="fas fa-map-marker-alt me-1"></i> OpenStreetMap
+                                </a>
+                                {% if company.location_link %}
+                                <a href="{{ company.location_link }}" target="_blank" class="btn btn-outline-secondary btn-sm">
+                                    <i class="fas fa-map me-1"></i> Custom Map Link
+                                </a>
+                                {% endif %}
+                            </div>
+                            <div class="small text-muted mb-1" style="line-height:1.2;">
+                                <span><strong>Lat:</strong> {{ company.latitude }}<br></span>
+                                <span><strong>Lng:</strong> {{ company.longitude }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Active Internships -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">Active Internships</h5>
+                    {% if request.user.is_coordinator %}
+                    <a href="{% url 'internship:add_internship' %}?company={{ company.id }}" class="btn btn-sm btn-primary">
+                        <i class="fas fa-plus me-1"></i> Add Internship
+                    </a>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    {% if internships %}
+                        <div>
+                            {% for internship in internships %}
+                                <div class="internship-list-item">
+                                    <div class="d-flex w-100 justify-content-between align-items-center mb-2">
+                                        <span class="internship-title">{{ internship.title }}</span>
+                                        <span class="internship-slots">{{ internship.slots_available }} slots</span>
+                                    </div>
+                                    <div class="mb-2 text-muted" style="font-size:0.98em;">{{ internship.description|truncatechars:150 }}</div>
+                                    <div class="mb-2">
+                                        <strong>Required Skills:</strong>
+                                        <div class="mt-2">
+                                            {% for skill in internship.required_skills.all %}
+                                                <span class="chip-skill">{{ skill.name }}</span>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                    <div class="d-flex justify-content-end mt-2">
+                                        {% if request.user.is_student %}
+                                            <a href="{% url 'internship:apply' internship.id %}" class="btn internship-apply-btn btn-primary">
+                                                <i class="fas fa-paper-plane me-1"></i> Apply
+                                            </a>
+                                        {% elif request.user.is_coordinator %}
+                                            <a href="{% url 'internship:edit_internship' internship.id %}" class="btn btn-sm btn-outline-secondary me-2">
+                                                <i class="fas fa-edit me-1"></i> Edit
+                                            </a>
+                                            <a href="{% url 'internship:toggle_internship_status' internship.id %}" class="btn btn-sm btn-outline-danger">
+                                                <i class="fas fa-times me-1"></i> Deactivate
+                                            </a>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            No active internships available at this company.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Reviews -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">Company Reviews</h5>
+                    {% if request.user.is_student %}
+                    <a href="{% url 'internship:add_review' company.id %}" class="btn btn-sm btn-primary">
+                        <i class="fas fa-star me-1"></i> Write Review
+                    </a>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    {% if reviews %}
+                        <div class="mb-3">
+                            <div class="d-flex align-items-center">
+                                <div class="me-3">
+                                    <h4 class="mb-0">{{ avg_rating|floatformat:1 }}</h4>
+                                    <div class="text-warning">
+                                        {% for i in '12345'|make_list %}
+                                            {% if forloop.counter <= avg_rating|floatformat:0|add:'0' %}
+                                                <i class="fas fa-star"></i>
+                                            {% elif forloop.counter <= avg_rating|floatformat:0|add:'0'|add:'1' and avg_rating|floatformat:1|slice:"-1:" != "0" %}
+                                                <i class="fas fa-star-half-alt"></i>
+                                            {% else %}
+                                                <i class="far fa-star"></i>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </div>
+                                    <small class="text-muted">{{ reviews.count }} reviews</small>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <!-- Rating distribution could go here in a future update -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr>
+                        
+                        <div class="review-list">
+                            {% for review in reviews %}
+                                <div class="mb-4">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6 class="mb-1">
+                                                {% if review.is_anonymous %}
+                                                    Anonymous
+                                                {% else %}
+                                                    {{ review.student.get_full_name }}
+                                                {% endif %}
+                                            </h6>
+                                            <div class="text-warning mb-1">
+                                                {% for i in '12345'|make_list %}
+                                                    {% if forloop.counter <= review.rating %}
+                                                        <i class="fas fa-star"></i>
+                                                    {% else %}
+                                                        <i class="far fa-star"></i>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                        <small class="text-muted">{{ review.created_at|date:"M d, Y" }}</small>
+                                    </div>
+                                    <p class="mb-0">{{ review.comment }}</p>
+                                </div>
+                                {% if not forloop.last %}<hr>{% endif %}
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="far fa-star fa-3x text-muted mb-3"></i>
+                            <p>No reviews yet. Be the first to review!</p>
+                            {% if request.user.is_student %}
+                            <a href="{% url 'internship:add_review' company.id %}" class="btn btn-primary">
+                                <i class="fas fa-star me-1"></i> Write Review
+                            </a>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <!-- Company Stats -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-white">
+                    <h5 class="card-title mb-0">Company Stats</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span>Status:</span>
+                        <span class="badge {% if company.status == 'ACTIVE' %}bg-success{% else %}bg-danger{% endif %}">
+                            {{ company.status }}
+                        </span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span>Active Internships:</span>
+                        <span class="badge bg-info">{{ company.get_active_internships_count }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span>Rating:</span>
+                        <div class="text-warning">
+                            {% for i in '12345'|make_list %}
+                                {% if forloop.counter <= avg_rating|floatformat:0|add:'0' %}
+                                    <i class="fas fa-star"></i>
+                                {% elif forloop.counter <= avg_rating|floatformat:0|add:'0'|add:'1' and avg_rating|floatformat:1|slice:"-1:" != "0" %}
+                                    <i class="fas fa-star-half-alt"></i>
+                                {% else %}
+                                    <i class="far fa-star"></i>
+                                {% endif %}
+                            {% endfor %}
+                            <small class="ms-1 text-muted">({{ reviews.count }})</small>
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span>Added On:</span>
+                        <span>{{ company.created_at|date:"M d, Y" }}</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Related Companies (placeholder for future feature) -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="card-title mb-0">Similar Companies</h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-secondary">
+                        <i class="fas fa-info-circle me-2"></i>
+                        This feature is coming soon.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Map Script -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script>
+  window.addEventListener('DOMContentLoaded', function() {
+    var lat = parseFloat("{{ company.latitude|default_if_none:''|default:'' }}");
+    var lng = parseFloat("{{ company.longitude|default_if_none:''|default:'' }}");
+    var mapDiv = document.getElementById('company-map');
+    
+    if (!isNaN(lat) && !isNaN(lng) && lat !== null && lng !== null) {
+      var map = L.map('company-map').setView([lat, lng], 16);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '© OpenStreetMap'
+      }).addTo(map);
+      L.marker([lat, lng]).addTo(map);
+    } else if (mapDiv) {
+      mapDiv.innerHTML = '<div class="text-center text-muted pt-5">No location set</div>';
+    }
+  });
+</script>
+{% endblock %}

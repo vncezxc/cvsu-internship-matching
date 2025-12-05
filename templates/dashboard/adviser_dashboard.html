@@ -1,0 +1,281 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load file_extras %}
+
+{% block dashboard_title %}Adviser Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+    .card, .progress, .btn, .table, .alert, .badge {
+        border-radius: 1rem;
+        font-family: 'Nunito', Arial, sans-serif;
+    }
+    .card {
+        box-shadow: 0 4px 24px rgba(0,109,56,0.08);
+        animation: fadeIn 0.7s;
+    }
+    .btn-outline-primary, .btn-outline-secondary {
+        border-width: 2px;
+        font-weight: 600;
+        transition: all 0.2s;
+    }
+    .btn-outline-primary {
+        color: #006d38 !important;
+        border-color: #006d38 !important;
+    }
+    .btn-outline-primary:hover {
+        background-color: #f9b233 !important;
+        color: #fff !important;
+        border-color: #f9b233 !important;
+    }
+    .btn-outline-secondary {
+        color: #f9b233 !important;
+        border-color: #f9b233 !important;
+    }
+    .btn-outline-secondary:hover {
+        background-color: #006d38 !important;
+        color: #fff !important;
+        border-color: #006d38 !important;
+    }
+    .progress-bar {
+        background: linear-gradient(90deg, #006d38 80%, #f9b233 100%);
+        font-weight: 600;
+        animation: progressGrow 1.2s cubic-bezier(.4,1.4,.7,1) forwards;
+    }
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+    @keyframes progressGrow {
+        from { width: 0; }
+        to { width: 100%; }
+    }
+    .table-striped > tbody > tr:nth-of-type(odd) {
+        background-color: #f9f9f9;
+    }
+    .badge {
+        font-size: 1em;
+        padding: 0.5em 1em;
+    }
+</style>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="container mt-4">
+    <h3>Welcome, {{ user.get_full_name }}</h3>
+    <div class="mb-3">
+        <a href="{% url 'accounts:manage_courses' %}" class="btn btn-primary me-2">Manage My Courses</a>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">Adviser Information</h5>
+            </div>
+            <div class="card-body">
+                {% if profile.profile_image %}
+                    <img src="{{ profile.profile_image.url }}" alt="Profile Image" class="rounded-circle mb-3" style="width: 100px; height: 100px; object-fit: cover;">
+                {% endif %}
+                <h6>{{ profile.user.get_full_name }}</h6>
+                <p><strong>First Name:</strong> {{ profile.user.first_name }}</p>
+                <p><strong>Last Name:</strong> {{ profile.user.last_name }}</p>
+                <p><strong>Email:</strong> {{ profile.user.email }}</p>
+                <p><strong>Phone:</strong> {{ profile.phone_number }}</p>
+                <p><strong>Department:</strong> {{ profile.department }}</p>
+                <p><strong>Office:</strong> {{ profile.office }}</p>
+                <p><strong>Year Levels Handled:</strong> {{ profile.get_year_levels_display }}</p>
+                <div class="mt-3">
+                    <h6>Courses Managed:</h6>
+                    <ul class="list-group list-group-flush">
+                        {% for course in profile.courses.all %}
+                            <li class="list-group-item">{{ course.name }}</li>
+                        {% empty %}
+                            <li class="list-group-item">No courses assigned yet</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                <div class="mt-3">
+                    <h6>Sections:</h6>
+                    <p>{{ profile.sections|default:"No sections assigned yet" }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">Students Summary</h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col">
+                        <h3>{{ total_students }}</h3>
+                        <p>Total Students</p>
+                    </div>
+                </div>
+                
+                <div class="row text-center mt-3">
+                    <div class="col">
+                        <h4>{{ looking_count }}</h4>
+                        <p>Looking</p>
+                    </div>
+                    <div class="col">
+                        <h4>{{ waiting_count }}</h4>
+                        <p>Waiting</p>
+                    </div>
+                    <div class="col">
+                        <h4>{{ ongoing_count }}</h4>
+                        <p>Ongoing</p>
+                    </div>
+                    <div class="col">
+                        <h4>{{ completed_count }}</h4>
+                        <p>Completed</p>
+                    </div>
+                </div>
+                
+                <a href="{% url 'dashboard:adviser_dtr_list' %}" class="btn btn-outline-success mt-4">Review DTR Submissions</a>
+                <a href="{% url 'dashboard:student_list' %}" class="btn btn-outline-primary mt-4 ms-2">Manage Students</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">Recent Students</h5>
+            </div>
+            <div class="card-body">
+                {% if recent_students %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Course</th>
+                                    <th>Section</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for student in recent_students %}
+                                <tr>
+                                    <td>{{ student.user.get_full_name }}</td>
+                                    <td>{{ student.course.name }}</td>
+                                    <td>{{ student.section }}</td>
+                                    <td>
+                                        <span class="badge bg-{{ student.get_ojt_status_color }} text-white">
+                                            {{ student.get_ojt_status_display }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'dashboard:student_detail' student.id %}" class="btn btn-sm btn-primary">View</a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="alert alert-info">
+                        No students assigned yet.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <a href="{% url 'dashboard:student_list' %}" class="btn btn-outline-primary w-100 mb-3">
+                            <i class="bi bi-people fs-4 d-block mb-2"></i>
+                            Manage Students
+                        </a>
+                    </div>
+                    <div class="col-md-4">
+                        <a href="{% url 'dashboard:reports' %}" class="btn btn-outline-primary w-100 mb-3">
+                            <i class="bi bi-file-earmark-bar-graph fs-4 d-block mb-2"></i>
+                            Generate Reports
+                        </a>
+                    </div>
+                    <div class="col-md-4">
+                        <a href="{% url 'chat:chat_list' %}" class="btn btn-outline-primary w-100 mb-3">
+                            <i class="bi bi-chat-dots fs-4 d-block mb-2"></i>
+                            Student Chats
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">Student Document Completion</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered align-middle">
+                        <thead>
+                            <tr>
+                                <th>Student</th>
+                                {% for doc in required_documents %}
+                                    <th>{{ doc.name }}</th>
+                                {% endfor %}
+                                <th>Progress</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for entry in students_with_docs %}
+                            <tr>
+                                <td>{{ entry.student.user.get_full_name }}</td>
+                                {% for doc in entry.doc_status %}
+                                    <td>
+                                        {% if doc.uploaded %}
+                                            {% if doc.file|file_ext:'.jpg' or doc.file|file_ext:'.jpeg' or doc.file|file_ext:'.png' %}
+                                                <a href="{{ doc.file }}" target="_blank">
+                                                    <img src="{{ doc.file }}" alt="Preview" style="max-width: 60px; max-height: 60px; border-radius: 4px; border: 1px solid #ddd; margin-bottom: 4px;">
+                                                </a><br>
+                                            {% elif doc.file|file_ext:'.pdf' %}
+                                                <a href="{{ doc.file }}" target="_blank">
+                                                    <embed src="{{ doc.file }}" type="application/pdf" width="60" height="60" style="border-radius: 4px; border: 1px solid #ddd; margin-bottom: 4px;" />
+                                                </a><br>
+                                            {% elif doc.file|file_ext:'.xlsx' or doc.file|file_ext:'.xls' %}
+                                                <span class="badge bg-success"><i class="bi bi-file-earmark-excel"></i> Excel</span><br>
+                                            {% endif %}
+                                            <a href="{{ doc.file }}" class="btn btn-sm btn-outline-secondary" target="_blank">Download</a>
+                                        {% else %}
+                                            <span class="badge bg-danger">✗</span>
+                                        {% endif %}
+                                    </td>
+                                {% endfor %}
+                                <td style="min-width:120px;">
+                                    <div class="progress">
+                                        <div class="progress-bar bg-success" role="progressbar" style="width: {{ entry.progress }}%;" aria-valuenow="{{ entry.progress }}" aria-valuemin="0" aria-valuemax="100">{{ entry.progress }}%</div>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

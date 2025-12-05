@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+{% block title %}Register - CvSU Bacoor{% endblock %}
+{% load static %}
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-sm animate__animated animate__fadeIn">
+                <div class="card-header bg-success text-white text-center" style="position: relative; min-height: 100px;">
+                    <img src="{% static 'images/banner1.png' %}" alt="Banner" style="width: 100%; max-height: 90px; object-fit: cover; border-top-left-radius: 1rem; border-top-right-radius: 1rem; position: absolute; left: 0; top: 0; z-index: 1; opacity: 0.18;">
+                    <img src="{% static 'images/logo (2).png' %}" alt="CvSU Logo" style="height:60px; margin-bottom:10px; margin-top:10px; position: relative; z-index: 2; background: #fff; border-radius: 50%; box-shadow: 0 2px 8px rgba(0,0,0,0.07); padding: 6px;">
+                    <h3 class="mb-0" style="position: relative; z-index: 2;">Register as {{ register_type|default:'student'|title }}</h3>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3 text-center">
+                        <a href="{% url 'accounts:student_register' %}" class="btn btn-outline-success btn-sm {% if register_type == 'student' or not register_type %}active{% endif %}">Student</a>
+                        <a href="{% url 'accounts:adviser_register' %}" class="btn btn-outline-success btn-sm {% if register_type == 'adviser' %}active{% endif %}">Adviser</a>
+                        <a href="{% url 'accounts:coordinator_register' %}" class="btn btn-outline-success btn-sm {% if register_type == 'coordinator' %}active{% endif %}">Coordinator</a>
+                    </div>
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">{{ form.non_field_errors|striptags }}</div>
+                    {% endif %}
+                    <form method="post" action="">
+                        {% csrf_token %}
+                        {% for field in form %}
+                            <div class="mb-3">
+                                {{ field.label_tag }}
+                                {% if field.field.widget.input_type == 'checkbox' %}
+                                    <div class="form-check" style="display: flex; align-items: center; gap: 0.5rem; padding-left: 0; margin-bottom: 0;">
+                                        <input type="checkbox" class="form-check-input" id="id_{{ field.html_name }}" name="{{ field.html_name }}" style="width: 18px; height: 18px; margin: 0;">
+                                        <label class="form-check-label mb-0" for="id_{{ field.html_name }}" style="font-size: 1rem; font-weight: 500;">{{ field.label }}</label>
+                                    </div>
+                                {% else %}
+                                    <input type="{{ field.field.widget.input_type }}" name="{{ field.html_name }}" class="form-control form-control-lg w-100" id="id_{{ field.html_name }}" placeholder="{{ field.label }}" {% if field.value %}value="{{ field.value }}"{% endif %} {% if field.field.required %}required{% endif %} autocomplete="{{ field.field.widget.attrs.autocomplete|default:'' }}">
+                                {% endif %}
+                                {% if field.errors %}
+                                    <div class="text-danger small">{{ field.errors|striptags }}</div>
+                                {% endif %}
+                                {% if field.name == 'email' %}
+                                    <div class="form-text text-success small">Only <strong>@cvsu.edu.ph</strong> email addresses are allowed for registration.</div>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                        <button type="submit" class="btn btn-success w-100 py-2">Register</button>
+                    </form>
+                    <div class="mt-3 text-center">
+                        <a href="{% url 'account_login' %}" class="text-success">Already have an account? Sign In</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block extra_css %}
+{% load static %}
+<style>
+    .card, .btn {
+        border-radius: 1rem;
+        font-family: 'Nunito', Arial, sans-serif;
+    }
+    .card {
+        box-shadow: 0 4px 24px rgba(0,109,56,0.08);
+        animation: fadeIn 0.7s;
+    }
+    .btn-success {
+        background-color: #006d38 !important;
+        border-color: #006d38 !important;
+        font-weight: 600;
+        transition: all 0.2s;
+        font-size: 1.1rem;
+        padding-top: 0.5rem !important;
+        padding-bottom: 0.5rem !important;
+    }
+    .btn-success:hover {
+        background-color: #f9b233 !important;
+        border-color: #f9b233 !important;
+        color: #fff !important;
+    }
+    .btn-outline-success {
+        color: #006d38 !important;
+        background: #fff !important;
+        border-color: #006d38 !important;
+        font-weight: 600;
+        transition: all 0.2s;
+    }
+    .btn-outline-success.active, .btn-outline-success:active, .btn-outline-success:focus, .btn-outline-success:hover {
+        background: #006d38 !important;
+        color: #fff !important;
+        border-color: #006d38 !important;
+    }
+    .form-control, input, select {
+        border-radius: 0.5rem !important;
+        font-size: 1.1rem;
+        min-height: 48px;
+    }
+    .form-check-input {
+        width: 18px !important;
+        height: 18px !important;
+        margin: 0 !important;
+        border-radius: 0.25em !important;
+        min-width: 18px !important;
+        min-height: 18px !important;
+        padding: 0 !important;
+        box-shadow: none !important;
+        display: inline-block;
+        vertical-align: middle;
+    }
+    .form-check-label {
+        font-size: 1rem;
+        font-weight: 500;
+        margin-bottom: 0 !important;
+        display: inline-block;
+        vertical-align: middle;
+    }
+    .form-check {
+        background: none !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 0.5rem !important;
+    }
+    .btn-outline-success.active {
+        background: #006d38;
+        color: #fff;
+        border-color: #006d38;
+    }
+</style>
+{% endblock %}
