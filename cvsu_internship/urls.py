@@ -4,6 +4,7 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from django.views.generic import TemplateView
+from dashboard.views import healthz
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -17,6 +18,7 @@ urlpatterns = [
     path('about/', TemplateView.as_view(template_name='about.html'), name='about'),
     path('contact/', TemplateView.as_view(template_name='contact.html'), name='contact'),
     path('faq/', TemplateView.as_view(template_name='faq.html'), name='faq'),
+    path('healthz', healthz, name='healthz'),
 ]
 
 # Serve static and media files during development

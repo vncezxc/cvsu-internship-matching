@@ -1387,3 +1387,7 @@ def coordinator_delete_student_document(request, student_id, doc_id):
     else:
         messages.warning(request, 'Document not found.')
     return redirect('dashboard:coordinator_documents_overview')
+from django.http import HttpResponse
+
+def healthz(request):
+    return HttpResponse("OK", status=200)
