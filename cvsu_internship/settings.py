@@ -138,7 +138,7 @@ CHANNEL_LAYERS = {
 
 # CORS settings
 CORS_ALLOW_ALL_ORIGINS = False
-CORS_ALLOWED_ORIGINS = config('CORS_ALLOWED_ORIGINS', default='').split('')
+CORS_ALLOWED_ORIGINS = config('CORS_ALLOWED_ORIGINS', default='').split(',')
 
 # Django admin and all features
 INSTALLED_APPS = [
