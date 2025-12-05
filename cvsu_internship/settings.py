@@ -36,6 +36,7 @@ DATABASES = {
     }
 }
 
+ROOT_URLCONF = 'cvsu_internship.urls'
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
