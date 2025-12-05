@@ -81,6 +81,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 # WhiteNoise for static file serving
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+WHITENOISE_SKIP_COMPRESS_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', 'ico']
 
 # ---------------------------------------
 # Media Files (Need cloud storage for prod)
