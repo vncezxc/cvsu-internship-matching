@@ -34,4 +34,6 @@ tinycss2==1.5.1
 tzdata==2025.2
 webencodings==0.5.1
 psycopg2-binary
-whitenoise==6.5.0
+whitenoise==6.5.
+cloudinary==1.32.0
+django-cloudinary-storage==0.3.0
