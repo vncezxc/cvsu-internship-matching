@@ -161,7 +161,7 @@ CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
         'CONFIG': {
-            'hosts': [(config('REDIS_URL', default='localhost:6379'))],
+            'hosts': [(config('REDIS_URL', default='rediss://localhost:6379'))],
         },
     },
 }
@@ -184,7 +184,9 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.sites',
 
-    # Third-party
+    # Third-
+    'cloudinary_storage',
+    'cloudinary',
     'rest_framework',
     'crispy_forms',
     'crispy_bootstrap5',
@@ -202,3 +204,12 @@ INSTALLED_APPS = [
     'chat',
     'dashboard',
 ]
+
+
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': 'doa4wlloz',
+    'API_KEY': '773473242549395',
+    'API_SECRET': '4TsmzeUk05m1yVF8axdL6_3hYIw',
+}
+
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
