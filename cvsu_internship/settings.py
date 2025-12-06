@@ -147,7 +147,7 @@ LOGIN_URL = 'account_login'
 # ---------------------------------------
 EMAIL_BACKEND = config('EMAIL_BACKEND', default='sendgrid_backend.SendgridBackend')
 SENDGRID_SANDBOX_MODE_IN_DEBUG = config('SENDGRID_SANDBOX_MODE_IN_DEBUG', default=False, cast=bool)
-DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL')
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='internmatchingcvsu@gmail.com')
 
 # ---------------------------------------
 # Channels (WebSockets)
