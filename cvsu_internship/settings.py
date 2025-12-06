@@ -11,7 +11,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # ---------------------------------------
 # Basic Deployment Settings
 # ---------------------------------------
-SECRET_KEY = config('DJANGO_SECRET_KEY', default='your-dev-secret-key')
+SECRET_KEY = config('DJANGO_SECRET_KEY', default='')
 DEBUG = config('DJANGO_DEBUG', default=False, cast=bool)
 ALLOWED_HOSTS = config('DJANGO_ALLOWED_HOSTS', default='localhost').split(',')
 
@@ -146,13 +146,13 @@ LOGIN_URL = 'account_login'
 # Email Settings
 # ---------------------------------------
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com')
-EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
-EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
-EMAIL_USE_SSL = config('EMAIL_USE_SSL', default=False, cast=bool)
-DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='internmatchingcvsu@gmail.com')
-EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='internmatchingcvsu@gmail.com')
-EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='atup jivi qknt grpf')
+EMAIL_HOST = config('EMAIL_HOST', default='')
+EMAIL_PORT = config('EMAIL_PORT', default='')
+EMAIL_USE_TLS = config('EMAIL_USE_TLS', default='')
+EMAIL_USE_SSL = config('EMAIL_USE_SSL', default='')
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='')
+EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
 
 # ---------------------------------------
 # Channels (WebSockets)
@@ -207,9 +207,9 @@ INSTALLED_APPS = [
 
 
 CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': 'doa4wlloz',
-    'API_KEY': '773473242549395',
-    'API_SECRET': '4TsmzeUk05m1yVF8axdL6_3hYIw',
+    'CLOUD_NAME': config('CLOUDINARY_CLOUD_NAME', default=''),
+    'API_KEY': config('CLOUDINARY_API_KEY', default=''),
+    'API_SECRET': config('CLOUDINARY_API_SECRET', default=''),
 }
 
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
