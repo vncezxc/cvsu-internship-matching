@@ -37,5 +37,5 @@ psycopg2-binary
 whitenoise==6.5.
 cloudinary==1.32.0
 django-cloudinary-storage==0.3.0
-sendgrid==6.9.7
+sendgrid==3.10.0
 sendgrid-django==4.2.0
