@@ -180,7 +180,7 @@ INSTALLED_APPS = [
     'django.contrib.sites',
 
     # Third-
-    'sendgrid_backend'
+    'sendgrid_backend',
     'cloudinary_storage',
     'cloudinary',
     'rest_framework',
