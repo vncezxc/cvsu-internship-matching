@@ -13,7 +13,7 @@ urlpatterns = [
     path('profile/<int:user_id>/', views.profile_view, name='profile_by_id'),  # New URL pattern for student profile view by user id
     path('adviser/profile/', adviser_profile_view, name='adviser_profile'),
     path('coordinator/profile/', coordinator_profile_view, name='coordinator_profile'),
-
+   
     # Document management
     path('documents/', views.document_list, name='document_list'),
     path('documents/upload/', views.upload_document, name='upload_document'),
@@ -50,7 +50,7 @@ urlpatterns = [
     path('register/student/', views.student_register, name='student_register'),
     path('register/adviser/', views.adviser_register, name='adviser_register'),
     path('register/coordinator/', views.coordinator_register, name='coordinator_register'),
-
+    path('register/', views.register_choice, name='register_choice'),
     # OJT status update
     path('update-ojt-status/', views.update_ojt_status, name='update_ojt_status'),
     
