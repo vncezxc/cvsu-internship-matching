@@ -81,21 +81,25 @@
                 </div>
                 <p class="text-muted small">Profile Completion</p>
                 
-                <div class="mt-4">
-                    <h6>OJT Status: <span class="badge bg-{{ profile.get_ojt_status_color }} text-white">{{ profile.get_ojt_status_display }}</span></h6>
-                    <h6>OJT Hours: {{ profile.ojt_hours_completed }} / {{ profile.ojt_hours_required }}</h6>
-                    {# Only advisers can update OJT hours. Students can only view. #}
-                    {% if request.user.is_adviser %}
-                    <form method="post" action="{% url 'dashboard:update_ojt_hours' profile.id %}" class="row g-2 align-items-center mt-2">
-                        {% csrf_token %}
-                        <div class="col-auto">
-                            <input type="number" name="hours" id="hours" class="form-control" min="0" max="{{ profile.ojt_hours_required }}" value="{{ profile.ojt_hours_completed }}" required>
+                <div class="mt-4 p-3 rounded shadow-sm bg-light">
+                    <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-2">
+                        <div>
+                            <h6 class="mb-1">OJT Status:
+                                <span class="badge bg-{{ profile.get_ojt_status_color }} text-white">{{ profile.get_ojt_status_display }}</span>
+                            </h6>
+                            <h6 class="mb-0">OJT Hours:
+                                <span class="fw-bold">{{ profile.ojt_hours_completed }}</span> /
+                                <span class="text-muted">{{ profile.ojt_hours_required }}</span>
+                            </h6>
                         </div>
-                        <div class="col-auto">
-                            <button type="submit" class="btn btn-success">Update Hours</button>
-                        </div>
-                    </form>
-                    {% endif %}
+                        {% if request.user.is_adviser %}
+                        <form method="post" action="{% url 'dashboard:update_ojt_hours' profile.id %}" class="d-flex flex-column flex-sm-row gap-2 mt-2 mt-md-0 w-100 w-md-auto" style="max-width: 320px;">
+                            {% csrf_token %}
+                            <input type="number" name="hours" id="hours" class="form-control flex-fill" min="0" max="{{ profile.ojt_hours_required }}" value="{{ profile.ojt_hours_completed }}" required placeholder="Update hours">
+                            <button type="submit" class="btn btn-success w-100 w-sm-auto">Update Hours</button>
+                        </form>
+                        {% endif %}
+                    </div>
                 </div>
                 
                 <div class="mt-4">
