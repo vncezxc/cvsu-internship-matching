@@ -55,7 +55,8 @@ urlpatterns = [
     path('update-ojt-status/', views.update_ojt_status, name='update_ojt_status'),
     
     # AllAuth authentication URLs
-     path('verify-email-code/', views.verify_email_code, name='verify_email_code'),
+    path('debug-codes/', views.debug_codes, name='debug_codes'),
+    path('verify-email-code/', views.verify_email_code, name='verify_email_code'),
     path('resend-verification/', views.resend_verification, name='resend_verification'),
     path('', include('allauth.urls')),
 ]

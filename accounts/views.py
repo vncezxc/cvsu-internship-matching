@@ -14,6 +14,8 @@ from django.core.mail import send_mail
 from datetime import datetime, timedelta
 from .forms import EmailVerificationCodeForm
 from .models import EmailVerificationCode
+from django.utils import timezone
+import pytz
 
 # Create your views here.
 @login_required
@@ -678,7 +680,17 @@ def send_verification_code(user):
     Returns True if successful, False otherwise.
     """
     try:
-        # Invalidate previous codes
+        # Delete codes older than 30 minutes to clean up
+        from django.utils import timezone
+        from datetime import timedelta
+        
+        thirty_minutes_ago = timezone.now() - timedelta(minutes=30)
+        EmailVerificationCode.objects.filter(
+            user=user, 
+            created_at__lt=thirty_minutes_ago
+        ).delete()
+        
+        # Also invalidate any unused codes
         EmailVerificationCode.objects.filter(user=user, is_used=False).update(is_used=True)
         
         # Generate new code
@@ -693,7 +705,7 @@ def send_verification_code(user):
             'Verify Your Email - CVSU Internship Matching',
             f'Hello {user.get_full_name() or user.username},\n\n'
             f'Your email verification code is: {code}\n\n'
-            f'This code will expire in 15 minutes.\n\n'
+            f'This code will expire in 30 minutes.\n\n'
             f'Thank you,\nCVSU Internship Matching Team',
             settings.DEFAULT_FROM_EMAIL,
             [user.email],
@@ -721,11 +733,15 @@ def verify_email_code(request):
         messages.error(request, 'No verification session found. Please register again.')
         return redirect('accounts:register_choice')
     
-    # Check if session is expired (30 minutes)
+    # Check if session is expired (60 minutes for more flexibility)
     if session_time_str:
         try:
             session_time = datetime.fromisoformat(session_time_str)
-            if datetime.now() - session_time > timedelta(minutes=30):
+            # Make session_time timezone-aware
+            if timezone.is_naive(session_time):
+                session_time = timezone.make_aware(session_time)
+            
+            if timezone.now() - session_time > timedelta(minutes=60):
                 # Clear expired session
                 request.session.flush()
                 messages.error(request, 'Verification session expired. Please register again.')
@@ -742,7 +758,7 @@ def verify_email_code(request):
                 # Get user from session ID
                 user = User.objects.get(id=user_id)
                 
-                # Find matching, unused code
+                # Find matching, unused code - FIXED: Get latest code
                 code_obj = EmailVerificationCode.objects.filter(
                     user=user, 
                     code=code, 
@@ -750,10 +766,20 @@ def verify_email_code(request):
                 ).order_by('-created_at').first()
                 
                 if code_obj:
-                    # Check if code is expired (15 minutes)
-                    code_age = datetime.now() - code_obj.created_at.replace(tzinfo=None)
-                    if code_age > timedelta(minutes=15):
-                        error = 'Verification code has expired. Please request a new one.'
+                    # DEBUG: Print times for troubleshooting
+                    print(f"[DEBUG] Current time: {timezone.now()}")
+                    print(f"[DEBUG] Code created at: {code_obj.created_at}")
+                    print(f"[DEBUG] Time difference: {timezone.now() - code_obj.created_at}")
+                    print(f"[DEBUG] Total minutes: {(timezone.now() - code_obj.created_at).total_seconds() / 60}")
+                    
+                    # Check if code is expired (30 minutes - increased for testing)
+                    code_age = timezone.now() - code_obj.created_at
+                    max_age_minutes = 30  # Increased to 30 minutes for testing
+                    
+                    if code_age > timedelta(minutes=max_age_minutes):
+                        error = f'Verification code has expired (older than {max_age_minutes} minutes). Please request a new one.'
+                        # Delete expired code
+                        code_obj.delete()
                     else:
                         # Mark code as used
                         code_obj.is_used = True
@@ -767,17 +793,19 @@ def verify_email_code(request):
                         login(request, user)
                         
                         # Clear verification session
-                        if 'verifying_user_id' in request.session:
-                            del request.session['verifying_user_id']
-                        if 'verifying_user_email' in request.session:
-                            del request.session['verifying_user_email']
-                        if 'verification_session_time' in request.session:
-                            del request.session['verification_session_time']
+                        request.session.pop('verifying_user_id', None)
+                        request.session.pop('verifying_user_email', None)
+                        request.session.pop('verification_session_time', None)
                         
                         messages.success(request, 'Email verified successfully! You are now logged in.')
                         return redirect('dashboard:home')
                 else:
-                    error = 'Invalid or expired verification code.'
+                    # Check if there's any code for this user (for debugging)
+                    any_code = EmailVerificationCode.objects.filter(user=user).exists()
+                    if any_code:
+                        error = 'This code has already been used or is invalid. Please request a new one.'
+                    else:
+                        error = 'No verification code found. Please request a new one.'
                     
             except User.DoesNotExist:
                 error = 'User not found. Please register again.'
@@ -791,7 +819,7 @@ def verify_email_code(request):
     context = {
         'form': form,
         'error': error,
-        'user_email': user_email,  # Show user which email the code was sent to
+        'user_email': user_email,
     }
     return render(request, 'accounts/verify_code.html', context)
 
@@ -823,3 +851,33 @@ def register_choice(request):
     Page to choose registration type.
     """
     return render(request, 'accounts/register_choice.html')
+
+def debug_codes(request):
+    """Debug endpoint to check verification codes"""
+    user_id = request.session.get('verifying_user_id')
+    
+    if not user_id:
+        return JsonResponse({'error': 'No user in session'})
+    
+    try:
+        user = User.objects.get(id=user_id)
+        codes = EmailVerificationCode.objects.filter(user=user).order_by('-created_at')
+        
+        codes_list = []
+        for code in codes:
+            codes_list.append({
+                'code': code.code,
+                'created_at': str(code.created_at),
+                'is_used': code.is_used,
+                'age_minutes': (timezone.now() - code.created_at).total_seconds() / 60,
+            })
+        
+        return JsonResponse({
+            'user': user.email,
+            'current_time': str(timezone.now()),
+            'codes': codes_list,
+            'session_user_id': user_id,
+        })
+        
+    except User.DoesNotExist:
+        return JsonResponse({'error': 'User not found'})
