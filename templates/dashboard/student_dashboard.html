@@ -56,44 +56,129 @@
         font-size: 1em;
         padding: 0.5em 1em;
     }
+    
+    /* Mobile-specific fixes */
+    @media (max-width: 768px) {
+        .card-body .row.text-center .col {
+            margin-bottom: 1.5rem;
+        }
+        .card-body .row.text-center .col:last-child {
+            margin-bottom: 0;
+        }
+        .btn-group-vertical {
+            width: 100%;
+        }
+        .btn {
+            width: 100%;
+            margin-bottom: 0.5rem;
+        }
+        .btn + .btn {
+            margin-left: 0 !important;
+        }
+        .d-flex.flex-column.flex-md-row {
+            flex-direction: column !important;
+        }
+        .d-flex.flex-column.flex-md-row .w-100.w-md-auto {
+            width: 100% !important;
+            max-width: 100% !important;
+        }
+        .d-flex.flex-column.flex-md-row .mt-2.mt-md-0 {
+            margin-top: 1rem !important;
+        }
+        .table-responsive {
+            margin-bottom: 1rem;
+        }
+        .table td, .table th {
+            padding: 0.75rem 0.5rem;
+            font-size: 0.9rem;
+        }
+        .badge {
+            font-size: 0.85em;
+            padding: 0.4em 0.8em;
+        }
+        .progress {
+            height: 1.5rem;
+        }
+        h5.card-title {
+            font-size: 1.25rem;
+        }
+        h6 {
+            font-size: 1rem;
+        }
+    }
+    
+    /* Extra small devices */
+    @media (max-width: 576px) {
+        .card-body {
+            padding: 1rem;
+        }
+        .card-header {
+            padding: 0.75rem 1rem;
+        }
+        .row.text-center .col h3 {
+            font-size: 1.75rem;
+        }
+        .row.text-center .col p {
+            font-size: 0.875rem;
+        }
+        .btn-sm {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.875rem;
+        }
+        .table td, .table th {
+            padding: 0.5rem 0.25rem;
+            font-size: 0.85rem;
+        }
+    }
 </style>
 {% endblock %}
 
 {% block dashboard_content %}
 <div class="row mb-4">
-    <div class="col-md-6">
+    <!-- Profile Card -->
+    <div class="col-md-6 mb-4 mb-md-0">
         <div class="card h-100">
             <div class="card-header bg-primary text-white">
                 <h5 class="card-title mb-0">Profile Overview</h5>
             </div>
             <div class="card-body">
                 {% if profile.profile_image %}
-                    <img src="{{ profile.profile_image.url }}" alt="Profile Image" class="rounded-circle mb-3" style="width: 100px; height: 100px; object-fit: cover;">
+                    <div class="text-center text-md-start">
+                        <img src="{{ profile.profile_image.url }}" alt="Profile Image" class="rounded-circle mb-3" style="width: 100px; height: 100px; object-fit: cover;">
+                    </div>
                 {% endif %}
-                <h6>{{ profile.user.get_full_name }}</h6>
-                <p><strong>First Name:</strong> {{ profile.user.first_name }}</p>
-                <p><strong>Last Name:</strong> {{ profile.user.last_name }}</p>
-                <p><strong>Email:</strong> {{ profile.user.email }}</p>
-                <p>{{ profile.course.name }} - {{ profile.section }}</p>
                 
-                <div class="progress mt-4 mb-2">
-                    <div class="progress-bar" role="progressbar" style="width: {{ profile_completion_percentage }}%;" aria-valuenow="{{ profile_completion_percentage }}" aria-valuemin="0" aria-valuemax="100">{{ profile_completion_percentage }}%</div>
+                <div class="mb-3">
+                    <h6>{{ profile.user.get_full_name }}</h6>
+                    <p class="mb-1"><strong>First Name:</strong> {{ profile.user.first_name }}</p>
+                    <p class="mb-1"><strong>Last Name:</strong> {{ profile.user.last_name }}</p>
+                    <p class="mb-1"><strong>Email:</strong> {{ profile.user.email }}</p>
+                    <p class="mb-0">{{ profile.course.name }} - {{ profile.section }}</p>
                 </div>
-                <p class="text-muted small">Profile Completion</p>
                 
+                <div class="mt-4 mb-3">
+                    <div class="progress mb-2">
+                        <div class="progress-bar" role="progressbar" style="width: {{ profile_completion_percentage }}%;" aria-valuenow="{{ profile_completion_percentage }}" aria-valuemin="0" aria-valuemax="100">{{ profile_completion_percentage }}%</div>
+                    </div>
+                    <p class="text-muted small mb-0">Profile Completion</p>
+                </div>
+                
+                <!-- OJT Status Card -->
                 <div class="mt-4 p-3 rounded shadow-sm bg-light">
-                    <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-2">
-                        <div>
-                            <h6 class="mb-1">OJT Status:
-                                <span class="badge bg-{{ profile.get_ojt_status_color }} text-white">{{ profile.get_ojt_status_display }}</span>
+                    <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
+                        <div class="flex-grow-1">
+                            <h6 class="mb-2">
+                                OJT Status:
+                                <span class="badge bg-{{ profile.get_ojt_status_color }} text-white ms-1">{{ profile.get_ojt_status_display }}</span>
                             </h6>
-                            <h6 class="mb-0">OJT Hours:
+                            <h6 class="mb-0">
+                                OJT Hours:
                                 <span class="fw-bold">{{ profile.ojt_hours_completed }}</span> /
                                 <span class="text-muted">{{ profile.ojt_hours_required }}</span>
                             </h6>
                         </div>
                         {% if request.user.is_adviser %}
-                        <form method="post" action="{% url 'dashboard:update_ojt_hours' profile.id %}" class="d-flex flex-column flex-sm-row gap-2 mt-2 mt-md-0 w-100 w-md-auto" style="max-width: 320px;">
+                        <form method="post" action="{% url 'dashboard:update_ojt_hours' profile.id %}" class="d-flex flex-column flex-sm-row gap-2 w-100 w-md-auto" style="max-width: 320px;">
                             {% csrf_token %}
                             <input type="number" name="hours" id="hours" class="form-control flex-fill" min="0" max="{{ profile.ojt_hours_required }}" value="{{ profile.ojt_hours_completed }}" required placeholder="Update hours">
                             <button type="submit" class="btn btn-success w-100 w-sm-auto">Update Hours</button>
@@ -102,16 +187,18 @@
                     </div>
                 </div>
                 
-                <div class="mt-4">
+                <!-- Action Buttons - Stack vertically on mobile -->
+                <div class="mt-4 d-flex flex-column flex-md-row gap-2">
                     <a href="{% url 'dashboard:submit_dtr' %}" class="btn btn-outline-success">Submit Weekly DTR</a>
-                    <a href="{% url 'accounts:edit_profile' %}" class="btn btn-outline-primary ms-2">Update Profile</a>
-                    <a href="{% url 'accounts:profile' %}" class="btn btn-outline-secondary ms-2">View Complete Profile</a>
-                    <a href="{% url 'dashboard:student_documents_view' %}" class="btn btn-outline-warning ms-2">My OJT Documents</a>
+                    <a href="{% url 'accounts:edit_profile' %}" class="btn btn-outline-primary">Update Profile</a>
+                    <a href="{% url 'accounts:profile' %}" class="btn btn-outline-secondary">View Complete Profile</a>
+                    <a href="{% url 'dashboard:student_documents_view' %}" class="btn btn-outline-warning">My OJT Documents</a>
                 </div>
             </div>
         </div>
     </div>
     
+    <!-- Application Summary Card -->
     <div class="col-md-6">
         <div class="card h-100">
             <div class="card-header bg-primary text-white">
@@ -119,45 +206,49 @@
             </div>
             <div class="card-body">
                 <div class="row text-center">
-                    <div class="col">
-                        <h3>{{ application_count }}</h3>
-                        <p>Total Applications</p>
+                    <div class="col-6 col-sm-3 mb-3 mb-sm-0">
+                        <h3 class="text-primary">{{ application_count }}</h3>
+                        <p class="text-muted mb-0">Total</p>
                     </div>
-                    <div class="col">
-                        <h3>{{ pending_count }}</h3>
-                        <p>Pending</p>
+                    <div class="col-6 col-sm-3 mb-3 mb-sm-0">
+                        <h3 class="text-warning">{{ pending_count }}</h3>
+                        <p class="text-muted mb-0">Pending</p>
                     </div>
-                    <div class="col">
-                        <h3>{{ accepted_count }}</h3>
-                        <p>Accepted</p>
+                    <div class="col-6 col-sm-3">
+                        <h3 class="text-success">{{ accepted_count }}</h3>
+                        <p class="text-muted mb-0">Accepted</p>
                     </div>
-                    <div class="col">
-                        <h3>{{ rejected_count }}</h3>
-                        <p>Rejected</p>
+                    <div class="col-6 col-sm-3">
+                        <h3 class="text-danger">{{ rejected_count }}</h3>
+                        <p class="text-muted mb-0">Rejected</p>
                     </div>
                 </div>
                 
-                <a href="{% url 'internship:applications' %}" class="btn btn-outline-primary mt-4">View All Applications</a>
+                <div class="text-center text-md-start mt-4">
+                    <a href="{% url 'internship:applications' %}" class="btn btn-outline-primary w-100 w-md-auto">View All Applications</a>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
-<div class="row">
+<!-- Recent Applications Card -->
+<div class="row mt-4">
     <div class="col-12">
         <div class="card">
-            <div class="card-header bg-primary text-white">
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                 <h5 class="card-title mb-0">Recent Applications</h5>
+                <a href="{% url 'internship:internships' %}" class="btn btn-sm btn-light d-none d-md-inline">Find Internships</a>
             </div>
             <div class="card-body">
                 {% if recent_applications %}
                     <div class="table-responsive">
-                        <table class="table table-striped">
+                        <table class="table table-striped table-hover">
                             <thead>
                                 <tr>
                                     <th>Company</th>
                                     <th>Position</th>
-                                    <th>Applied Date</th>
+                                    <th class="d-none d-md-table-cell">Applied Date</th>
                                     <th>Status</th>
                                     <th>Actions</th>
                                 </tr>
@@ -165,16 +256,19 @@
                             <tbody>
                                 {% for application in recent_applications %}
                                 <tr>
-                                    <td>{{ application.internship.company.name }}</td>
-                                    <td>{{ application.internship.title }}</td>
-                                    <td>{{ application.applied_at|date:"M d, Y" }}</td>
+                                    <td>{{ application.internship.company.name|truncatechars:20 }}</td>
+                                    <td>{{ application.internship.title|truncatechars:25 }}</td>
+                                    <td class="d-none d-md-table-cell">{{ application.applied_at|date:"M d, Y" }}</td>
                                     <td>
                                         <span class="badge bg-{{ application.get_status_color }} text-dark">
                                             {{ application.get_status_display }}
                                         </span>
                                     </td>
                                     <td>
-                                        <a href="{% url 'internship:application_detail' application.id %}" class="btn btn-sm btn-primary">View</a>
+                                        <div class="d-flex gap-1">
+                                            <a href="{% url 'internship:application_detail' application.id %}" class="btn btn-sm btn-primary">View</a>
+                                            <a href="{% url 'internship:internships' %}" class="btn btn-sm btn-outline-success d-md-none">Find More</a>
+                                        </div>
                                     </td>
                                 </tr>
                                 {% endfor %}
@@ -182,16 +276,32 @@
                         </table>
                     </div>
                 {% else %}
-                    <div class="alert alert-info">
-                        You haven't applied to any internships yet. 
-                        <a href="{% url 'internship:internships' %}" class="alert-link">Browse internships</a> to get started.
+                    <div class="alert alert-info text-center">
+                        <div class="mb-3">
+                            <i class="bi bi-briefcase fs-1 text-muted"></i>
+                            <h5 class="mt-2">No Applications Yet</h5>
+                            <p class="mb-3">You haven't applied to any internships yet.</p>
+                        </div>
+                        <a href="{% url 'internship:internships' %}" class="btn btn-primary btn-lg">
+                            <i class="bi bi-search me-2"></i>Browse Internships
+                        </a>
                     </div>
+                {% endif %}
+                
+                <!-- Mobile-only button -->
+                {% if recent_applications %}
+                <div class="d-block d-md-none text-center mt-3">
+                    <a href="{% url 'internship:internships' %}" class="btn btn-success w-100">
+                        <i class="bi bi-search me-2"></i>Find More Internships
+                    </a>
+                </div>
                 {% endif %}
             </div>
         </div>
     </div>
 </div>
 
+<!-- Documents Completion Card -->
 <div class="row mt-4">
     <div class="col-12">
         <div class="card">
@@ -204,7 +314,7 @@
                         <thead>
                             <tr>
                                 <th>Document</th>
-                                <th>Description</th>
+                                <th class="d-none d-md-table-cell">Description</th>
                                 <th>Status</th>
                                 <th>Action</th>
                             </tr>
@@ -213,7 +323,7 @@
                             {% for doc in document_status %}
                             <tr>
                                 <td>{{ doc.required.name }}</td>
-                                <td>{{ doc.required.description }}</td>
+                                <td class="d-none d-md-table-cell">{{ doc.required.description|truncatechars:30 }}</td>
                                 <td>
                                     {% if doc.uploaded %}
                                         <span class="badge bg-success text-white">Uploaded</span>
@@ -222,43 +332,46 @@
                                     {% endif %}
                                 </td>
                                 <td>
-                                    {% if doc.required.id == 'cv' %}
-                                        {% if doc.uploaded %}
-                                            <a href="{{ doc.file }}" class="btn btn-sm btn-outline-secondary" target="_blank">View</a>
-                                            <a href="{% url 'accounts:delete_cv' %}" class="btn btn-sm btn-danger ms-1">Delete</a>
-                                        {% else %}
-                                            <a href="{% url 'accounts:upload_cv' %}" class="btn btn-sm btn-primary">Upload</a>
-                                        {% endif %}
-                                    {% else %}
-                                        {% if doc.uploaded %}
-                                            {% if doc.file|file_ext:'.jpg' or doc.file|file_ext:'.jpeg' or doc.file|file_ext:'.png' %}
-                                                <a href="{{ doc.file }}" target="_blank">
-                                                    <img src="{{ doc.file }}" alt="Preview" style="max-width: 80px; max-height: 80px; border-radius: 4px; border: 1px solid #ddd; margin-right: 8px;">
-                                                </a>
-                                            {% elif doc.file|file_ext:'.pdf' %}
-                                                <a href="{{ doc.file }}" target="_blank">
-                                                    <embed src="{{ doc.file }}" type="application/pdf" width="80" height="80" style="border-radius: 4px; border: 1px solid #ddd; margin-right: 8px;" />
-                                                </a>
-                                            {% elif doc.file|file_ext:'.xlsx' or doc.file|file_ext:'.xls' %}
-                                                <span class="badge bg-success"><i class="bi bi-file-earmark-excel"></i> Excel</span>
+                                    <div class="d-flex gap-1">
+                                        {% if doc.required.id == 'cv' %}
+                                            {% if doc.uploaded %}
+                                                <a href="{{ doc.file }}" class="btn btn-sm btn-outline-secondary" target="_blank">View</a>
+                                                <a href="{% url 'accounts:delete_cv' %}" class="btn btn-sm btn-danger">Delete</a>
+                                            {% else %}
+                                                <a href="{% url 'accounts:upload_cv' %}" class="btn btn-sm btn-primary">Upload</a>
                                             {% endif %}
-                                            <a href="{{ doc.file }}" class="btn btn-sm btn-outline-secondary" target="_blank">View</a>
                                         {% else %}
-                                            <a href="{% url 'dashboard:upload_student_document' doc.required.id %}" class="btn btn-sm btn-primary">Upload</a>
+                                            {% if doc.uploaded %}
+                                                <a href="{{ doc.file }}" class="btn btn-sm btn-outline-secondary" target="_blank">View</a>
+                                            {% else %}
+                                                <a href="{% url 'dashboard:upload_student_document' doc.required.id %}" class="btn btn-sm btn-primary">Upload</a>
+                                            {% endif %}
                                         {% endif %}
-                                    {% endif %}
+                                    </div>
                                 </td>
                             </tr>
                             {% endfor %}
                         </tbody>
                     </table>
                 </div>
-                <div class="mt-3">
-                    <div class="progress">
-                        <div class="progress-bar bg-success" role="progressbar" style="width: {{ document_status|dictsort:'uploaded'|yesno:'100,0' }}%;" aria-valuenow="{{ document_status|dictsort:'uploaded'|yesno:'100,0' }}" aria-valuemin="0" aria-valuemax="100">
+                
+                <!-- Progress bar -->
+                <div class="mt-4">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Document Completion</span>
+                        <span class="fw-bold">
                             {% with percent=document_completion_percent %}
                             {{ percent }}%
                             {% endwith %}
+                        </span>
+                    </div>
+                    <div class="progress" style="height: 1.5rem;">
+                        <div class="progress-bar bg-success" role="progressbar" 
+                             style="width: {{ document_completion_percent }}%;" 
+                             aria-valuenow="{{ document_completion_percent }}" 
+                             aria-valuemin="0" 
+                             aria-valuemax="100">
+                            {{ document_completion_percent }}%
                         </div>
                     </div>
                 </div>
