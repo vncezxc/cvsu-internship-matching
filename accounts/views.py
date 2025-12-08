@@ -659,7 +659,7 @@ def send_verification_code(user):
     send_mail(
         'Your Email Verification Code',
         f'Your verification code is: {code}',
-        'no-reply@cvsu-internship.com',
+        'internmatchingcvsu@gmail.com',
         [user.email],
         fail_silently=False,
     )
