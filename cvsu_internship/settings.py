@@ -4,6 +4,50 @@ Django settings for cvsu_internship project.
 
 import os
 from pathlib import Path
+
+# ---------------------------------------
+# Configuration Helper for Render Compatibility
+# ---------------------------------------
+def get_config(key, default='', cast_func=None):
+    """
+    Universal config getter that works everywhere.
+    
+    Priority:
+    1. System environment variables (Render/Heroku/Docker)
+    2. .env file via python-decouple (local development)
+    3. Default value
+    """
+    # 1. First check system environment (Render production)
+    value = os.environ.get(key)
+    
+    # 2. If not in system env, try .env file (local development)
+    if value is None:
+        try:
+            from decouple import config as decouple_config
+            # Use decouple's config with casting if needed
+            if cast_func:
+                value = decouple_config(key, default=default, cast=cast_func)
+            else:
+                value = decouple_config(key, default=default)
+        except:
+            value = default
+    
+    # 3. Apply casting for booleans, integers, etc.
+    if cast_func and value is not None and value != '':
+        if cast_func == bool:
+            # Handle string booleans
+            if isinstance(value, str):
+                value = value.lower() in ('true', 'yes', '1', 't', 'y')
+            return value
+        else:
+            try:
+                return cast_func(value)
+            except (ValueError, TypeError):
+                return default
+    
+    return value
+
+# Import decouple for any remaining direct usage
 from decouple import config
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -11,9 +55,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # ---------------------------------------
 # Basic Deployment Settings
 # ---------------------------------------
-SECRET_KEY = config('DJANGO_SECRET_KEY', default='')
-DEBUG = config('DJANGO_DEBUG', default=False, cast=bool)
-ALLOWED_HOSTS = config('DJANGO_ALLOWED_HOSTS', default='localhost').split(',')
+SECRET_KEY = get_config('DJANGO_SECRET_KEY', default='')
+DEBUG = get_config('DJANGO_DEBUG', default=False, cast_func=bool)
+ALLOWED_HOSTS = get_config('DJANGO_ALLOWED_HOSTS', default='localhost').split(',')
 
 CSRF_TRUSTED_ORIGINS = [
     'https://cvsu-internship-matching.onrender.com',
@@ -25,11 +69,11 @@ CSRF_TRUSTED_ORIGINS = [
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': config('POSTGRES_DB', default='cvsu_internship'),
-        'USER': config('POSTGRES_USER', default='postgres'),
-        'PASSWORD': config('POSTGRES_PASSWORD', default='postgres'),
-        'HOST': config('POSTGRES_HOST', default='localhost'),
-        'PORT': config('POSTGRES_PORT', default='5432'),
+        'NAME': get_config('POSTGRES_DB', default='cvsu_internship'),
+        'USER': get_config('POSTGRES_USER', default='postgres'),
+        'PASSWORD': get_config('POSTGRES_PASSWORD', default='postgres'),
+        'HOST': get_config('POSTGRES_HOST', default='localhost'),
+        'PORT': get_config('POSTGRES_PORT', default='5432'),
     }
 }
 
@@ -143,15 +187,53 @@ LOGOUT_REDIRECT_URL = 'home'
 LOGIN_URL = 'account_login'
 
 # ---------------------------------------
-# Email Settings
+# Email Settings (SendGrid with Fallbacks)
 # ---------------------------------------
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = config('EMAIL_HOST', default='smtp.sendgrid.net')
-EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='apikey')
-EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
-EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
-EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
-DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='internmatchingcvsu@gmail.com')
+# Get all email-related configs
+SENDGRID_API_KEY = get_config('SENDGRID_API_KEY', default='')
+SENDGRID_SANDBOX_MODE = get_config('SENDGRID_SANDBOX_MODE_IN_DEBUG', default=True, cast_func=bool)
+EMAIL_BACKEND_CONFIG = get_config('EMAIL_BACKEND', default='')
+
+# Determine the backend to use
+if EMAIL_BACKEND_CONFIG:
+    # Use explicitly configured backend
+    EMAIL_BACKEND = EMAIL_BACKEND_CONFIG
+    print(f"✓ Email: Using explicitly configured backend: {EMAIL_BACKEND}")
+elif DEBUG and SENDGRID_SANDBOX_MODE:
+    # Local development with sandbox mode
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+    print("⚠ Email: Local debug with console backend (emails print to terminal)")
+elif DEBUG and not SENDGRID_SANDBOX_MODE:
+    # Local development but want real emails
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+    print("⚠ Email: Console backend for debugging")
+else:
+    # Production - always SMTP
+    EMAIL_BACKEND = 'sendgrid_backend.SendgridBackend'
+    print("✓ Email: SendGrid backend for production")
+
+# SMTP Configuration (for when using SMTP)
+EMAIL_HOST = get_config('EMAIL_HOST', default='smtp.sendgrid.net')
+EMAIL_HOST_USER = get_config('EMAIL_HOST_USER', default='apikey')
+
+# IMPORTANT: For SendGrid, password is the API key
+if SENDGRID_API_KEY:
+    EMAIL_HOST_PASSWORD = SENDGRID_API_KEY
+    print("✓ Email: Using SENDGRID_API_KEY for authentication")
+else:
+    # Fallback to old EMAIL_HOST_PASSWORD if SENDGRID_API_KEY not set
+    EMAIL_HOST_PASSWORD = get_config('EMAIL_HOST_PASSWORD', default='')
+    if EMAIL_HOST_PASSWORD:
+        print("✓ Email: Using EMAIL_HOST_PASSWORD for authentication")
+    else:
+        print("⚠ Email: No email password/API key configured!")
+
+EMAIL_PORT = get_config('EMAIL_PORT', default=587, cast_func=int)
+EMAIL_USE_TLS = get_config('EMAIL_USE_TLS', default=True, cast_func=bool)
+DEFAULT_FROM_EMAIL = get_config('DEFAULT_FROM_EMAIL', default='internmatchingcvsu@gmail.com')
+
+# Email timeout settings (important for Render)
+EMAIL_TIMEOUT = 30  # seconds
 
 # ---------------------------------------
 # Channels (WebSockets)
@@ -160,7 +242,7 @@ CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
         'CONFIG': {
-            'hosts': [(config('REDIS_URL', default='rediss://localhost:6379'))],
+            'hosts': [(get_config('REDIS_URL', default='rediss://localhost:6379'))],
         },
     },
 }
@@ -169,7 +251,8 @@ CHANNEL_LAYERS = {
 # CORS
 # ---------------------------------------
 CORS_ALLOW_ALL_ORIGINS = False
-CORS_ALLOWED_ORIGINS = config('CORS_ALLOWED_ORIGINS', default='').split(',')
+cors_origins = get_config('CORS_ALLOWED_ORIGINS', default='')
+CORS_ALLOWED_ORIGINS = cors_origins.split(',') if cors_origins else []
 
 # ---------------------------------------
 # Installed Apps
@@ -183,7 +266,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.sites',
 
-    # Third-
+    # Third-party
     'cloudinary_storage',
     'cloudinary',
     'rest_framework',
@@ -204,11 +287,46 @@ INSTALLED_APPS = [
     'dashboard',
 ]
 
-
+# ---------------------------------------
+# Cloudinary Settings
+# ---------------------------------------
 CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': config('CLOUDINARY_CLOUD_NAME', default=''),
-    'API_KEY': config('CLOUDINARY_API_KEY', default=''),
-    'API_SECRET': config('CLOUDINARY_API_SECRET', default=''),
+    'CLOUD_NAME': get_config('CLOUDINARY_CLOUD_NAME', default=''),
+    'API_KEY': get_config('CLOUDINARY_API_KEY', default=''),
+    'API_SECRET': get_config('CLOUDINARY_API_SECRET', default=''),
 }
 
-DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+# Only use Cloudinary if all credentials are present
+if all([CLOUDINARY_STORAGE['CLOUD_NAME'], 
+         CLOUDINARY_STORAGE['API_KEY'], 
+         CLOUDINARY_STORAGE['API_SECRET']]):
+    DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+    
+    # Also configure Cloudinary SDK directly
+    import cloudinary
+    cloudinary.config(
+        cloud_name=CLOUDINARY_STORAGE['CLOUD_NAME'],
+        api_key=CLOUDINARY_STORAGE['API_KEY'],
+        api_secret=CLOUDINARY_STORAGE['API_SECRET'],
+    )
+    print("✓ Cloudinary configured successfully")
+else:
+    # Fallback to local storage
+    DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
+    print("⚠ WARNING: Cloudinary not configured. Using local file storage.")
+
+# ---------------------------------------
+# Debug Output for Configuration Verification
+# ---------------------------------------
+print("\n" + "="*60)
+print("CONFIGURATION VERIFICATION")
+print("="*60)
+print(f"Running on: {'RENDER' if 'RENDER' in os.environ else 'LOCAL'}")
+print(f"SECRET_KEY loaded: {'YES' if SECRET_KEY else 'NO'}")
+print(f"DEBUG mode: {DEBUG}")
+print(f"SENDGRID_API_KEY loaded: {'YES' if SENDGRID_API_KEY else 'NO'}")
+print(f"CLOUDINARY_CLOUD_NAME loaded: {'YES' if get_config('CLOUDINARY_CLOUD_NAME') else 'NO'}")
+print(f"Email Backend: {EMAIL_BACKEND}")
+print(f"Email Host: {EMAIL_HOST}")
+print(f"Email From: {DEFAULT_FROM_EMAIL}")
+print("="*60)
