@@ -57,172 +57,57 @@
         padding: 0.5em 1em;
     }
     
-    /* OJT Progress Card Styles (from your image) */
-    .ojt-progress-card {
-        background: white;
-        border-radius: 1.5rem;
-        padding: 1.5rem;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-        margin-bottom: 2rem;
-    }
-    .ojt-progress-title {
-        font-size: 1.5rem;
-        font-weight: 700;
-        color: #333;
-        margin-bottom: 1.5rem;
-    }
-    .ojt-progress-percentage {
-        font-size: 2.5rem;
-        font-weight: 800;
-        color: #006d38;
-        line-height: 1;
-        margin-bottom: 0.5rem;
-    }
-    .ojt-progress-label {
-        color: #666;
-        font-size: 0.9rem;
-        margin-bottom: 1.5rem;
-    }
-    .ojt-hours {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        background: #f8f9fa;
-        padding: 1rem;
-        border-radius: 0.75rem;
-        margin-bottom: 1.5rem;
-    }
-    .ojt-hours-completed {
-        font-size: 1.5rem;
-        font-weight: 700;
-        color: #006d38;
-    }
-    .ojt-hours-required {
-        font-size: 1rem;
-        color: #666;
-    }
-    .ojt-status-section {
-        background: #f8f9fa;
-        padding: 1rem;
-        border-radius: 0.75rem;
-        margin-bottom: 1.5rem;
-    }
-    .ojt-status-label {
-        color: #666;
-        font-size: 0.9rem;
-        margin-bottom: 0.5rem;
-    }
-    .ojt-status-value {
-        font-size: 1.25rem;
-        font-weight: 600;
-        color: #333;
-        margin-bottom: 0.5rem;
-    }
-    .ojt-update-btn {
-        background: #006d38;
-        color: white;
-        border: none;
-        padding: 0.5rem 1.5rem;
-        border-radius: 0.5rem;
-        font-weight: 600;
-        transition: background 0.3s;
-    }
-    .ojt-update-btn:hover {
-        background: #005229;
-        color: white;
-    }
-    .ojt-applications-btn {
-        background: #f9b233;
-        color: #333;
-        border: none;
-        padding: 0.75rem 2rem;
-        border-radius: 0.75rem;
-        font-weight: 700;
-        font-size: 1rem;
-        width: 100%;
-        transition: background 0.3s;
-    }
-    .ojt-applications-btn:hover {
-        background: #e6a020;
-        color: #333;
-    }
-    
-    /* Progress circle for OJT progress */
-    .ojt-progress-circle {
-        width: 120px;
-        height: 120px;
-        margin: 0 auto 1.5rem;
-    }
-    .ojt-progress-circle svg {
-        width: 100%;
-        height: 100%;
-    }
-    .ojt-progress-circle .progress-ring {
-        transform: rotate(-90deg);
-        transform-origin: 50% 50%;
-    }
-    .ojt-progress-circle .progress-ring-circle {
-        stroke-dasharray: 314;
-        stroke-dashoffset: 314;
-        transition: stroke-dashoffset 1.5s ease;
-        stroke: #006d38;
-        stroke-width: 8;
-        fill: transparent;
-    }
-    .ojt-progress-circle .progress-text {
-        font-size: 2rem;
-        font-weight: 700;
-        fill: #006d38;
-        dominant-baseline: middle;
-        text-anchor: middle;
-    }
-    
-    /* Mobile-specific fixes */
+    /* Mobile-specific fixes for OJT status section */
     @media (max-width: 768px) {
-        .ojt-progress-card {
-            padding: 1.25rem;
-            margin-bottom: 1.5rem;
-        }
-        .ojt-progress-title {
-            font-size: 1.25rem;
-        }
-        .ojt-progress-percentage {
-            font-size: 2rem;
-        }
-        .ojt-progress-circle {
-            width: 100px;
-            height: 100px;
-            margin-bottom: 1rem;
-        }
-        .ojt-progress-circle .progress-text {
-            font-size: 1.5rem;
-        }
-        .ojt-hours-completed {
-            font-size: 1.25rem;
-        }
-        .ojt-status-value {
-            font-size: 1.1rem;
-        }
-        .ojt-applications-btn {
-            padding: 0.75rem 1.5rem;
-            font-size: 0.95rem;
+        /* Fix the OJT status and hours container */
+        .d-flex.flex-column.flex-md-row.align-items-md-center {
+            flex-direction: column !important;
         }
         
+        /* Make the form take full width on mobile */
+        .d-flex.flex-column.flex-md-row.align-items-md-center .form-control {
+            width: 100% !important;
+            max-width: 100% !important;
+        }
+        
+        /* Stack the buttons properly */
+        .mt-4 .btn {
+            width: 100%;
+            margin-bottom: 0.5rem;
+            margin-left: 0 !important;
+        }
+        
+        /* Fix spacing in the OJT status card */
+        .mt-4.p-3.rounded.shadow-sm.bg-light {
+            padding: 1rem !important;
+        }
+        
+        /* Make sure text doesn't overflow */
+        .badge {
+            font-size: 0.85em;
+            padding: 0.4em 0.8em;
+            display: inline-block;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        /* Stack form elements vertically */
+        .d-flex.flex-column.flex-sm-row.gap-2 {
+            flex-direction: column !important;
+        }
+        
+        .d-flex.flex-column.flex-sm-row.gap-2 .btn {
+            width: 100% !important;
+        }
+        
+        /* General mobile fixes */
         .card-body .row.text-center .col {
             margin-bottom: 1.5rem;
         }
         .btn-group-vertical {
             width: 100%;
-        }
-        .btn {
-            width: 100%;
-            margin-bottom: 0.5rem;
-        }
-        .btn + .btn {
-            margin-left: 0 !important;
-        }
-        .d-flex.flex-column.flex-md-row {
-            flex-direction: column !important;
         }
         .table-responsive {
             margin-bottom: 1rem;
@@ -230,10 +115,6 @@
         .table td, .table th {
             padding: 0.75rem 0.5rem;
             font-size: 0.9rem;
-        }
-        .badge {
-            font-size: 0.85em;
-            padding: 0.4em 0.8em;
         }
         .progress {
             height: 1.5rem;
@@ -248,20 +129,26 @@
     
     /* Extra small devices */
     @media (max-width: 576px) {
-        .ojt-progress-card {
-            padding: 1rem;
-            border-radius: 1rem;
-        }
-        .ojt-progress-percentage {
-            font-size: 1.75rem;
-        }
-        .ojt-hours {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 0.5rem;
-        }
-        .ojt-status-section {
+        /* Make OJT status display vertically */
+        .mt-4.p-3.rounded.shadow-sm.bg-light h6 {
             text-align: center;
+        }
+        
+        /* Center the badge */
+        .mt-4.p-3.rounded.shadow-sm.bg-light .badge {
+            display: block;
+            margin: 0.5rem auto;
+            width: fit-content;
+        }
+        
+        /* Stack hours display */
+        .mt-4.p-3.rounded.shadow-sm.bg-light h6.mb-0 {
+            text-align: center;
+        }
+        
+        /* Make form full width */
+        .d-flex.flex-column.flex-sm-row.gap-2 {
+            width: 100% !important;
         }
         
         .card-body {
@@ -289,131 +176,59 @@
 {% endblock %}
 
 {% block dashboard_content %}
-<!-- OJT Progress Card (from your image) -->
-<div class="ojt-progress-card">
-    <div class="row align-items-center">
-        <!-- Progress Circle and Percentage -->
-        <div class="col-md-4 text-center mb-4 mb-md-0">
-            <div class="ojt-progress-circle">
-                <svg viewBox="0 0 100 100">
-                    <!-- Background circle -->
-                    <circle cx="50" cy="50" r="45" fill="#f8f9fa" stroke="#e9ecef" stroke-width="8"/>
-                    <!-- Progress circle -->
-                    <circle class="progress-ring-circle" cx="50" cy="50" r="45" 
-                            stroke-dashoffset="calc(314 - (314 * {{ profile.ojt_progress_percentage|default:0 }}) / 100)"/>
-                    <!-- Percentage text -->
-                    <text class="progress-text" x="50" y="50">{{ profile.ojt_progress_percentage|default:0 }}%</text>
-                </svg>
-            </div>
-            <div class="ojt-progress-label">Complete</div>
-        </div>
-        
-        <!-- Hours and Status -->
-        <div class="col-md-8">
-            <!-- Hours Completed -->
-            <div class="ojt-hours">
-                <div>
-                    <div class="ojt-hours-completed">{{ profile.ojt_hours_completed|default:0 }} hours completed</div>
-                    <div class="ojt-hours-required">{{ profile.ojt_hours_required|default:300 }} hours required</div>
-                </div>
-            </div>
-            
-            <!-- OJT Status -->
-            <div class="ojt-status-section">
-                <div class="ojt-status-label">OJT Status:</div>
-                <div class="ojt-status-value">{{ profile.get_ojt_status_display|default:"Still Looking" }}</div>
-                {% if not request.user.is_adviser %}
-                <button class="ojt-update-btn" data-bs-toggle="modal" data-bs-target="#updateStatusModal">
-                    Update
-                </button>
-                {% endif %}
-            </div>
-            
-            <!-- Applications Button -->
-            <div class="text-center">
-                <button class="ojt-applications-btn" onclick="window.location.href='{% url 'internship:internships' %}'">
-                    Find Internships
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Update Status Modal -->
-<div class="modal fade" id="updateStatusModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Update OJT Status</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <form method="post" action="{% url 'dashboard:update_ojt_status' %}">
-                {% csrf_token %}
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label">Select Status</label>
-                        <select name="ojt_status" class="form-select" required>
-                            <option value="">Select status...</option>
-                            <option value="looking" {% if profile.ojt_status == 'looking' %}selected{% endif %}>Still Looking</option>
-                            <option value="applied" {% if profile.ojt_status == 'applied' %}selected{% endif %}>Applied</option>
-                            <option value="interviewing" {% if profile.ojt_status == 'interviewing' %}selected{% endif %}>Interviewing</option>
-                            <option value="accepted" {% if profile.ojt_status == 'accepted' %}selected{% endif %}>Accepted</option>
-                            <option value="started" {% if profile.ojt_status == 'started' %}selected{% endif %}>Started</option>
-                            <option value="completed" {% if profile.ojt_status == 'completed' %}selected{% endif %}>Completed</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Update Status</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<!-- Original Dashboard Content Below -->
 <div class="row mb-4">
-    <!-- Profile Card -->
-    <div class="col-md-6 mb-4 mb-md-0">
+    <div class="col-md-6">
         <div class="card h-100">
             <div class="card-header bg-primary text-white">
                 <h5 class="card-title mb-0">Profile Overview</h5>
             </div>
             <div class="card-body">
                 {% if profile.profile_image %}
-                    <div class="text-center text-md-start">
-                        <img src="{{ profile.profile_image.url }}" alt="Profile Image" class="rounded-circle mb-3" style="width: 100px; height: 100px; object-fit: cover;">
-                    </div>
+                    <img src="{{ profile.profile_image.url }}" alt="Profile Image" class="rounded-circle mb-3" style="width: 100px; height: 100px; object-fit: cover;">
                 {% endif %}
+                <h6>{{ profile.user.get_full_name }}</h6>
+                <p><strong>First Name:</strong> {{ profile.user.first_name }}</p>
+                <p><strong>Last Name:</strong> {{ profile.user.last_name }}</p>
+                <p><strong>Email:</strong> {{ profile.user.email }}</p>
+                <p>{{ profile.course.name }} - {{ profile.section }}</p>
                 
-                <div class="mb-3">
-                    <h6>{{ profile.user.get_full_name }}</h6>
-                    <p class="mb-1"><strong>First Name:</strong> {{ profile.user.first_name }}</p>
-                    <p class="mb-1"><strong>Last Name:</strong> {{ profile.user.last_name }}</p>
-                    <p class="mb-1"><strong>Email:</strong> {{ profile.user.email }}</p>
-                    <p class="mb-0">{{ profile.course.name }} - {{ profile.section }}</p>
+                <div class="progress mt-4 mb-2">
+                    <div class="progress-bar" role="progressbar" style="width: {{ profile_completion_percentage }}%;" aria-valuenow="{{ profile_completion_percentage }}" aria-valuemin="0" aria-valuemax="100">{{ profile_completion_percentage }}%</div>
                 </div>
+                <p class="text-muted small">Profile Completion</p>
                 
-                <div class="mt-4 mb-3">
-                    <div class="progress mb-2">
-                        <div class="progress-bar" role="progressbar" style="width: {{ profile_completion_percentage }}%;" aria-valuenow="{{ profile_completion_percentage }}" aria-valuemin="0" aria-valuemax="100">{{ profile_completion_percentage }}%</div>
+                <!-- OJT Status Section - This is what needs mobile fixing -->
+                <div class="mt-4 p-3 rounded shadow-sm bg-light">
+                    <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-2">
+                        <div class="text-center text-md-start">
+                            <h6 class="mb-1">OJT Status:
+                                <span class="badge bg-{{ profile.get_ojt_status_color }} text-white">{{ profile.get_ojt_status_display }}</span>
+                            </h6>
+                            <h6 class="mb-0">OJT Hours:
+                                <span class="fw-bold">{{ profile.ojt_hours_completed }}</span> /
+                                <span class="text-muted">{{ profile.ojt_hours_required }}</span>
+                            </h6>
+                        </div>
+                        {% if request.user.is_adviser %}
+                        <form method="post" action="{% url 'dashboard:update_ojt_hours' profile.id %}" class="d-flex flex-column flex-sm-row gap-2 mt-2 mt-md-0 w-100 w-md-auto" style="max-width: 320px;">
+                            {% csrf_token %}
+                            <input type="number" name="hours" id="hours" class="form-control flex-fill" min="0" max="{{ profile.ojt_hours_required }}" value="{{ profile.ojt_hours_completed }}" required placeholder="Update hours">
+                            <button type="submit" class="btn btn-success w-100 w-sm-auto">Update Hours</button>
+                        </form>
+                        {% endif %}
                     </div>
-                    <p class="text-muted small mb-0">Profile Completion</p>
                 </div>
                 
-                <!-- Action Buttons -->
-                <div class="mt-4 d-flex flex-column flex-md-row gap-2">
-                    <a href="{% url 'dashboard:submit_dtr' %}" class="btn btn-outline-success">Submit Weekly DTR</a>
-                    <a href="{% url 'accounts:edit_profile' %}" class="btn btn-outline-primary">Update Profile</a>
-                    <a href="{% url 'accounts:profile' %}" class="btn btn-outline-secondary">View Complete Profile</a>
-                    <a href="{% url 'dashboard:student_documents_view' %}" class="btn btn-outline-warning">My OJT Documents</a>
+                <div class="mt-4 d-grid gap-2 d-md-block">
+                    <a href="{% url 'dashboard:submit_dtr' %}" class="btn btn-outline-success mb-2 mb-md-0">Submit Weekly DTR</a>
+                    <a href="{% url 'accounts:edit_profile' %}" class="btn btn-outline-primary mb-2 mb-md-0 ms-md-2">Update Profile</a>
+                    <a href="{% url 'accounts:profile' %}" class="btn btn-outline-secondary mb-2 mb-md-0 ms-md-2">View Complete Profile</a>
+                    <a href="{% url 'dashboard:student_documents_view' %}" class="btn btn-outline-warning mb-2 mb-md-0 ms-md-2">My OJT Documents</a>
                 </div>
             </div>
         </div>
     </div>
     
-    <!-- Application Summary Card -->
     <div class="col-md-6">
         <div class="card h-100">
             <div class="card-header bg-primary text-white">
@@ -421,25 +236,25 @@
             </div>
             <div class="card-body">
                 <div class="row text-center">
-                    <div class="col-6 col-sm-3 mb-3 mb-sm-0">
-                        <h3 class="text-primary">{{ application_count }}</h3>
-                        <p class="text-muted mb-0">Total</p>
+                    <div class="col-6 col-sm-3 mb-3">
+                        <h3>{{ application_count }}</h3>
+                        <p>Total Applications</p>
                     </div>
-                    <div class="col-6 col-sm-3 mb-3 mb-sm-0">
-                        <h3 class="text-warning">{{ pending_count }}</h3>
-                        <p class="text-muted mb-0">Pending</p>
-                    </div>
-                    <div class="col-6 col-sm-3">
-                        <h3 class="text-success">{{ accepted_count }}</h3>
-                        <p class="text-muted mb-0">Accepted</p>
+                    <div class="col-6 col-sm-3 mb-3">
+                        <h3>{{ pending_count }}</h3>
+                        <p>Pending</p>
                     </div>
                     <div class="col-6 col-sm-3">
-                        <h3 class="text-danger">{{ rejected_count }}</h3>
-                        <p class="text-muted mb-0">Rejected</p>
+                        <h3>{{ accepted_count }}</h3>
+                        <p>Accepted</p>
+                    </div>
+                    <div class="col-6 col-sm-3">
+                        <h3>{{ rejected_count }}</h3>
+                        <p>Rejected</p>
                     </div>
                 </div>
                 
-                <div class="text-center text-md-start mt-4">
+                <div class="text-center mt-4">
                     <a href="{% url 'internship:applications' %}" class="btn btn-outline-primary w-100 w-md-auto">View All Applications</a>
                 </div>
             </div>
@@ -447,18 +262,16 @@
     </div>
 </div>
 
-<!-- Recent Applications Card -->
-<div class="row mt-4">
+<div class="row">
     <div class="col-12">
         <div class="card">
-            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <div class="card-header bg-primary text-white">
                 <h5 class="card-title mb-0">Recent Applications</h5>
-                <a href="{% url 'internship:internships' %}" class="btn btn-sm btn-light d-none d-md-inline">Find Internships</a>
             </div>
             <div class="card-body">
                 {% if recent_applications %}
                     <div class="table-responsive">
-                        <table class="table table-striped table-hover">
+                        <table class="table table-striped">
                             <thead>
                                 <tr>
                                     <th>Company</th>
@@ -480,10 +293,7 @@
                                         </span>
                                     </td>
                                     <td>
-                                        <div class="d-flex gap-1">
-                                            <a href="{% url 'internship:application_detail' application.id %}" class="btn btn-sm btn-primary">View</a>
-                                            <a href="{% url 'internship:internships' %}" class="btn btn-sm btn-outline-success d-md-none">Find More</a>
-                                        </div>
+                                        <a href="{% url 'internship:application_detail' application.id %}" class="btn btn-sm btn-primary">View</a>
                                     </td>
                                 </tr>
                                 {% endfor %}
@@ -491,15 +301,9 @@
                         </table>
                     </div>
                 {% else %}
-                    <div class="alert alert-info text-center">
-                        <div class="mb-3">
-                            <i class="bi bi-briefcase fs-1 text-muted"></i>
-                            <h5 class="mt-2">No Applications Yet</h5>
-                            <p class="mb-3">You haven't applied to any internships yet.</p>
-                        </div>
-                        <a href="{% url 'internship:internships' %}" class="btn btn-primary btn-lg">
-                            <i class="bi bi-search me-2"></i>Browse Internships
-                        </a>
+                    <div class="alert alert-info">
+                        You haven't applied to any internships yet. 
+                        <a href="{% url 'internship:internships' %}" class="alert-link">Browse internships</a> to get started.
                     </div>
                 {% endif %}
             </div>
@@ -507,7 +311,6 @@
     </div>
 </div>
 
-<!-- Documents Completion Card -->
 <div class="row mt-4">
     <div class="col-12">
         <div class="card">
@@ -538,46 +341,43 @@
                                     {% endif %}
                                 </td>
                                 <td>
-                                    <div class="d-flex gap-1">
-                                        {% if doc.required.id == 'cv' %}
-                                            {% if doc.uploaded %}
-                                                <a href="{{ doc.file }}" class="btn btn-sm btn-outline-secondary" target="_blank">View</a>
-                                                <a href="{% url 'accounts:delete_cv' %}" class="btn btn-sm btn-danger">Delete</a>
-                                            {% else %}
-                                                <a href="{% url 'accounts:upload_cv' %}" class="btn btn-sm btn-primary">Upload</a>
-                                            {% endif %}
+                                    {% if doc.required.id == 'cv' %}
+                                        {% if doc.uploaded %}
+                                            <a href="{{ doc.file }}" class="btn btn-sm btn-outline-secondary" target="_blank">View</a>
+                                            <a href="{% url 'accounts:delete_cv' %}" class="btn btn-sm btn-danger ms-1">Delete</a>
                                         {% else %}
-                                            {% if doc.uploaded %}
-                                                <a href="{{ doc.file }}" class="btn btn-sm btn-outline-secondary" target="_blank">View</a>
-                                            {% else %}
-                                                <a href="{% url 'dashboard:upload_student_document' doc.required.id %}" class="btn btn-sm btn-primary">Upload</a>
-                                            {% endif %}
+                                            <a href="{% url 'accounts:upload_cv' %}" class="btn btn-sm btn-primary">Upload</a>
                                         {% endif %}
-                                    </div>
+                                    {% else %}
+                                        {% if doc.uploaded %}
+                                            {% if doc.file|file_ext:'.jpg' or doc.file|file_ext:'.jpeg' or doc.file|file_ext:'.png' %}
+                                                <a href="{{ doc.file }}" target="_blank">
+                                                    <img src="{{ doc.file }}" alt="Preview" style="max-width: 80px; max-height: 80px; border-radius: 4px; border: 1px solid #ddd; margin-right: 8px;">
+                                                </a>
+                                            {% elif doc.file|file_ext:'.pdf' %}
+                                                <a href="{{ doc.file }}" target="_blank">
+                                                    <embed src="{{ doc.file }}" type="application/pdf" width="80" height="80" style="border-radius: 4px; border: 1px solid #ddd; margin-right: 8px;" />
+                                                </a>
+                                            {% elif doc.file|file_ext:'.xlsx' or doc.file|file_ext:'.xls' %}
+                                                <span class="badge bg-success"><i class="bi bi-file-earmark-excel"></i> Excel</span>
+                                            {% endif %}
+                                            <a href="{{ doc.file }}" class="btn btn-sm btn-outline-secondary" target="_blank">View</a>
+                                        {% else %}
+                                            <a href="{% url 'dashboard:upload_student_document' doc.required.id %}" class="btn btn-sm btn-primary">Upload</a>
+                                        {% endif %}
+                                    {% endif %}
                                 </td>
                             </tr>
                             {% endfor %}
                         </tbody>
                     </table>
                 </div>
-                
-                <!-- Progress bar -->
-                <div class="mt-4">
-                    <div class="d-flex justify-content-between mb-2">
-                        <span class="text-muted">Document Completion</span>
-                        <span class="fw-bold">
+                <div class="mt-3">
+                    <div class="progress">
+                        <div class="progress-bar bg-success" role="progressbar" style="width: {{ document_status|dictsort:'uploaded'|yesno:'100,0' }}%;" aria-valuenow="{{ document_status|dictsort:'uploaded'|yesno:'100,0' }}" aria-valuemin="0" aria-valuemax="100">
                             {% with percent=document_completion_percent %}
                             {{ percent }}%
                             {% endwith %}
-                        </span>
-                    </div>
-                    <div class="progress" style="height: 1.5rem;">
-                        <div class="progress-bar bg-success" role="progressbar" 
-                             style="width: {{ document_completion_percent }}%;" 
-                             aria-valuenow="{{ document_completion_percent }}" 
-                             aria-valuemin="0" 
-                             aria-valuemax="100">
-                            {{ document_completion_percent }}%
                         </div>
                     </div>
                 </div>
@@ -585,20 +385,4 @@
         </div>
     </div>
 </div>
-
-<script>
-// Animate progress circle on page load
-document.addEventListener('DOMContentLoaded', function() {
-    const progressCircle = document.querySelector('.progress-ring-circle');
-    const progressPercentage = {{ profile.ojt_progress_percentage|default:0 }};
-    
-    // Set the stroke-dashoffset based on percentage
-    const circumference = 2 * Math.PI * 45; // radius is 45
-    const offset = circumference - (progressPercentage / 100) * circumference;
-    progressCircle.style.strokeDashoffset = offset;
-    
-    // Add animation class
-    progressCircle.style.transition = 'stroke-dashoffset 1.5s ease';
-});
-</script>
 {% endblock %}
