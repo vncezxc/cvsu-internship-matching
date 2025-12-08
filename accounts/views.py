@@ -11,6 +11,9 @@ from .models import DTR
 from django.urls import reverse
 from django.views.decorators.http import require_POST
 from django.core.mail import send_mail
+from datetime import datetime, timedelta
+from .forms import EmailVerificationCodeForm
+from .models import EmailVerificationCode
 
 # Create your views here.
 @login_required
@@ -579,11 +582,17 @@ def delete_course(request, course_id):
     return render(request, 'accounts/confirm_delete_course.html', {'course': course})
 
 def student_register(request):
+    """Student registration with session tracking for email verification."""
     if request.method == 'POST':
         form = StudentRegisterForm(request.POST)
         if form.is_valid():
             user = form.save()
-            from .views import send_verification_code
+            
+            # Store user ID in session for email verification
+            request.session['verifying_user_id'] = user.id
+            request.session['verifying_user_email'] = user.email
+            request.session['verification_session_time'] = datetime.now().isoformat()
+            
             send_verification_code(user)
             messages.success(request, 'Registration successful! Please check your email for the 6-digit verification code.')
             return redirect('accounts:verify_email_code')
@@ -592,12 +601,18 @@ def student_register(request):
     return render(request, 'account/signup.html', {'form': form, 'register_type': 'student'})
 
 def adviser_register(request):
+    """Adviser registration with session tracking."""
     if request.method == 'POST':
         form = AdviserRegisterForm(request.POST)
         if form.is_valid():
             user = form.save()
             AdviserProfile.objects.create(user=user, department="", sections="")
-            from .views import send_verification_code
+            
+            # Store user ID in session
+            request.session['verifying_user_id'] = user.id
+            request.session['verifying_user_email'] = user.email
+            request.session['verification_session_time'] = datetime.now().isoformat()
+            
             send_verification_code(user)
             messages.success(request, 'Adviser registration successful! Please check your email for the 6-digit verification code.')
             return redirect('accounts:verify_email_code')
@@ -606,12 +621,18 @@ def adviser_register(request):
     return render(request, 'account/signup.html', {'form': form, 'register_type': 'adviser'})
 
 def coordinator_register(request):
+    """Coordinator registration with session tracking."""
     if request.method == 'POST':
         form = CoordinatorRegisterForm(request.POST)
         if form.is_valid():
             user = form.save()
             CoordinatorProfile.objects.create(user=user, department="")
-            from .views import send_verification_code
+            
+            # Store user ID in session
+            request.session['verifying_user_id'] = user.id
+            request.session['verifying_user_email'] = user.email
+            request.session['verification_session_time'] = datetime.now().isoformat()
+            
             send_verification_code(user)
             messages.success(request, 'Coordinator registration successful! Please check your email for the 6-digit verification code.')
             return redirect('accounts:verify_email_code')
@@ -652,38 +673,153 @@ def remove_skill(request, skill_id):
         return redirect('dashboard:home')
 
 def send_verification_code(user):
-    # Invalidate previous codes
-    EmailVerificationCode.objects.filter(user=user, is_used=False).update(is_used=True)
-    code = EmailVerificationCode.generate_code()
-    EmailVerificationCode.objects.create(user=user, code=code)
-    send_mail(
-        'Your Email Verification Code',
-        f'Your verification code is: {code}',
-        'internmatchingcvsu@gmail.com',
-        [user.email],
-        fail_silently=False,
-    )
-
-from .forms import EmailVerificationCodeForm
-from .models import EmailVerificationCode
+    """
+    Send email verification code to user.
+    Returns True if successful, False otherwise.
+    """
+    try:
+        # Invalidate previous codes
+        EmailVerificationCode.objects.filter(user=user, is_used=False).update(is_used=True)
+        
+        # Generate new code
+        code = EmailVerificationCode.generate_code()
+        EmailVerificationCode.objects.create(user=user, code=code)
+        
+        # Get email settings
+        from django.conf import settings
+        
+        # Send email
+        send_mail(
+            'Verify Your Email - CVSU Internship Matching',
+            f'Hello {user.get_full_name() or user.username},\n\n'
+            f'Your email verification code is: {code}\n\n'
+            f'This code will expire in 15 minutes.\n\n'
+            f'Thank you,\nCVSU Internship Matching Team',
+            settings.DEFAULT_FROM_EMAIL,
+            [user.email],
+            fail_silently=False,
+        )
+        return True
+        
+    except Exception as e:
+        print(f"[EMAIL ERROR] Failed to send verification email: {e}")
+        return False
 
 def verify_email_code(request):
+    """
+    Verify email verification code from session-stored user.
+    """
     error = None
+    
+    # Get user info from session
+    user_id = request.session.get('verifying_user_id')
+    user_email = request.session.get('verifying_user_email')
+    session_time_str = request.session.get('verification_session_time')
+    
+    # Check if session exists
+    if not user_id:
+        messages.error(request, 'No verification session found. Please register again.')
+        return redirect('accounts:register_choice')
+    
+    # Check if session is expired (30 minutes)
+    if session_time_str:
+        try:
+            session_time = datetime.fromisoformat(session_time_str)
+            if datetime.now() - session_time > timedelta(minutes=30):
+                # Clear expired session
+                request.session.flush()
+                messages.error(request, 'Verification session expired. Please register again.')
+                return redirect('accounts:register_choice')
+        except ValueError:
+            pass  # If date parsing fails, continue anyway
+    
     if request.method == 'POST':
         form = EmailVerificationCodeForm(request.POST)
         if form.is_valid():
             code = form.cleaned_data['code']
-            code_obj = EmailVerificationCode.objects.filter(user=request.user, code=code, is_used=False).order_by('-created_at').first()
-            if code_obj:
-                code_obj.is_used = True
-                code_obj.save()
-                # Mark email as verified (if using custom logic, otherwise integrate with Allauth)
-                request.user.is_active = True
-                request.user.save()
-                messages.success(request, 'Email verified successfully!')
-                return redirect('dashboard:home')
-            else:
-                error = 'Invalid or expired code.'
+            
+            try:
+                # Get user from session ID
+                user = User.objects.get(id=user_id)
+                
+                # Find matching, unused code
+                code_obj = EmailVerificationCode.objects.filter(
+                    user=user, 
+                    code=code, 
+                    is_used=False
+                ).order_by('-created_at').first()
+                
+                if code_obj:
+                    # Check if code is expired (15 minutes)
+                    code_age = datetime.now() - code_obj.created_at.replace(tzinfo=None)
+                    if code_age > timedelta(minutes=15):
+                        error = 'Verification code has expired. Please request a new one.'
+                    else:
+                        # Mark code as used
+                        code_obj.is_used = True
+                        code_obj.save()
+                        
+                        # Activate user account
+                        user.is_active = True
+                        user.save()
+                        
+                        # Log the user in
+                        login(request, user)
+                        
+                        # Clear verification session
+                        if 'verifying_user_id' in request.session:
+                            del request.session['verifying_user_id']
+                        if 'verifying_user_email' in request.session:
+                            del request.session['verifying_user_email']
+                        if 'verification_session_time' in request.session:
+                            del request.session['verification_session_time']
+                        
+                        messages.success(request, 'Email verified successfully! You are now logged in.')
+                        return redirect('dashboard:home')
+                else:
+                    error = 'Invalid or expired verification code.'
+                    
+            except User.DoesNotExist:
+                error = 'User not found. Please register again.'
+                # Clear invalid session
+                request.session.flush()
+                
     else:
         form = EmailVerificationCodeForm()
-    return render(request, 'accounts/verify_code.html', {'form': form, 'error': error})
+    
+    # Render verification page with user email
+    context = {
+        'form': form,
+        'error': error,
+        'user_email': user_email,  # Show user which email the code was sent to
+    }
+    return render(request, 'accounts/verify_code.html', context)
+
+def resend_verification(request):
+    """
+    Resend verification code to session user.
+    """
+    user_id = request.session.get('verifying_user_id')
+    user_email = request.session.get('verifying_user_email')
+    
+    if not user_id:
+        messages.error(request, 'No verification session found. Please register again.')
+        return redirect('accounts:register_choice')
+    
+    try:
+        user = User.objects.get(id=user_id)
+        if send_verification_code(user):
+            messages.success(request, f'Verification code resent to {user_email}!')
+        else:
+            messages.error(request, 'Failed to resend verification code. Please try again.')
+    except User.DoesNotExist:
+        messages.error(request, 'User not found. Please register again.')
+        return redirect('accounts:register_choice')
+    
+    return redirect('accounts:verify_email_code')
+
+def register_choice(request):
+    """
+    Page to choose registration type.
+    """
+    return render(request, 'accounts/register_choice.html')
