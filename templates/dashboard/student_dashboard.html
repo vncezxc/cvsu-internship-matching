@@ -57,13 +57,159 @@
         padding: 0.5em 1em;
     }
     
+    /* OJT Progress Card Styles (from your image) */
+    .ojt-progress-card {
+        background: white;
+        border-radius: 1.5rem;
+        padding: 1.5rem;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        margin-bottom: 2rem;
+    }
+    .ojt-progress-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #333;
+        margin-bottom: 1.5rem;
+    }
+    .ojt-progress-percentage {
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: #006d38;
+        line-height: 1;
+        margin-bottom: 0.5rem;
+    }
+    .ojt-progress-label {
+        color: #666;
+        font-size: 0.9rem;
+        margin-bottom: 1.5rem;
+    }
+    .ojt-hours {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: #f8f9fa;
+        padding: 1rem;
+        border-radius: 0.75rem;
+        margin-bottom: 1.5rem;
+    }
+    .ojt-hours-completed {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #006d38;
+    }
+    .ojt-hours-required {
+        font-size: 1rem;
+        color: #666;
+    }
+    .ojt-status-section {
+        background: #f8f9fa;
+        padding: 1rem;
+        border-radius: 0.75rem;
+        margin-bottom: 1.5rem;
+    }
+    .ojt-status-label {
+        color: #666;
+        font-size: 0.9rem;
+        margin-bottom: 0.5rem;
+    }
+    .ojt-status-value {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 0.5rem;
+    }
+    .ojt-update-btn {
+        background: #006d38;
+        color: white;
+        border: none;
+        padding: 0.5rem 1.5rem;
+        border-radius: 0.5rem;
+        font-weight: 600;
+        transition: background 0.3s;
+    }
+    .ojt-update-btn:hover {
+        background: #005229;
+        color: white;
+    }
+    .ojt-applications-btn {
+        background: #f9b233;
+        color: #333;
+        border: none;
+        padding: 0.75rem 2rem;
+        border-radius: 0.75rem;
+        font-weight: 700;
+        font-size: 1rem;
+        width: 100%;
+        transition: background 0.3s;
+    }
+    .ojt-applications-btn:hover {
+        background: #e6a020;
+        color: #333;
+    }
+    
+    /* Progress circle for OJT progress */
+    .ojt-progress-circle {
+        width: 120px;
+        height: 120px;
+        margin: 0 auto 1.5rem;
+    }
+    .ojt-progress-circle svg {
+        width: 100%;
+        height: 100%;
+    }
+    .ojt-progress-circle .progress-ring {
+        transform: rotate(-90deg);
+        transform-origin: 50% 50%;
+    }
+    .ojt-progress-circle .progress-ring-circle {
+        stroke-dasharray: 314;
+        stroke-dashoffset: 314;
+        transition: stroke-dashoffset 1.5s ease;
+        stroke: #006d38;
+        stroke-width: 8;
+        fill: transparent;
+    }
+    .ojt-progress-circle .progress-text {
+        font-size: 2rem;
+        font-weight: 700;
+        fill: #006d38;
+        dominant-baseline: middle;
+        text-anchor: middle;
+    }
+    
     /* Mobile-specific fixes */
     @media (max-width: 768px) {
-        .card-body .row.text-center .col {
+        .ojt-progress-card {
+            padding: 1.25rem;
             margin-bottom: 1.5rem;
         }
-        .card-body .row.text-center .col:last-child {
-            margin-bottom: 0;
+        .ojt-progress-title {
+            font-size: 1.25rem;
+        }
+        .ojt-progress-percentage {
+            font-size: 2rem;
+        }
+        .ojt-progress-circle {
+            width: 100px;
+            height: 100px;
+            margin-bottom: 1rem;
+        }
+        .ojt-progress-circle .progress-text {
+            font-size: 1.5rem;
+        }
+        .ojt-hours-completed {
+            font-size: 1.25rem;
+        }
+        .ojt-status-value {
+            font-size: 1.1rem;
+        }
+        .ojt-applications-btn {
+            padding: 0.75rem 1.5rem;
+            font-size: 0.95rem;
+        }
+        
+        .card-body .row.text-center .col {
+            margin-bottom: 1.5rem;
         }
         .btn-group-vertical {
             width: 100%;
@@ -77,13 +223,6 @@
         }
         .d-flex.flex-column.flex-md-row {
             flex-direction: column !important;
-        }
-        .d-flex.flex-column.flex-md-row .w-100.w-md-auto {
-            width: 100% !important;
-            max-width: 100% !important;
-        }
-        .d-flex.flex-column.flex-md-row .mt-2.mt-md-0 {
-            margin-top: 1rem !important;
         }
         .table-responsive {
             margin-bottom: 1rem;
@@ -109,6 +248,22 @@
     
     /* Extra small devices */
     @media (max-width: 576px) {
+        .ojt-progress-card {
+            padding: 1rem;
+            border-radius: 1rem;
+        }
+        .ojt-progress-percentage {
+            font-size: 1.75rem;
+        }
+        .ojt-hours {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.5rem;
+        }
+        .ojt-status-section {
+            text-align: center;
+        }
+        
         .card-body {
             padding: 1rem;
         }
@@ -134,6 +289,90 @@
 {% endblock %}
 
 {% block dashboard_content %}
+<!-- OJT Progress Card (from your image) -->
+<div class="ojt-progress-card">
+    <div class="row align-items-center">
+        <!-- Progress Circle and Percentage -->
+        <div class="col-md-4 text-center mb-4 mb-md-0">
+            <div class="ojt-progress-circle">
+                <svg viewBox="0 0 100 100">
+                    <!-- Background circle -->
+                    <circle cx="50" cy="50" r="45" fill="#f8f9fa" stroke="#e9ecef" stroke-width="8"/>
+                    <!-- Progress circle -->
+                    <circle class="progress-ring-circle" cx="50" cy="50" r="45" 
+                            stroke-dashoffset="calc(314 - (314 * {{ profile.ojt_progress_percentage|default:0 }}) / 100)"/>
+                    <!-- Percentage text -->
+                    <text class="progress-text" x="50" y="50">{{ profile.ojt_progress_percentage|default:0 }}%</text>
+                </svg>
+            </div>
+            <div class="ojt-progress-label">Complete</div>
+        </div>
+        
+        <!-- Hours and Status -->
+        <div class="col-md-8">
+            <!-- Hours Completed -->
+            <div class="ojt-hours">
+                <div>
+                    <div class="ojt-hours-completed">{{ profile.ojt_hours_completed|default:0 }} hours completed</div>
+                    <div class="ojt-hours-required">{{ profile.ojt_hours_required|default:300 }} hours required</div>
+                </div>
+            </div>
+            
+            <!-- OJT Status -->
+            <div class="ojt-status-section">
+                <div class="ojt-status-label">OJT Status:</div>
+                <div class="ojt-status-value">{{ profile.get_ojt_status_display|default:"Still Looking" }}</div>
+                {% if not request.user.is_adviser %}
+                <button class="ojt-update-btn" data-bs-toggle="modal" data-bs-target="#updateStatusModal">
+                    Update
+                </button>
+                {% endif %}
+            </div>
+            
+            <!-- Applications Button -->
+            <div class="text-center">
+                <button class="ojt-applications-btn" onclick="window.location.href='{% url 'internship:internships' %}'">
+                    Find Internships
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Update Status Modal -->
+<div class="modal fade" id="updateStatusModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Update OJT Status</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" action="{% url 'dashboard:update_ojt_status' %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Select Status</label>
+                        <select name="ojt_status" class="form-select" required>
+                            <option value="">Select status...</option>
+                            <option value="looking" {% if profile.ojt_status == 'looking' %}selected{% endif %}>Still Looking</option>
+                            <option value="applied" {% if profile.ojt_status == 'applied' %}selected{% endif %}>Applied</option>
+                            <option value="interviewing" {% if profile.ojt_status == 'interviewing' %}selected{% endif %}>Interviewing</option>
+                            <option value="accepted" {% if profile.ojt_status == 'accepted' %}selected{% endif %}>Accepted</option>
+                            <option value="started" {% if profile.ojt_status == 'started' %}selected{% endif %}>Started</option>
+                            <option value="completed" {% if profile.ojt_status == 'completed' %}selected{% endif %}>Completed</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Update Status</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Original Dashboard Content Below -->
 <div class="row mb-4">
     <!-- Profile Card -->
     <div class="col-md-6 mb-4 mb-md-0">
@@ -163,31 +402,7 @@
                     <p class="text-muted small mb-0">Profile Completion</p>
                 </div>
                 
-                <!-- OJT Status Card -->
-                <div class="mt-4 p-3 rounded shadow-sm bg-light">
-                    <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
-                        <div class="flex-grow-1">
-                            <h6 class="mb-2">
-                                OJT Status:
-                                <span class="badge bg-{{ profile.get_ojt_status_color }} text-white ms-1">{{ profile.get_ojt_status_display }}</span>
-                            </h6>
-                            <h6 class="mb-0">
-                                OJT Hours:
-                                <span class="fw-bold">{{ profile.ojt_hours_completed }}</span> /
-                                <span class="text-muted">{{ profile.ojt_hours_required }}</span>
-                            </h6>
-                        </div>
-                        {% if request.user.is_adviser %}
-                        <form method="post" action="{% url 'dashboard:update_ojt_hours' profile.id %}" class="d-flex flex-column flex-sm-row gap-2 w-100 w-md-auto" style="max-width: 320px;">
-                            {% csrf_token %}
-                            <input type="number" name="hours" id="hours" class="form-control flex-fill" min="0" max="{{ profile.ojt_hours_required }}" value="{{ profile.ojt_hours_completed }}" required placeholder="Update hours">
-                            <button type="submit" class="btn btn-success w-100 w-sm-auto">Update Hours</button>
-                        </form>
-                        {% endif %}
-                    </div>
-                </div>
-                
-                <!-- Action Buttons - Stack vertically on mobile -->
+                <!-- Action Buttons -->
                 <div class="mt-4 d-flex flex-column flex-md-row gap-2">
                     <a href="{% url 'dashboard:submit_dtr' %}" class="btn btn-outline-success">Submit Weekly DTR</a>
                     <a href="{% url 'accounts:edit_profile' %}" class="btn btn-outline-primary">Update Profile</a>
@@ -287,15 +502,6 @@
                         </a>
                     </div>
                 {% endif %}
-                
-                <!-- Mobile-only button -->
-                {% if recent_applications %}
-                <div class="d-block d-md-none text-center mt-3">
-                    <a href="{% url 'internship:internships' %}" class="btn btn-success w-100">
-                        <i class="bi bi-search me-2"></i>Find More Internships
-                    </a>
-                </div>
-                {% endif %}
             </div>
         </div>
     </div>
@@ -379,4 +585,20 @@
         </div>
     </div>
 </div>
+
+<script>
+// Animate progress circle on page load
+document.addEventListener('DOMContentLoaded', function() {
+    const progressCircle = document.querySelector('.progress-ring-circle');
+    const progressPercentage = {{ profile.ojt_progress_percentage|default:0 }};
+    
+    // Set the stroke-dashoffset based on percentage
+    const circumference = 2 * Math.PI * 45; // radius is 45
+    const offset = circumference - (progressPercentage / 100) * circumference;
+    progressCircle.style.strokeDashoffset = offset;
+    
+    // Add animation class
+    progressCircle.style.transition = 'stroke-dashoffset 1.5s ease';
+});
+</script>
 {% endblock %}
