@@ -16,6 +16,7 @@ from .forms import EmailVerificationCodeForm
 from .models import EmailVerificationCode
 from django.utils import timezone
 import pytz
+from allauth.account.models import EmailAddress
 
 # Create your views here.
 @login_required
@@ -584,59 +585,85 @@ def delete_course(request, course_id):
     return render(request, 'accounts/confirm_delete_course.html', {'course': course})
 
 def student_register(request):
-    """Student registration with session tracking for email verification."""
     if request.method == 'POST':
         form = StudentRegisterForm(request.POST)
         if form.is_valid():
-            user = form.save()
+            user = form.save(commit=False)
+            user.is_active = False  # Start as inactive
+            user.save()
             
-            # Store user ID in session for email verification
+            # Create EmailAddress record for AllAuth
+            EmailAddress.objects.create(
+                user=user,
+                email=user.email,
+                verified=False,  # Start as unverified
+                primary=True
+            )
+            
             request.session['verifying_user_id'] = user.id
             request.session['verifying_user_email'] = user.email
-            request.session['verification_session_time'] = datetime.now().isoformat()
+            request.session['verification_session_time'] = timezone.now().isoformat()
             
             send_verification_code(user)
-            messages.success(request, 'Registration successful! Please check your email for the 6-digit verification code.')
+            messages.success(request, 'Registration successful! Please check your email for verification.')
             return redirect('accounts:verify_email_code')
     else:
         form = StudentRegisterForm()
     return render(request, 'account/signup.html', {'form': form, 'register_type': 'student'})
 
+# adviser_register
 def adviser_register(request):
-    """Adviser registration with session tracking."""
     if request.method == 'POST':
         form = AdviserRegisterForm(request.POST)
         if form.is_valid():
-            user = form.save()
+            user = form.save(commit=False)
+            user.is_active = False  # Start as inactive
+            user.save()
             AdviserProfile.objects.create(user=user, department="", sections="")
             
-            # Store user ID in session
+            # Create EmailAddress record for AllAuth
+            EmailAddress.objects.create(
+                user=user,
+                email=user.email,
+                verified=False,
+                primary=True
+            )
+            
             request.session['verifying_user_id'] = user.id
             request.session['verifying_user_email'] = user.email
-            request.session['verification_session_time'] = datetime.now().isoformat()
+            request.session['verification_session_time'] = timezone.now().isoformat()
             
             send_verification_code(user)
-            messages.success(request, 'Adviser registration successful! Please check your email for the 6-digit verification code.')
+            messages.success(request, 'Adviser registration successful! Please check your email for verification.')
             return redirect('accounts:verify_email_code')
     else:
         form = AdviserRegisterForm()
     return render(request, 'account/signup.html', {'form': form, 'register_type': 'adviser'})
 
+# coordinator_register
 def coordinator_register(request):
-    """Coordinator registration with session tracking."""
     if request.method == 'POST':
         form = CoordinatorRegisterForm(request.POST)
         if form.is_valid():
-            user = form.save()
+            user = form.save(commit=False)
+            user.is_active = False  # Start as inactive
+            user.save()
             CoordinatorProfile.objects.create(user=user, department="")
             
-            # Store user ID in session
+            # Create EmailAddress record for AllAuth
+            EmailAddress.objects.create(
+                user=user,
+                email=user.email,
+                verified=False,
+                primary=True
+            )
+            
             request.session['verifying_user_id'] = user.id
             request.session['verifying_user_email'] = user.email
-            request.session['verification_session_time'] = datetime.now().isoformat()
+            request.session['verification_session_time'] = timezone.now().isoformat()
             
             send_verification_code(user)
-            messages.success(request, 'Coordinator registration successful! Please check your email for the 6-digit verification code.')
+            messages.success(request, 'Coordinator registration successful! Please check your email for verification.')
             return redirect('accounts:verify_email_code')
     else:
         form = CoordinatorRegisterForm()
@@ -676,31 +703,42 @@ def remove_skill(request, skill_id):
 
 def send_verification_code(user):
     """
-    Send email verification code to user.
-    Returns True if successful, False otherwise.
+    Send email verification code to user ONLY if not already active/verified.
     """
+    # Check if user is already active AND email is verified in AllAuth
+    from allauth.account.models import EmailAddress
+    
     try:
-        # Delete codes older than 30 minutes to clean up
+        email_address = EmailAddress.objects.get(email=user.email, user=user)
+        if email_address.verified and user.is_active:
+            print(f"[DEBUG] User {user.email} is already verified in both systems.")
+            return True
+    except EmailAddress.DoesNotExist:
+        pass
+    
+    # If user is active but AllAuth doesn't know, still send?
+    if user.is_active:
+        print(f"[DEBUG] User {user.email} is active but AllAuth not synced. Sending code anyway.")
+    
+    try:
+        # Clean up old codes
         from django.utils import timezone
         from datetime import timedelta
-        
         thirty_minutes_ago = timezone.now() - timedelta(minutes=30)
         EmailVerificationCode.objects.filter(
             user=user, 
             created_at__lt=thirty_minutes_ago
         ).delete()
         
-        # Also invalidate any unused codes
+        # Invalidate any unused codes
         EmailVerificationCode.objects.filter(user=user, is_used=False).update(is_used=True)
         
         # Generate new code
         code = EmailVerificationCode.generate_code()
         EmailVerificationCode.objects.create(user=user, code=code)
         
-        # Get email settings
         from django.conf import settings
         
-        # Send email
         send_mail(
             'Verify Your Email - CVSU Internship Matching',
             f'Hello {user.get_full_name() or user.username},\n\n'
@@ -711,6 +749,7 @@ def send_verification_code(user):
             [user.email],
             fail_silently=False,
         )
+        print(f"[EMAIL] Verification code sent to {user.email}")
         return True
         
     except Exception as e:
@@ -719,15 +758,39 @@ def send_verification_code(user):
 
 def verify_email_code(request):
     """
-    Verify email verification code from session-stored user.
+    Verify email verification code and sync with AllAuth.
     """
-    error = None
+    # If already logged in and verified, redirect home
+    if request.user.is_authenticated and request.user.is_active:
+        # Double-check AllAuth sync
+        try:
+            email_address = EmailAddress.objects.get(email=request.user.email, user=request.user)
+            if not email_address.verified:
+                email_address.verified = True
+                email_address.save()
+                print(f"[SYNC] Synced AllAuth for logged-in user {request.user.email}")
+        except EmailAddress.DoesNotExist:
+            pass
+        return redirect('dashboard:home')
+    
     user_id = request.session.get('verifying_user_id')
     user_email = request.session.get('verifying_user_email')
+    session_time_str = request.session.get('verification_session_time')
+    
+    # Check session expiry (60 minutes)
+    if session_time_str:
+        try:
+            session_time = datetime.fromisoformat(session_time_str)
+            if timezone.now() - session_time > timedelta(minutes=60):
+                request.session.flush()
+                messages.error(request, 'Session expired. Please register again.')
+                return redirect('accounts:register_choice')
+        except ValueError:
+            pass
     
     if not user_id:
-        messages.error(request, 'No verification session found. Please register again.')
-        return redirect('accounts:register_choice')
+        messages.error(request, 'No verification session found. Please login or register.')
+        return redirect('account_login')
     
     if request.method == 'POST':
         form = EmailVerificationCodeForm(request.POST)
@@ -737,41 +800,62 @@ def verify_email_code(request):
             try:
                 user = User.objects.get(id=user_id)
                 
-                # Check code
+                # Check if already verified in BOTH systems
+                try:
+                    email_address = EmailAddress.objects.get(email=user.email, user=user)
+                    if email_address.verified and user.is_active:
+                        # Already fully verified, just log in
+                        user.backend = 'django.contrib.auth.backends.ModelBackend'
+                        login(request, user)
+                        messages.info(request, 'Account already verified. Logged in.')
+                        return redirect('dashboard:home')
+                except EmailAddress.DoesNotExist:
+                    pass
+                
+                # Check verification code
                 code_obj = EmailVerificationCode.objects.filter(
-                    user=user, 
-                    code=code, 
-                    is_used=False
-                ).order_by('-created_at').first()
+                    user=user, code=code, is_used=False
+                ).first()
                 
                 if code_obj:
-                    from django.utils import timezone
-                    from datetime import timedelta
-                    
-                    # Check expiry
+                    # Check code expiry (30 minutes)
                     if timezone.now() - code_obj.created_at > timedelta(minutes=30):
-                        error = 'Verification code has expired.'
+                        messages.error(request, 'Verification code has expired.')
                         code_obj.delete()
                     else:
                         # Mark code as used
                         code_obj.is_used = True
                         code_obj.save()
                         
-                        # Activate user
+                        # 1. ACTIVATE USER in Django
                         user.is_active = True
                         user.save()
                         
-                        # FIX: Specify authentication backend for login
-                        from django.contrib.auth import login
-                        from django.conf import settings
+                        # 2. VERIFY in AllAuth EmailAddress
+                        try:
+                            email_address = EmailAddress.objects.get(
+                                email=user.email, 
+                                user=user
+                            )
+                            email_address.verified = True
+                            email_address.primary = True
+                            email_address.save()
+                            print(f"[SYNC] Verified in AllAuth: {user.email}")
+                        except EmailAddress.DoesNotExist:
+                            # Create if doesn't exist
+                            EmailAddress.objects.create(
+                                user=user,
+                                email=user.email,
+                                verified=True,
+                                primary=True
+                            )
+                            print(f"[SYNC] Created and verified in AllAuth: {user.email}")
                         
-                        # Set backend attribute on user
+                        # 3. Login user
                         user.backend = 'django.contrib.auth.backends.ModelBackend'
-                        
-                        # Now login
                         login(request, user)
                         
-                        # Clear session
+                        # 4. Clear session
                         request.session.pop('verifying_user_id', None)
                         request.session.pop('verifying_user_email', None)
                         request.session.pop('verification_session_time', None)
@@ -779,42 +863,53 @@ def verify_email_code(request):
                         messages.success(request, 'Email verified successfully! You are now logged in.')
                         return redirect('dashboard:home')
                 else:
-                    error = 'Invalid or expired verification code.'
+                    messages.error(request, 'Invalid or expired verification code.')
                     
             except User.DoesNotExist:
-                error = 'User not found. Please register again.'
+                messages.error(request, 'User not found.')
                 request.session.flush()
                 
     else:
         form = EmailVerificationCodeForm()
     
-    context = {
+    return render(request, 'accounts/verify_code.html', {
         'form': form,
-        'error': error,
         'user_email': user_email,
-    }
-    return render(request, 'accounts/verify_code.html', context)
+    })
 
 def resend_verification(request):
     """
-    Resend verification code to session user.
+    Resend verification code.
     """
     user_id = request.session.get('verifying_user_id')
     user_email = request.session.get('verifying_user_email')
     
     if not user_id:
-        messages.error(request, 'No verification session found. Please register again.')
+        messages.error(request, 'No verification session found.')
         return redirect('accounts:register_choice')
     
     try:
         user = User.objects.get(id=user_id)
+        
+        # Check if already verified
+        from allauth.account.models import EmailAddress
+        try:
+            email_address = EmailAddress.objects.get(email=user.email, user=user)
+            if email_address.verified and user.is_active:
+                messages.info(request, 'Your email is already verified.')
+                return redirect('accounts:verify_email_code')
+        except EmailAddress.DoesNotExist:
+            pass
+        
+        # Resend code
         if send_verification_code(user):
-            messages.success(request, f'Verification code resent to {user_email}!')
+            messages.success(request, f'New verification code sent to {user_email}')
         else:
-            messages.error(request, 'Failed to resend verification code. Please try again.')
+            messages.error(request, 'Failed to resend verification code.')
+            
     except User.DoesNotExist:
-        messages.error(request, 'User not found. Please register again.')
-        return redirect('accounts:register_choice')
+        messages.error(request, 'User not found.')
+        request.session.flush()
     
     return redirect('accounts:verify_email_code')
 
