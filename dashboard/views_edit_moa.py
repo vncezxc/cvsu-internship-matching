@@ -172,6 +172,7 @@ def edit_moa_view(request, doc_id):
             docx_url = request.build_absolute_uri(settings.MEDIA_URL + required_doc.template_file.name)
         # JWT token for OnlyOffice
         onlyoffice_secret = getattr(settings, 'ONLYOFFICE_SECRET', 'your-very-secret-key')
+        onlyoffice_url = getattr(settings, 'ONLYOFFICE_URL', 'http://localhost/') # Fallback to localhost
         payload = {
             "document": {
                 "fileType": "docx",
@@ -198,6 +199,7 @@ def edit_moa_view(request, doc_id):
             'docx_url': docx_url_final,
             'token': token,
             'editor_mode': editor_mode,
+            'onlyoffice_url': onlyoffice_url,
             'page': 1,
             'total_pages': 1,
         }
