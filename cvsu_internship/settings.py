@@ -198,19 +198,12 @@ EMAIL_BACKEND_CONFIG = get_config('EMAIL_BACKEND', default='')
 if EMAIL_BACKEND_CONFIG:
     # Use explicitly configured backend
     EMAIL_BACKEND = EMAIL_BACKEND_CONFIG
-    print(f"✓ Email: Using explicitly configured backend: {EMAIL_BACKEND}")
 elif DEBUG and SENDGRID_SANDBOX_MODE:
     # Local development with sandbox mode
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-    print("⚠ Email: Local debug with console backend (emails print to terminal)")
-elif DEBUG and not SENDGRID_SANDBOX_MODE:
-    # Local development but want real emails
-    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-    print("⚠ Email: Console backend for debugging")
 else:
     # Production - always SMTP
     EMAIL_BACKEND = 'sendgrid_backend.SendgridBackend'
-    print("✓ Email: SendGrid backend for production")
 
 # SMTP Configuration (for when using SMTP)
 EMAIL_HOST = get_config('EMAIL_HOST', default='smtp.sendgrid.net')
@@ -219,14 +212,9 @@ EMAIL_HOST_USER = get_config('EMAIL_HOST_USER', default='apikey')
 # IMPORTANT: For SendGrid, password is the API key
 if SENDGRID_API_KEY:
     EMAIL_HOST_PASSWORD = SENDGRID_API_KEY
-    print("✓ Email: Using SENDGRID_API_KEY for authentication")
 else:
     # Fallback to old EMAIL_HOST_PASSWORD if SENDGRID_API_KEY not set
     EMAIL_HOST_PASSWORD = get_config('EMAIL_HOST_PASSWORD', default='')
-    if EMAIL_HOST_PASSWORD:
-        print("✓ Email: Using EMAIL_HOST_PASSWORD for authentication")
-    else:
-        print("⚠ Email: No email password/API key configured!")
 
 EMAIL_PORT = get_config('EMAIL_PORT', default=587, cast_func=int)
 EMAIL_USE_TLS = get_config('EMAIL_USE_TLS', default=True, cast_func=bool)
@@ -309,24 +297,30 @@ if all([CLOUDINARY_STORAGE['CLOUD_NAME'],
         api_key=CLOUDINARY_STORAGE['API_KEY'],
         api_secret=CLOUDINARY_STORAGE['API_SECRET'],
     )
-    print("✓ Cloudinary configured successfully")
 else:
     # Fallback to local storage
     DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
-    print("⚠ WARNING: Cloudinary not configured. Using local file storage.")
+
+# ---------------------------------------
+# OnlyOffice Settings
+# ---------------------------------------
+ONLYOFFICE_URL = get_config('ONLYOFFICE_URL', default='http://localhost/')
+ONLYOFFICE_SECRET = get_config('ONLYOFFICE_SECRET', default='your-local-secret')
 
 # ---------------------------------------
 # Debug Output for Configuration Verification
 # ---------------------------------------
-print("\n" + "="*60)
-print("CONFIGURATION VERIFICATION")
-print("="*60)
-print(f"Running on: {'RENDER' if 'RENDER' in os.environ else 'LOCAL'}")
-print(f"SECRET_KEY loaded: {'YES' if SECRET_KEY else 'NO'}")
-print(f"DEBUG mode: {DEBUG}")
-print(f"SENDGRID_API_KEY loaded: {'YES' if SENDGRID_API_KEY else 'NO'}")
-print(f"CLOUDINARY_CLOUD_NAME loaded: {'YES' if get_config('CLOUDINARY_CLOUD_NAME') else 'NO'}")
-print(f"Email Backend: {EMAIL_BACKEND}")
-print(f"Email Host: {EMAIL_HOST}")
-print(f"Email From: {DEFAULT_FROM_EMAIL}")
-print("="*60)
+if DEBUG:
+    print("\n" + "="*60)
+    print("CONFIGURATION VERIFICATION (DEBUG MODE)")
+    print("="*60)
+    print(f"Running on: {'RENDER' if 'RENDER' in os.environ else 'LOCAL'}")
+    print(f"SECRET_KEY loaded: {'YES' if SECRET_KEY else 'NO'}")
+    print(f"DEBUG mode: {DEBUG}")
+    print(f"SENDGRID_API_KEY loaded: {'YES' if SENDGRID_API_KEY else 'NO'}")
+    print(f"CLOUDINARY_CLOUD_NAME loaded: {'YES' if get_config('CLOUDINARY_CLOUD_NAME') else 'NO'}")
+    print(f"ONLYOFFICE_URL: {ONLYOFFICE_URL}")
+    print(f"Email Backend: {EMAIL_BACKEND}")
+    print(f"Email Host: {EMAIL_HOST}")
+    print(f"Email From: {DEFAULT_FROM_EMAIL}")
+    print("="*60)
