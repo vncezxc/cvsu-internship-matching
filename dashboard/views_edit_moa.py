@@ -3,6 +3,7 @@ import datetime
 import io
 import os
 import mammoth
+import logging
 from docx import Document
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
@@ -11,10 +12,16 @@ from accounts.models import RequiredDocument, StudentDocument
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 
+logger = logging.getLogger(__name__)
+
 
 @login_required
 @csrf_exempt
 def edit_required_document_full_view(request, doc_id):
+    # Temporary debugging - check what OnlyOffice URL is being used
+    logger.warning("ONLYOFFICE_URL runtime value: %s", settings.ONLYOFFICE_URL)
+    logger.warning("ONLYOFFICE_SECRET present? %s", bool(settings.ONLYOFFICE_SECRET))
+    
     # Only coordinators can access
     if not request.user.is_coordinator:
         messages.error(request, 'You do not have permission to edit this document.')
