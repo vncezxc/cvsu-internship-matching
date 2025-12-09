@@ -62,6 +62,8 @@ def edit_required_document_full_view(request, doc_id):
         'page': 1,
         'total_pages': 1,
     }
+    logger.warning("Passing onlyoffice_url to template: %s", settings.ONLYOFFICE_URL)
+    logger.warning("Full script URL will be: %sweb-apps/apps/api/documents/api.js", settings.ONLYOFFICE_URL)
     return render(request, 'dashboard/edit_moa.html', context)
 
 
