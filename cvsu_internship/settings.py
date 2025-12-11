@@ -524,19 +524,56 @@ LOGGING = {
 # ---------------------------------------
 # Session & Cache Configuration
 # ---------------------------------------
-SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
-SESSION_COOKIE_AGE = 1209600  # 2 weeks in seconds
-SESSION_COOKIE_NAME = 'cvsu_internship_session'
 
-CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.redis.RedisCache',
-        'LOCATION': get_config('REDIS_URL', default='rediss://localhost:6379/0'),
-        'OPTIONS': {
-            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+# Get Redis URL
+REDIS_URL = get_config('REDIS_URL', default=None)
+
+if REDIS_URL and REDIS_URL != 'rediss://localhost:6379':
+    # Only use Redis if a real URL is provided (not default)
+    try:
+        # Try django-redis first
+        CACHES = {
+            'default': {
+                'BACKEND': 'django_redis.cache.RedisCache',
+                'LOCATION': REDIS_URL,
+                'OPTIONS': {
+                    'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+                    'IGNORE_EXCEPTIONS': True,
+                    'SOCKET_CONNECT_TIMEOUT': 5,
+                    'SOCKET_TIMEOUT': 5,
+                }
+            }
+        }
+        
+        SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
+        SESSION_CACHE_ALIAS = 'default'
+        
+    except ImportError:
+        # Fallback to Django's built-in Redis cache
+        CACHES = {
+            'default': {
+                'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+                'LOCATION': REDIS_URL,
+            }
+        }
+        
+        SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+        
+else:
+    # Development or no Redis
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+            'LOCATION': 'unique-snowflake',
         }
     }
-}
+    
+    SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+    # Disable rate limiting
+    ACCOUNT_LOGIN_ATTEMPTS_LIMIT = 0
+
+SESSION_COOKIE_AGE = 1209600
+SESSION_COOKIE_NAME = 'cvsu_internship_session'
 
 # ---------------------------------------
 # Internationalization
@@ -594,6 +631,7 @@ def get_absolute_media_url(relative_url):
 # ---------------------------------------
 # Debug Output
 # ---------------------------------------
+
 if DEBUG:
     print("\n" + "="*60)
     print("CONFIGURATION VERIFICATION (DEBUG MODE)")
@@ -609,6 +647,8 @@ if DEBUG:
     print(f"Media URL: {MEDIA_URL}")
     print(f"ONLYOFFICE_URL: {ONLYOFFICE_URL}")
     print(f"Email Backend: {EMAIL_BACKEND}")
+    print(f"Cache Backend: {CACHES['default']['BACKEND']}")
+    print(f"Session Engine: {SESSION_ENGINE}")
     print(f"Allowed Hosts: {ALLOWED_HOSTS}")
     print(f"CSRF Trusted Origins: {CSRF_TRUSTED_ORIGINS}")
     print("="*60)
