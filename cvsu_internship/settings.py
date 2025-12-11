@@ -186,7 +186,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                'cvsu_internship.context_processors.base_url',  # Custom context processor
+                # Custom context processor
             ],
         },
     },
