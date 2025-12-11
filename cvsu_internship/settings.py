@@ -6,7 +6,13 @@ import os
 import sys
 from pathlib import Path
 from datetime import timedelta
+# For self-signed certificates (add this after imports)
+import urllib3
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
+# Also for requests library
+import requests
+requests.packages.urllib3.disable_warnings(requests.packages.urllib3.exceptions.InsecureRequestWarning)
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -84,12 +90,25 @@ if csrf_trusted:
 else:
     CSRF_TRUSTED_ORIGINS = [
         'https://cvsu-internship-matching.onrender.com',
-        'http://139.59.96.100',
+        'https://139.59.96.100',
     ]
+
+# Base URL for absolute URLs
 
 # Base URL for absolute URLs
 BASE_URL = get_config('BASE_URL', default='https://cvsu-internship-matching.onrender.com')
 
+# ---------------------------------------
+# OnlyOffice Configuration
+# ---------------------------------------
+# OnlyOffice DocumentServer URL (use HTTPS with trailing slash)
+ONLYOFFICE_URL = get_config('ONLYOFFICE_URL', default='https://139.59.96.100/')
+# Ensure URL has trailing slash
+if ONLYOFFICE_URL and not ONLYOFFICE_URL.endswith('/'):
+    ONLYOFFICE_URL = ONLYOFFICE_URL + '/'
+    
+# OnlyOffice JWT Secret (must match Docker container JWT_SECRET)
+ONLYOFFICE_SECRET = get_config('ONLYOFFICE_SECRET', default='NfOfVmap1M6BA01YoRX6yeb3kwSHDS')
 # ---------------------------------------
 # Application Definition
 # ---------------------------------------
@@ -468,15 +487,6 @@ CHANNEL_LAYERS = {
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
 CRISPY_TEMPLATE_PACK = "bootstrap5"
 
-# ---------------------------------------
-# OnlyOffice Configuration
-# ---------------------------------------
-ONLYOFFICE_URL = get_config('ONLYOFFICE_URL', default='http://localhost/')
-if ONLYOFFICE_URL.endswith('/'):
-    ONLYOFFICE_URL = ONLYOFFICE_URL.rstrip('/')
-
-ONLYOFFICE_SECRET = get_config('ONLYOFFICE_SECRET', default='your-local-secret')
-ONLYOFFICE_VERIFY_PEER = get_config('ONLYOFFICE_VERIFY_PEER', default=False, cast_func=bool)
 
 # ---------------------------------------
 # Logging Configuration
@@ -645,6 +655,7 @@ if DEBUG:
     print(f"Storage Backend: {DEFAULT_FILE_STORAGE}")
     print(f"Media URL: {MEDIA_URL}")
     print(f"ONLYOFFICE_URL: {ONLYOFFICE_URL}")
+    print(f"ONLYOFFICE_SECRET set: {'YES' if ONLYOFFICE_SECRET else 'NO'}")
     print(f"Email Backend: {EMAIL_BACKEND}")
     print(f"Cache Backend: {CACHES['default']['BACKEND']}")
     print(f"Session Engine: {SESSION_ENGINE}")
