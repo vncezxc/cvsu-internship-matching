@@ -301,11 +301,78 @@ else:
     # Fallback to local storage
     DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
 
+
+# ---------------------------------------
+# Base URL for Production (Added for OnlyOffice)
+# ---------------------------------------
+BASE_URL = get_config('BASE_URL', default='https://cvsu-internship-matching.onrender.com')
+
+# ---------------------------------------
+# CORS Configuration (Expanded)
+# ---------------------------------------
+CORS_ALLOW_ALL_ORIGINS = False
+cors_origins = get_config('CORS_ALLOWED_ORIGINS', default='')
+CORS_ALLOWED_ORIGINS = [origin.strip() for origin in cors_origins.split(',')] if cors_origins else []
+
+# Additional CORS settings for OnlyOffice
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+]
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
+
+# Update CSRF trusted origins dynamically
+csrf_trusted = get_config('CSRF_TRUSTED_ORIGINS', default='')
+if csrf_trusted:
+    CSRF_TRUSTED_ORIGINS = [origin.strip() for origin in csrf_trusted.split(',')]
+else:
+    CSRF_TRUSTED_ORIGINS = [
+        'https://cvsu-internship-matching.onrender.com',
+        'http://139.59.96.100',  # Your Digital Ocean droplet
+    ]
+
+
 # ---------------------------------------
 # OnlyOffice Settings
 # ---------------------------------------
 ONLYOFFICE_URL = get_config('ONLYOFFICE_URL', default='http://localhost/')
+# Ensure no trailing slash for API loading
+if ONLYOFFICE_URL.endswith('/'):
+    ONLYOFFICE_URL = ONLYOFFICE_URL.rstrip('/')
+    
 ONLYOFFICE_SECRET = get_config('ONLYOFFICE_SECRET', default='your-local-secret')
+
+# Helper function to get absolute file URLs
+def get_absolute_media_url(relative_url):
+    """Convert relative media URL to absolute URL for OnlyOffice"""
+    if not relative_url:
+        return ""
+    
+    # If already absolute (Cloudinary)
+    if relative_url.startswith('http'):
+        return relative_url
+    
+    # For production
+    if not DEBUG:
+        return f"{BASE_URL}{relative_url}"
+    
+    # For local development
+    return relative_url
 
 # ---------------------------------------
 # Debug Output for Configuration Verification

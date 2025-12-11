@@ -2,64 +2,217 @@
 {% block dashboard_title %}Edit MOA{% endblock %}
 {% block dashboard_content %}
 <style>
-  .editable-run {
-    background: #fff8b3;
-    border-bottom: 1px dashed #e6b800;
-    padding: 2px 4px;
-    cursor: pointer;
-    transition: background 0.2s;
-    position: relative;
+  #onlyoffice-editor {
+    border: 1px solid #dee2e6;
+    border-radius: 5px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
   }
-  .editable-run:after {
-    content: '\270E'; /* pencil icon */
-    font-size: 0.9em;
-    color: #e6b800;
-    margin-left: 4px;
-    vertical-align: middle;
-    opacity: 0.7;
+  .connection-status {
+    padding: 12px 15px;
+    margin-bottom: 20px;
+    border-radius: 5px;
+    font-size: 0.95em;
+    display: flex;
+    align-items: center;
+    gap: 10px;
   }
-  .editable-run:focus {
-    outline: 2px solid #e6b800;
-    background: #fff3a1;
+  .connection-status.connected {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+  }
+  .connection-status.error {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+  }
+  .status-icon {
+    font-size: 1.2em;
+  }
+  .debug-info {
+    font-family: monospace;
+    font-size: 0.85em;
+    background: #f8f9fa;
+    padding: 10px;
+    border-radius: 4px;
+    margin-bottom: 15px;
+    border-left: 3px solid #6c757d;
   }
 </style>
 
 <div class="container py-4">
-  <h3 class="mb-4">Edit MOA Document</h3>
-    {% if request.user.is_coordinator or request.user.is_student %}
-      <!-- OnlyOffice Document Editor Embed for Coordinator and Student -->
-      <div id="onlyoffice-editor" style="height:800px;"></div>
-      <div class="d-flex justify-content-end mt-3">
-        <button class="btn btn-success me-2" onclick="docEditor.save(); return false;">Save Changes</button>
-        {% if request.user.is_coordinator %}
-          <a href="{% url 'dashboard:required_documents_list' %}" class="btn btn-secondary">Cancel</a>
-        {% else %}
-          <a href="{% url 'dashboard:student_documents' %}" class="btn btn-secondary">Cancel</a>
-          <form method="post" style="display:inline; margin-left:10px;">
-            {% csrf_token %}
-            <input type="hidden" name="reset_moa" value="1" />
-            <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to reset the MOA to its original template? This will erase all your changes.');">Reset MOA</button>
-          </form>
-        {% endif %}
-      </div>
-      <script type="text/javascript" src="{{ onlyoffice_url }}web-apps/apps/api/documents/api.js"></script>
-      <script type="text/javascript">
-        var docEditor = new DocsAPI.DocEditor("onlyoffice-editor", {
-          "document": {
-            "fileType": "docx",
-            "key": "{{ required_doc.id }}",
-            "title": "{{ required_doc.name }}",
-            "url": "{{ docx_url }}"
-          },
-          "editorConfig": {
-            "mode": "{{ editor_mode }}",
-            "lang": "en",
-            "callbackUrl": "" // Optionally set a callback URL for saving
-          },
-          "token": "{{ token }}",
-          "height": "800px",
-          "width": "100%"
-        });
-      </script>
+  <h3 class="mb-4">Edit MOA Document: {{ required_doc.name }}</h3>
+  
+  <!-- Connection Status -->
+  <div class="connection-status {% if connection_status|slice:":1" == '✅' %}connected{% else %}error{% endif %}">
+    <span class="status-icon">{{ connection_status|slice:":1" }}</span>
+    <span>{{ connection_status|slice:"2:" }}</span>
+  </div>
+  
+  {% if request.user.is_coordinator or request.user.is_student %}
+    
+    <!-- Debug Information (only show in debug mode) -->
+    {% if debug_mode %}
+    <div class="debug-info">
+      <strong>Debug Information:</strong><br>
+      <small>
+        OnlyOffice URL: <code>{{ onlyoffice_url }}</code><br>
+        Document Key: <code>{{ required_doc.id }}</code><br>
+        Editor Mode: <code>{{ editor_mode }}</code><br>
+        Token Generated: <code>{{ token|yesno:"Yes,No" }}</code><br>
+        Cloudinary Active: <code>{{ CLOUDINARY_STORAGE.CLOUD_NAME|yesno:"Yes,No" }}</code>
+      </small>
+    </div>
     {% endif %}
+    
+    <!-- OnlyOffice Editor Container -->
+    <div id="onlyoffice-editor" style="height:800px;">
+      <div class="d-flex justify-content-center align-items-center h-100">
+        <div class="text-center">
+          <div class="spinner-border text-primary mb-3" role="status">
+            <span class="visually-hidden">Loading editor...</span>
+          </div>
+          <p>Loading document editor...</p>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Action Buttons -->
+    <div class="d-flex justify-content-end mt-3">
+      <button class="btn btn-success me-2" onclick="saveDocument(); return false;" id="save-btn">
+        <i class="fas fa-save me-1"></i>Save Changes
+      </button>
+      
+      {% if request.user.is_coordinator %}
+        <a href="{% url 'dashboard:required_documents_list' %}" class="btn btn-secondary">
+          <i class="fas fa-times me-1"></i>Cancel
+        </a>
+      {% else %}
+        <a href="{% url 'dashboard:student_documents' %}" class="btn btn-secondary me-2">
+          <i class="fas fa-times me-1"></i>Cancel
+        </a>
+        <form method="post" style="display:inline;">
+          {% csrf_token %}
+          <input type="hidden" name="reset_moa" value="1" />
+          <button type="submit" class="btn btn-warning" 
+                  onclick="return confirm('Are you sure you want to reset the MOA to its original template? This will erase all your changes.');">
+            <i class="fas fa-undo me-1"></i>Reset to Template
+          </button>
+        </form>
+      {% endif %}
+    </div>
+    
+    <!-- OnlyOffice Script with Error Handling -->
+    <script type="text/javascript">
+      // Add cache-busting parameter
+      var onlyofficeScript = document.createElement('script');
+      var scriptUrl = "{{ onlyoffice_url }}/web-apps/apps/api/documents/api.js";
+      scriptUrl += "?v=" + new Date().getTime(); // Prevent caching
+      
+      onlyofficeScript.src = scriptUrl;
+      onlyofficeScript.id = 'onlyoffice-api-script';
+      
+      onlyofficeScript.onload = function() {
+        console.log('✅ OnlyOffice API loaded successfully from:', scriptUrl);
+        
+        // Hide loading spinner
+        var editorContainer = document.getElementById('onlyoffice-editor');
+        editorContainer.innerHTML = '';
+        
+        try {
+          // Initialize OnlyOffice editor
+          window.docEditor = new DocsAPI.DocEditor("onlyoffice-editor", {
+            "document": {
+              "fileType": "docx",
+              "key": "{{ required_doc.id }}_{{ request.user.id }}_{{ timestamp }}",
+              "title": "{{ required_doc.name|escapejs }}",
+              "url": "{{ docx_url|escapejs }}"
+            },
+            "editorConfig": {
+              "mode": "{{ editor_mode }}",
+              "lang": "en",
+              "callbackUrl": "",
+              "customization": {
+                "autosave": true,
+                "compactToolbar": false,
+                "feedback": false,
+                "help": false
+              }
+            },
+            "token": "{{ token|escapejs }}",
+            "height": "800px",
+            "width": "100%"
+          });
+          
+          console.log('✅ OnlyOffice editor initialized');
+          
+          // Enable save button
+          document.getElementById('save-btn').disabled = false;
+          
+        } catch (error) {
+          console.error('❌ Failed to initialize OnlyOffice editor:', error);
+          editorContainer.innerHTML = `
+            <div class="alert alert-danger m-3">
+              <h5>Failed to initialize document editor</h5>
+              <p>Error: ${error.message}</p>
+              <p>Please check:</p>
+              <ul>
+                <li>OnlyOffice server is running at <code>{{ onlyoffice_url }}</code></li>
+                <li>Your document URL is accessible</li>
+                <li>Browser console for detailed errors (F12)</li>
+              </ul>
+            </div>
+          `;
+        }
+      };
+      
+      onlyofficeScript.onerror = function() {
+        console.error('❌ Failed to load OnlyOffice API from:', scriptUrl);
+        document.getElementById('onlyoffice-editor').innerHTML = `
+          <div class="alert alert-danger m-3">
+            <h5>Failed to load document editor</h5>
+            <p>Could not load OnlyOffice API from: <code>${scriptUrl}</code></p>
+            <p>Please check:</p>
+            <ul>
+              <li>OnlyOffice server is running at <a href="{{ onlyoffice_url }}" target="_blank">{{ onlyoffice_url }}</a></li>
+              <li>The URL is accessible from your browser</li>
+              <li>There are no CORS errors in the console (F12)</li>
+            </ul>
+            <a href="{{ onlyoffice_url }}" target="_blank" class="btn btn-primary mt-2">
+              Test OnlyOffice Server
+            </a>
+          </div>
+        `;
+      };
+      
+      // Add script to document
+      document.head.appendChild(onlyofficeScript);
+      
+      // Save document function
+      function saveDocument() {
+        if (window.docEditor && typeof window.docEditor.save === 'function') {
+          window.docEditor.save();
+          alert('Document saved successfully!');
+        } else {
+          alert('Editor is not ready yet. Please wait a moment and try again.');
+        }
+      }
+      
+      // Set a timeout to check if script loaded
+      setTimeout(function() {
+        if (!window.DocsAPI) {
+          console.warn('OnlyOffice API not loaded after 10 seconds');
+        }
+      }, 10000);
+      
+    </script>
+    
+  {% else %}
+    <div class="alert alert-danger">
+      <i class="fas fa-exclamation-triangle me-2"></i>
+      You do not have permission to edit this document.
+    </div>
+  {% endif %}
+</div>
 {% endblock %}
