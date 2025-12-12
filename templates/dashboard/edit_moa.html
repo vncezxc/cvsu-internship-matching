@@ -104,8 +104,12 @@
                 name: "{{ request.user.get_full_name }}"
               }
             },
-                  callbackUrl: "{{ BASE_URL }}/dashboard/required-documents/{{ required_doc.id }}/onlyoffice-callback/",
+
+            token: "{{ token }}",
+            height: "100%",
+            width: "100%"
           };
+          
 
           window.docEditor = new DocsAPI.DocEditor("onlyoffice-editor", config);
           console.log("OnlyOffice editor initialized successfully.");
