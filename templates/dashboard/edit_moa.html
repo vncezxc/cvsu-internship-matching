@@ -1,68 +1,127 @@
 {% extends "dashboard/base_dashboard.html" %}
-{% load static %}
+{% block dashboard_title %}Edit MOA{% endblock %}
 
-{% block content %}
-<div class="container mt-4">
-    <h3>Edit Document: {{ required_doc.name }}</h3>
+{% block dashboard_content %}
+<style>
+  /* Highlight editable runs (optional) */
+  .editable-run {
+    background: #fff8b3;
+    border-bottom: 1px dashed #e6b800;
+    padding: 2px 4px;
+    cursor: pointer;
+    transition: background 0.2s;
+    position: relative;
+  }
+  .editable-run:after {
+    content: '\270E';
+    font-size: 0.9em;
+    color: #e6b800;
+    margin-left: 4px;
+    vertical-align: middle;
+    opacity: 0.7;
+  }
+  .editable-run:focus {
+    outline: 2px solid #e6b800;
+    background: #fff3a1;
+  }
+
+  /* OnlyOffice editor container */
+  #onlyoffice-editor {
+    width: 100%;
+    height: 80vh;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+
+  /* Responsive adjustments */
+  @media (max-width: 1200px) {
+    #onlyoffice-editor {
+      height: 70vh;
+    }
+  }
+  @media (max-width: 768px) {
+    #onlyoffice-editor {
+      height: 60vh;
+    }
+    .d-flex.justify-content-end {
+      flex-direction: column;
+      gap: 0.5rem;
+      align-items: stretch;
+    }
+  }
+</style>
+
+<div class="container py-4">
+  <h3 class="mb-4">Edit MOA Document: {{ required_doc.name }}</h3>
+
+  {% if connection_status %}
     <p>Status: {{ connection_status }}</p>
+  {% endif %}
 
-    <div id="onlyoffice-editor" style="height: 80vh; width: 100%; border: 1px solid #ccc;"></div>
+  {% if request.user.is_coordinator or request.user.is_student %}
+    <!-- OnlyOffice Editor Embed -->
+    <div id="onlyoffice-editor"></div>
+
+    <div class="d-flex justify-content-end mt-3">
+      <button class="btn btn-success me-2" onclick="docEditor.save(); return false;">Save Changes</button>
+      {% if request.user.is_coordinator %}
+        <a href="{% url 'dashboard:required_documents_list' %}" class="btn btn-secondary">Cancel</a>
+      {% else %}
+        <a href="{% url 'dashboard:student_documents' %}" class="btn btn-secondary">Cancel</a>
+      {% endif %}
+    </div>
+
+    <!-- OnlyOffice API JS -->
+    <script src="{{ onlyoffice_url }}/web-apps/apps/api/documents/api.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", function() {
+        try {
+          const config = {
+            document: {
+              fileType: "{{ file_type|default:'docx' }}",
+              key: "{{ document_key }}",
+              title: "{{ required_doc.name }}",
+              url: "{{ document_url }}",
+              permissions: {
+                edit: {{ editor_mode == 'edit'|yesno:"true,false" }},
+                download: true,
+                print: true,
+                review: {{ editor_mode == 'edit'|yesno:"true,false" }},
+                comment: {{ editor_mode == 'edit'|yesno:"true,false" }},
+                fillForms: true
+              }
+            },
+            editorConfig: {
+              mode: "{{ editor_mode }}",
+              lang: "en",
+              callbackUrl: "{{ BASE_URL }}/dashboard/required-documents/{{ required_doc.id }}/onlyoffice-callback/",
+              customization: {
+                autosave: true,
+                compactToolbar: false,
+                feedback: false,
+                help: false,
+                toolbarNoTabs: false
+              },
+              user: {
+                id: "{{ request.user.id }}",
+                name: "{{ request.user.get_full_name }}"
+              }
+            },
+            token: "{{ token }}",
+            height: "100%",
+            width: "100%"
+          };
+
+          window.docEditor = new DocsAPI.DocEditor("onlyoffice-editor", config);
+          console.log("OnlyOffice editor initialized successfully.");
+        } catch (err) {
+          console.error("OnlyOffice editor initialization failed:", err);
+        }
+      });
+    </script>
+  {% else %}
+    <p class="text-danger">You do not have permission to edit this document.</p>
+  {% endif %}
 </div>
 {% endblock %}
-
-{% block extra_js %}
-<script src="{{ onlyoffice_url }}/web-apps/apps/api/documents/api.js"></script>
-<script>
-document.addEventListener("DOMContentLoaded", function() {
-    const docKey = "{{ document_key }}";
-    const token = "{{ token }}";
-    const fileType = "{{ file_type|default:'docx' }}";
-    const documentUrl = "{{ document_url }}";
-    const editorMode = "{{ editor_mode }}";
-
-    const config = {
-        "document": {
-            "fileType": fileType,
-            "key": docKey,
-            "title": "{{ required_doc.name }}",
-            "url": documentUrl,
-            "permissions": {
-                "edit": editorMode === "edit",
-                "download": true,
-                "print": true,
-                "review": editorMode === "edit",
-                "comment": editorMode === "edit",
-                "fillForms": true
-            }
-        },
-        "editorConfig": {
-            "mode": editorMode,
-            "lang": "en",
-            "callbackUrl": "{{ request.scheme }}://{{ request.get_host }}{% url 'dashboard:onlyoffice_callback' doc_id=required_doc.id %}",
-            "customization": {
-                "autosave": true,
-                "compactToolbar": false,
-                "feedback": false,
-                "help": false,
-                "toolbarNoTabs": false
-            },
-            "user": {
-                "id": "{{ request.user.id }}",
-                "name": "{{ request.user.get_full_name }}"
-            }
-        },
-        "token": token,
-        "height": "100%",
-        "width": "100%"
-    };
-
-    try {
-        const docEditor = new DocsAPI.DocEditor("onlyoffice-editor", config);
-        console.log("OnlyOffice editor initialized successfully.");
-    } catch (err) {
-        console.error("OnlyOffice editor initialization failed:", err);
-    }
-});
-</script>
-{% endblock %}
-

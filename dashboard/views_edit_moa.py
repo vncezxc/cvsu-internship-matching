@@ -84,7 +84,7 @@ def generate_jwt_payload(document_key, document_url, title, editor_mode="edit", 
         "editorConfig": {
             "mode": editor_mode,
             "lang": "en",
-            "callbackUrl": "https://cvsu-internship-matching.onrender.com/dashboard/onlyoffice-callback/",
+            "callbackUrl": f"{getattr(settings, 'BASE_URL', 'https://cvsu-internship-matching.onrender.com')}/dashboard/onlyoffice-callback/",
             "customization": {
                 "autosave": True,
                 "compactToolbar": False,
@@ -158,10 +158,7 @@ def edit_moa_view(request, doc_id):
         messages.error(request, "Could not generate document URL.")
         return redirect('dashboard:student_documents')
 
-    # Editor mode
     editor_mode = "edit" if request.user.is_coordinator else "formFilling"
-
-    # Stable document key per user per document
     document_key = f"{request.user.id}_{doc_id}"
 
     payload = generate_jwt_payload(
@@ -176,7 +173,6 @@ def edit_moa_view(request, doc_id):
         messages.error(request, "Failed to generate security token.")
         return redirect('dashboard:student_documents')
 
-    # Store in session
     request.session['onlyoffice_document_key'] = document_key
     request.session['onlyoffice_document_id'] = doc_id
     request.session['onlyoffice_user_type'] = 'coordinator' if request.user.is_coordinator else 'student'
