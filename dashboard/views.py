@@ -1270,12 +1270,28 @@ def add_required_document(request):
             if doc.template_file and str(getattr(doc.template_file, 'name', '')).lower().endswith('.docx'):
                 from dashboard.docx_utils_html import extract_docx_full_html
                 import os
+                import tempfile
+                import requests
                 from django.conf import settings
                 docx_path = os.path.join(settings.MEDIA_ROOT, doc.template_file.name)
+                # If file does not exist locally, download from Spaces
+                if not os.path.exists(docx_path):
+                    url = doc.template_file.url
+                    response = requests.get(url)
+                    if response.status_code == 200:
+                        os.makedirs(os.path.dirname(docx_path), exist_ok=True)
+                        with open(docx_path, 'wb') as f:
+                            f.write(response.content)
+                    else:
+                        print(f"ERROR: Could not download DOCX from Spaces: {url}")
+                        docx_path = None
                 html_output_path = os.path.join(settings.MEDIA_ROOT, f"required_doc_{doc.id}_full.html")
-                html_content = extract_docx_full_html(docx_path)
-                with open(html_output_path, 'w', encoding='utf-8') as f:
-                    f.write(html_content)
+                if docx_path and os.path.exists(docx_path):
+                    html_content = extract_docx_full_html(docx_path)
+                    with open(html_output_path, 'w', encoding='utf-8') as f:
+                        f.write(html_content)
+                else:
+                    print(f"ERROR: DOCX file not found for HTML extraction: {docx_path}")
             messages.success(request, 'Required document added.')
             return redirect('dashboard:required_documents_list')
         else:

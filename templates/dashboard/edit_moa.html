@@ -53,6 +53,10 @@
   {% endif %}
 
   {% if request.user.is_coordinator or request.user.is_student %}
+    <div class="alert alert-info" style="word-break:break-all;">
+      <strong>DEBUG:</strong> OnlyOffice document URL:<br>
+      <code>{{ document_url }}</code>
+    </div>
     <!-- OnlyOffice Editor Embed -->
     <div id="onlyoffice-editor"></div>
 
