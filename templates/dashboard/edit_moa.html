@@ -77,6 +77,9 @@
     <script>
       document.addEventListener("DOMContentLoaded", function() {
         try {
+          // Determine permissions based on editor_mode
+          const isEditable = {% if editor_mode == 'edit' %}true{% else %}false{% endif %};
+
           const config = {
             document: {
               fileType: "{{ file_type|default:'docx' }}",
@@ -84,11 +87,11 @@
               title: "{{ required_doc.name }}",
               url: "{{ document_url }}",
               permissions: {
-                edit: {{ editor_mode == 'edit'|yesno:"true,false" }},
+                edit: isEditable,
                 download: true,
                 print: true,
-                review: {{ editor_mode == 'edit'|yesno:"true,false" }},
-                comment: {{ editor_mode == 'edit'|yesno:"true,false" }},
+                review: isEditable,
+                comment: isEditable,
                 fillForms: true
               }
             },
