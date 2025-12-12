@@ -64,7 +64,7 @@ def get_or_create_editable_document(required_doc, user):
     return required_doc.template_file
 
 
-def generate_jwt_payload(document_key, document_url, title, editor_mode="edit", user=None):
+def generate_jwt_payload(document_key, document_url, title, editor_mode="edit", user=None, doc_id=None):
     """Generate JWT payload for OnlyOffice."""
     permissions = {
         "edit": True,
@@ -75,6 +75,8 @@ def generate_jwt_payload(document_key, document_url, title, editor_mode="edit", 
         "fillForms": True
     }
 
+    if doc_id is None:
+        raise ValueError("doc_id must be provided for OnlyOffice callback URL.")
     payload = {
         "document": {
             "fileType": "docx",
@@ -86,7 +88,7 @@ def generate_jwt_payload(document_key, document_url, title, editor_mode="edit", 
         "editorConfig": {
             "mode": editor_mode,
             "lang": "en",
-            "callbackUrl": f"{getattr(settings, 'BASE_URL', 'https://cvsu-internship-matching.onrender.com')}/dashboard/onlyoffice-callback/",
+            "callbackUrl": f"{getattr(settings, 'BASE_URL', 'https://cvsu-internship-matching.onrender.com')}/dashboard/required-documents/{doc_id}/onlyoffice-callback/",
             "customization": {
                 "autosave": True,
                 "compactToolbar": False,
@@ -168,7 +170,8 @@ def edit_moa_view(request, doc_id):
         document_url=document_url,
         title=f"{required_doc.name} - {request.user.get_full_name()}",
         editor_mode=editor_mode,
-        user=request.user
+        user=request.user,
+        doc_id=doc_id
     )
     token = get_jwt_token(payload)
     if not token:
@@ -302,7 +305,8 @@ def edit_required_document_full_view(request, doc_id):
         document_url=document_url,
         title=f"{required_doc.name} (Template)",
         editor_mode="edit",
-        user=request.user
+        user=request.user,
+        doc_id=doc_id
     )
     token = get_jwt_token(payload)
     if not token:
