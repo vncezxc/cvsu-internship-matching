@@ -242,3 +242,57 @@ def onlyoffice_callback(request):
     except Exception as e:
         logger.error(f"OnlyOffice callback error: {e}")
         return JsonResponse({'error': 1, 'message': str(e)})
+
+
+@login_required
+@csrf_exempt
+def edit_required_document_full_view(request, doc_id):
+    """View for coordinators to edit the original template."""
+    if not request.user.is_coordinator:
+        messages.error(request, "You do not have permission to edit this template.")
+        return redirect('dashboard:required_documents_list')
+
+    connected, message = test_onlyoffice_connection()
+    if not connected:
+        messages.error(request, f"OnlyOffice server not accessible: {message}")
+        return redirect('dashboard:required_documents_list')
+
+    required_doc = get_object_or_404(RequiredDocument, id=doc_id)
+    if not required_doc.template_file:
+        messages.error(request, "No template uploaded for this document.")
+        return redirect('dashboard:required_documents_list')
+
+    document_file = required_doc.template_file
+    document_url = get_absolute_file_url(document_file)
+    if not document_url:
+        messages.error(request, "Could not generate document URL.")
+        return redirect('dashboard:required_documents_list')
+
+    document_key = f"coord_{request.user.id}_{doc_id}_{uuid.uuid4().hex}"
+    payload = generate_jwt_payload(
+        document_key=document_key,
+        document_url=document_url,
+        title=f"{required_doc.name} (Template)",
+        editor_mode="edit",
+        user=request.user
+    )
+    token = get_jwt_token(payload)
+    if not token:
+        messages.error(request, "Failed to generate security token.")
+        return redirect('dashboard:required_documents_list')
+
+    request.session['onlyoffice_document_key'] = document_key
+    request.session['onlyoffice_document_id'] = doc_id
+    request.session['onlyoffice_user_type'] = 'coordinator'
+
+    context = {
+        'required_doc': required_doc,
+        'document_url': document_url,
+        'document_key': document_key,
+        'token': token,
+        'editor_mode': 'edit',
+        'onlyoffice_url': settings.ONLYOFFICE_URL.rstrip('/'),
+        'connection_status': f"✅ Connected" if connected else f"❌ {message}",
+        'debug_mode': settings.DEBUG,
+    }
+    return render(request, 'dashboard/edit_moa.html', context)
