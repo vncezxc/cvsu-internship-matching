@@ -1,320 +1,67 @@
-{% extends 'dashboard/base_dashboard.html' %}
+{% extends "dashboard/base.html" %}
 {% load static %}
-{% block dashboard_title %}Edit Document{% endblock %}
 
-{% block dashboard_content %}
-<style>
-  #onlyoffice-editor {
-    border: 1px solid #dee2e6;
-    border-radius: 5px;
-    overflow: hidden;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    height: 800px;
-    position: relative;
-  }
-  .connection-status {
-    padding: 12px 15px;
-    margin-bottom: 20px;
-    border-radius: 5px;
-    font-size: 0.95em;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  .connection-status.connected {
-    background-color: #d4edda;
-    color: #155724;
-    border: 1px solid #c3e6cb;
-  }
-  .connection-status.error {
-    background-color: #f8d7da;
-    color: #721c24;
-    border: 1px solid #f5c6cb;
-  }
-  .status-icon {
-    font-size: 1.2em;
-  }
-  .debug-info {
-    font-family: monospace;
-    font-size: 0.85em;
-    background: #f8f9fa;
-    padding: 10px;
-    border-radius: 4px;
-    margin-bottom: 15px;
-    border-left: 3px solid #6c757d;
-  }
-  .editor-loading {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    text-align: center;
-  }
-  .file-info {
-    background: #f8f9fa;
-    padding: 10px 15px;
-    border-radius: 4px;
-    margin-bottom: 15px;
-    border-left: 4px solid #007bff;
-  }
-</style>
+{% block content %}
+<div class="container mt-4">
+    <h3>Edit Document: {{ required_doc.name }}</h3>
+    <p>Status: {{ connection_status }}</p>
 
-<div class="container-fluid py-4">
-  <div class="row">
-    <div class="col-lg-10 mx-auto">
-      <div class="card">
-        <div class="card-header">
-          <h4 class="mb-0">
-            <i class="fas fa-file-word text-primary me-2"></i>
-            Edit Document: {{ required_doc.name }}
-          </h4>
-        </div>
-        
-        <div class="card-body">
-          <!-- File Information -->
-          <div class="file-info">
-            <div class="row">
-              <div class="col-md-6">
-                <strong>Document Type:</strong> MOA (Memorandum of Agreement)<br>
-                <strong>For:</strong> {{ request.user.get_full_name }}<br>
-                <strong>Mode:</strong> 
-                <span class="badge {% if editor_mode == 'edit' %}bg-warning{% else %}bg-info{% endif %}">
-                  {{ editor_mode|title }}
-                </span>
-              </div>
-              <div class="col-md-6">
-                <strong>Storage:</strong> 
-                <span class="badge {% if CLOUDINARY_STORAGE.CLOUD_NAME %}bg-info{% else %}bg-secondary{% endif %}">
-                  {% if CLOUDINARY_STORAGE.CLOUD_NAME %}Cloudinary{% else %}Digital Ocean Spaces{% endif %}
-                </span><br>
-                <strong>Template:</strong> {{ required_doc.template_file.name|default:"No template" }}<br>
-                <strong>Last Updated:</strong> {{ required_doc.updated_at|date:"M d, Y H:i"|default:"Never" }}
-              </div>
-            </div>
-          </div>
-          
-          <!-- Connection Status -->
-          <div class="connection-status {% if connection_status|slice:":1" == '✅' %}connected{% else %}error{% endif %}">
-            <span class="status-icon">{{ connection_status|slice:":1" }}</span>
-            <span><strong>OnlyOffice Status:</strong> {{ connection_status|slice:"2:" }}</span>
-          </div>
-          
-          {% if request.user.is_coordinator or request.user.is_student %}
-            
-            <!-- Debug Information (only show in debug mode) -->
-            {% if debug_mode %}
-            <div class="debug-info">
-              <strong>Debug Information:</strong>
-              <div class="row mt-2">
-                <div class="col-md-4">
-                  <small>
-                    <strong>Storage:</strong><br>
-                    Digital Ocean: {{ AWS_STORAGE_BUCKET_NAME|yesno:"Active,Inactive" }}<br>
-                    Cloudinary: {{ CLOUDINARY_STORAGE.CLOUD_NAME|yesno:"Active,Inactive" }}
-                  </small>
-                </div>
-                <div class="col-md-4">
-                  <small>
-                    <strong>Document:</strong><br>
-                    Key: <code>{{ document_key|truncatechars:20 }}</code><br>
-                    Mode: <code>{{ editor_mode }}</code><br>
-                    User: {{ request.user.username }}
-                  </small>
-                </div>
-                <div class="col-md-4">
-                  <small>
-                    <strong>URLs:</strong><br>
-                    OnlyOffice: <code>{{ onlyoffice_url|truncatechars:30 }}</code><br>
-                    Document: <code>{{ document_url|truncatechars:30 }}</code>
-                  </small>
-                </div>
-              </div>
-            </div>
-            {% endif %}
-            
-            <!-- OnlyOffice Editor Container -->
-            <div id="onlyoffice-editor">
-              <div class="editor-loading">
-                <div class="spinner-border text-primary mb-3" style="width: 3rem; height: 3rem;" role="status">
-                  <span class="visually-hidden">Loading editor...</span>
-                </div>
-                <h5>Loading Document Editor</h5>
-                <p class="text-muted">Please wait while we load the document editor...</p>
-              </div>
-            </div>
-            
-            <!-- Action Buttons -->
-            <div class="d-flex justify-content-between align-items-center mt-4">
-              <div>
-                {% if request.user.is_coordinator %}
-                  <a href="{% url 'dashboard:required_documents_list' %}" class="btn btn-outline-secondary">
-                    <i class="fas fa-arrow-left me-1"></i>Back to Documents
-                  </a>
-                {% else %}
-                  <a href="{% url 'dashboard:student_documents' %}" class="btn btn-outline-secondary">
-                    <i class="fas fa-arrow-left me-1"></i>Back to My Documents
-                  </a>
-                {% endif %}
-              </div>
-              
-              <div>
-                {% if request.user.is_student and editor_mode == 'formFilling' %}
-                  <button type="button" class="btn btn-warning me-2" data-bs-toggle="modal" data-bs-target="#resetModal">
-                    <i class="fas fa-undo me-1"></i>Reset Form
-                  </button>
-                {% endif %}
-                
-                <button class="btn btn-success me-2" onclick="saveDocument(); return false;" id="save-btn" disabled>
-                  <i class="fas fa-save me-1"></i>Save Changes
-                </button>
-                
-                <a href="#" class="btn btn-primary" onclick="downloadDocument(); return false;" id="download-btn">
-                  <i class="fas fa-download me-1"></i>Download
-                </a>
-              </div>
-            </div>
-            
-            <!-- Reset Confirmation Modal -->
-            {% if request.user.is_student %}
-            <div class="modal fade" id="resetModal" tabindex="-1">
-              <div class="modal-dialog">
-                <div class="modal-content">
-                  <div class="modal-header">
-                    <h5 class="modal-title">Reset Document</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                  </div>
-                  <div class="modal-body">
-                    <p>Are you sure you want to reset this document to the original template?</p>
-                    <p class="text-danger"><small>This will erase all your changes and cannot be undone.</small></p>
-                  </div>
-                  <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <form method="post" action="{% url 'dashboard:reset_moa' doc_id=required_doc.id %}" style="display:inline;">
-                      {% csrf_token %}
-                      <button type="submit" class="btn btn-warning">
-                        <i class="fas fa-undo me-1"></i>Reset Document
-                      </button>
-                    </form>
-                  </div>
-                </div>
-              </div>
-            </div>
-            {% endif %}
-            
-            <!-- OnlyOffice Script - SIMPLE VERSION -->
-<script type="text/javascript">
-  const config = {
-    onlyofficeUrl: "{{ onlyoffice_url }}",
-    documentUrl: "{{ document_url|escapejs }}",
-    documentKey: "{{ document_key|escapejs }}",
-    editorMode: "{{ editor_mode }}",
-    jwtToken: "{{ token|escapejs }}"
-  };
-
-  // Load OnlyOffice
-  function loadOnlyOffice() {
-    return new Promise((resolve, reject) => {
-      if (window.DocsAPI) {
-        resolve();
-        return;
-      }
-      
-      const script = document.createElement('script');
-      script.src = `${config.onlyofficeUrl}/web-apps/apps/api/documents/api.js`;
-      script.onload = () => resolve();
-      script.onerror = () => reject();
-      document.head.appendChild(script);
-    });
-  }
-
-  // Initialize editor
-  async function initEditor() {
-    try {
-      await loadOnlyOffice();
-      
-      // Hide loading
-      document.querySelector('.editor-loading').style.display = 'none';
-      
-      // Create editor config
-      const editorConfig = {
-        document: {
-          fileType: "docx",
-          key: config.documentKey,
-          title: "Document",
-          url: config.documentUrl,
-          permissions: {
-            edit: true,
-            download: true,
-            print: true,
-            review: true,
-            comment: true
-          }
-        },
-        editorConfig: {
-          mode: config.editorMode,
-          lang: "en",
-          callbackUrl: "/dashboard/onlyoffice-callback/",
-          user: {
-            id: "{{ request.user.id }}",
-            name: "{{ request.user.get_full_name|escapejs }}"
-          }
-        },
-        // ✅ FIX: Use token parameter instead of Authorization header
-        token: config.jwtToken,
-        documentType: "word",
-        height: '100%',
-        width: '100%'
-      };
-      
-      // Initialize
-      window.docEditor = new DocsAPI.DocEditor('onlyoffice-editor', editorConfig);
-      document.getElementById('save-btn').disabled = false;
-      
-    } catch (error) {
-      console.error('Error:', error);
-      document.getElementById('onlyoffice-editor').innerHTML = `
-        <div class="alert alert-danger m-4">
-          <h5>Editor Error</h5>
-          <p>Failed to load editor. Check console for details.</p>
-          <button onclick="window.location.reload()" class="btn btn-primary">Retry</button>
-        </div>
-      `;
-    }
-  }
-
-  // Save function
-  function saveDocument() {
-    if (window.docEditor && window.docEditor.save) {
-      window.docEditor.save();
-      alert('Document saved!');
-    }
-  }
-
-  // Download function  
-  function downloadDocument() {
-    if (window.docEditor && window.docEditor.download) {
-      window.docEditor.download();
-    }
-  }
-
-  // Start when page loads
-  document.addEventListener('DOMContentLoaded', function() {
-    setTimeout(initEditor, 1000);
-  });
-</script>
-            
-          {% else %}
-            <div class="alert alert-danger">
-              <i class="fas fa-exclamation-triangle me-2"></i>
-              You do not have permission to edit this document.
-            </div>
-          {% endif %}
-        </div>
-      </div>
-    </div>
-  </div>
+    <div id="onlyoffice-editor" style="height: 80vh; width: 100%; border: 1px solid #ccc;"></div>
 </div>
+{% endblock %}
 
-<!-- Add Bootstrap Toast Container -->
-<div id="toast-container" class="toast-container position-fixed bottom-0 end-0 p-3"></div>
+{% block extra_js %}
+<script src="{{ onlyoffice_url }}/web-apps/apps/api/documents/api.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const docKey = "{{ document_key }}";
+    const token = "{{ token }}";
+    const fileType = "{{ file_type|default:'docx' }}";
+    const documentUrl = "{{ document_url }}";
+    const editorMode = "{{ editor_mode }}";
+
+    const config = {
+        "document": {
+            "fileType": fileType,
+            "key": docKey,
+            "title": "{{ required_doc.name }}",
+            "url": documentUrl,
+            "permissions": {
+                "edit": editorMode === "edit",
+                "download": true,
+                "print": true,
+                "review": editorMode === "edit",
+                "comment": editorMode === "edit",
+                "fillForms": true
+            }
+        },
+        "editorConfig": {
+            "mode": editorMode,
+            "lang": "en",
+            "callbackUrl": "{{ request.scheme }}://{{ request.get_host }}{% url 'dashboard:onlyoffice_callback' %}",
+            "customization": {
+                "autosave": true,
+                "compactToolbar": false,
+                "feedback": false,
+                "help": false,
+                "toolbarNoTabs": false
+            },
+            "user": {
+                "id": "{{ request.user.id }}",
+                "name": "{{ request.user.get_full_name }}"
+            }
+        },
+        "token": token,
+        "height": "100%",
+        "width": "100%"
+    };
+
+    try {
+        const docEditor = new DocsAPI.DocEditor("onlyoffice-editor", config);
+        console.log("OnlyOffice editor initialized successfully.");
+    } catch (err) {
+        console.error("OnlyOffice editor initialization failed:", err);
+    }
+});
+</script>
 {% endblock %}
