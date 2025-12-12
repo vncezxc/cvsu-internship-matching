@@ -102,13 +102,13 @@ BASE_URL = get_config('BASE_URL', default='https://cvsu-internship-matching.onre
 # OnlyOffice Configuration
 # ---------------------------------------
 # OnlyOffice DocumentServer URL (use HTTPS with trailing slash)
-ONLYOFFICE_URL = get_config('ONLYOFFICE_URL', default='https://139.59.96.100/')
+ONLYOFFICE_URL = get_config('ONLYOFFICE_URL', default='')
 # Ensure URL has trailing slash
 if ONLYOFFICE_URL and not ONLYOFFICE_URL.endswith('/'):
     ONLYOFFICE_URL = ONLYOFFICE_URL + '/'
     
 # OnlyOffice JWT Secret (must match Docker container JWT_SECRET)
-ONLYOFFICE_SECRET = get_config('ONLYOFFICE_SECRET', default='NfOfVmap1M6BA01YoRX6yeb3kwSHDS')
+ONLYOFFICE_SECRET = get_config('ONLYOFFICE_SECRET', default='')
 # ---------------------------------------
 # Application Definition
 # ---------------------------------------

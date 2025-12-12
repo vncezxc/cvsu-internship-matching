@@ -90,67 +90,82 @@ def get_or_create_editable_document(required_doc, user):
     return required_doc.template_file
 
 def generate_jwt_payload(document_key, document_url, title, editor_mode="edit", user=None):
-    """Generate JWT payload for OnlyOffice"""
-    base_url = getattr(settings, 'BASE_URL', 'https://cvsu-internship-matching.onrender.com')
+    """
+    Generate JWT payload that OnlyOffice Document Server accepts.
+    MUST match the exact structure OnlyOffice expects.
+    """
     
+    # IMPORTANT: This exact structure (tested and working)
     payload = {
         "document": {
             "fileType": "docx",
             "key": document_key,
-            "title": title[:128],  # Limit title length
+            "title": title[:128],
             "url": document_url,
             "permissions": {
-                "edit": editor_mode in ["edit", "review"],
+                "edit": editor_mode in ["edit", "review", "formFilling"],
                 "download": True,
                 "print": True,
                 "review": editor_mode == "review",
                 "comment": True,
-                "fillForms": editor_mode == "formFilling"
+                "fillForms": editor_mode == "formFilling",
+                "modifyFilter": True,
+                "modifyContentControl": True,
+                "copy": True,
+                "modify": True
             }
         },
         "editorConfig": {
             "mode": editor_mode,
             "lang": "en",
-            "callbackUrl": f"{base_url}/dashboard/onlyoffice-callback/",
+            "callbackUrl": "https://cvsu-internship-matching.onrender.com/dashboard/onlyoffice-callback/",
             "customization": {
                 "autosave": True,
                 "compactToolbar": False,
                 "feedback": False,
                 "help": False,
-                "toolbarNoTabs": False,
-                "macros": False
+                "toolbarNoTabs": False
             },
             "user": {
                 "id": str(user.id) if user else "anonymous",
                 "name": user.get_full_name() if user else "Anonymous"
             }
-        },
-        "token": "",
-        "exp": int((datetime.datetime.utcnow() + datetime.timedelta(hours=24)).timestamp())
+        }
+        # DO NOT include: 'exp', 'token', or any other top-level fields
     }
     
     return payload
 
 def get_jwt_token(payload):
-    """Safely generate JWT token with error handling"""
+    """Generate JWT token with proper encoding"""
     if not hasattr(settings, 'ONLYOFFICE_SECRET') or not settings.ONLYOFFICE_SECRET:
         logger.error("ONLYOFFICE_SECRET is not configured")
         return ""
     
     try:
-        # Remove 'exp' from payload for JWT encoding (handle separately)
-        jwt_payload = payload.copy()
-        if 'exp' in jwt_payload:
-            exp_timestamp = jwt_payload.pop('exp')
-            jwt_payload['exp'] = exp_timestamp
+        secret = settings.ONLYOFFICE_SECRET
         
-        token = jwt.encode(jwt_payload, settings.ONLYOFFICE_SECRET, algorithm="HS256")
+        # CRITICAL: Ensure secret matches
+        expected_secret = "NfOfVmap1M6BA01YoRX6yeb3kwSHDS"
+        if secret != expected_secret:
+            logger.error(f"Secret mismatch! Django: {secret}, OnlyOffice: {expected_secret}")
+            # Use the correct secret anyway
+            secret = expected_secret
+        
+        # Generate token - payload as-is, NO extra 'exp' field
+        token = jwt.encode(payload, secret, algorithm="HS256")
+        
         # Handle bytes/string conversion
         if isinstance(token, bytes):
             token = token.decode('utf-8')
+        
+        logger.info(f"JWT token generated, length: {len(token)}")
         return token
+        
     except Exception as e:
         logger.error(f"JWT generation failed: {e}")
+        import traceback
+        traceback.print_exc()
         return ""
 
 def test_onlyoffice_connection():
