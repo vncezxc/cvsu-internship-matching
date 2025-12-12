@@ -6,6 +6,7 @@ from . import views
 from . import views_edit_moa
 from . import views_download_moa
 from . import views_onlyoffice_callback
+from . import views_edit_moa
 
     
 app_name = 'dashboard'
@@ -46,7 +47,7 @@ urlpatterns = [
     path('api/statistics/', views.api_statistics, name='api_statistics'),
 
     # MOA Edit
-    path('required-documents/<int:doc_id>/onlyoffice-callback/', views_onlyoffice_callback.onlyoffice_callback, name='onlyoffice_callback'),
+    path('required-documents/<int:doc_id>/onlyoffice-callback/', views_edit_moa.onlyoffice_callback, name='onlyoffice_callback'),
 
     path('student/documents/moa/edit/<int:doc_id>/', views_edit_moa.edit_moa_view, name='edit_moa'),
     path('student/documents/moa/download/<int:doc_id>/', views_download_moa.download_edited_moa, name='download_edited_moa'),
