@@ -1,8 +1,10 @@
+
 import jwt
 import datetime
 import logging
 import os
 import uuid
+import boto3
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -190,10 +192,11 @@ def edit_moa_view(request, doc_id):
     return render(request, 'dashboard/edit_moa.html', context)
 
 
+
 @login_required
 @csrf_exempt
-def onlyoffice_callback(request):
-    """Handle OnlyOffice save callback."""
+def onlyoffice_callback(request, doc_id):
+    """Handle OnlyOffice save callback and upload to DigitalOcean Spaces."""
     if request.method != 'POST':
         return JsonResponse({'error': 'Method not allowed'}, status=405)
 
@@ -208,9 +211,19 @@ def onlyoffice_callback(request):
             if url:
                 response = requests.get(url, verify=False)
                 if response.status_code == 200:
-                    doc_id = request.session.get('onlyoffice_document_id')
                     user_type = request.session.get('onlyoffice_user_type')
                     required_doc = get_object_or_404(RequiredDocument, id=doc_id)
+
+                    # DigitalOcean Spaces config
+                    session = boto3.session.Session()
+                    s3 = session.client(
+                        's3',
+                        region_name=getattr(settings, 'AWS_S3_REGION_NAME', 'sgp1'),
+                        endpoint_url=getattr(settings, 'AWS_S3_ENDPOINT_URL', None),
+                        aws_access_key_id=getattr(settings, 'AWS_ACCESS_KEY_ID', None),
+                        aws_secret_access_key=getattr(settings, 'AWS_SECRET_ACCESS_KEY', None),
+                    )
+                    bucket = getattr(settings, 'AWS_STORAGE_BUCKET_NAME', None)
 
                     if user_type == 'student':
                         student_doc = StudentDocument.objects.filter(
@@ -221,17 +234,36 @@ def onlyoffice_callback(request):
                             original_name = required_doc.template_file.name
                             base_name, ext = os.path.splitext(os.path.basename(original_name))
                             new_filename = f"moa_{request.user.username}_{slugify(base_name)}_edited_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}{ext}"
-                            student_doc.file.save(new_filename, response.content, save=True)
+                            # Upload to Spaces
+                            s3.put_object(
+                                Bucket=bucket,
+                                Key=f"student_profiles/{new_filename}",
+                                Body=response.content,
+                                ContentType='application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                                ACL='public-read'
+                            )
+                            # Update file field to point to Spaces
+                            student_doc.file.name = f"student_profiles/{new_filename}"
                             student_doc.status = 'submitted'
                             student_doc.save()
-                            logger.info(f"Saved edited document for student {request.user.username}")
+                            logger.info(f"Saved edited document for student {request.user.username} to Spaces")
 
                     elif user_type == 'coordinator':
                         original_name = required_doc.template_file.name
                         base_name, ext = os.path.splitext(os.path.basename(original_name))
                         new_filename = f"template_{slugify(base_name)}_v{datetime.datetime.now().strftime('%Y%m%d')}{ext}"
-                        required_doc.template_file.save(new_filename, response.content, save=True)
-                        logger.info(f"Updated template for document {doc_id} by coordinator {request.user.username}")
+                        # Upload to Spaces
+                        s3.put_object(
+                            Bucket=bucket,
+                            Key=f"document_templates/{new_filename}",
+                            Body=response.content,
+                            ContentType='application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                            ACL='public-read'
+                        )
+                        # Update file field to point to Spaces
+                        required_doc.template_file.name = f"document_templates/{new_filename}"
+                        required_doc.save()
+                        logger.info(f"Updated template for document {doc_id} by coordinator {request.user.username} in Spaces")
 
         return JsonResponse({'error': 0})
 
