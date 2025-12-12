@@ -5,7 +5,6 @@ from django.urls import path
 from . import views
 from . import views_edit_moa
 from . import views_download_moa
-from . import views_onlyoffice_callback
 from . import views_edit_moa
 
     
