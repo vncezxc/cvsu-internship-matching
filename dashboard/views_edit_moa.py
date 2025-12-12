@@ -91,29 +91,27 @@ def get_or_create_editable_document(required_doc, user):
 
 def generate_jwt_payload(document_key, document_url, title, editor_mode="edit", user=None):
     """
-    Generate JWT payload that OnlyOffice Document Server accepts.
-    MUST match the exact structure OnlyOffice expects.
+    Generate a JWT payload for OnlyOffice Document Server.
+    Works for coordinators (full edit) and students (form filling).
+    Only includes allowed permissions to prevent JWT rejection.
     """
-    
-    # IMPORTANT: This exact structure (tested and working)
+    # OnlyOffice allowed permissions
+    permissions = {
+        "edit": editor_mode in ["edit", "review", "formFilling"],
+        "download": True,
+        "print": True,
+        "review": editor_mode == "review",
+        "comment": True,
+        "fillForms": editor_mode == "formFilling"
+    }
+
     payload = {
         "document": {
             "fileType": "docx",
             "key": document_key,
             "title": title[:128],
             "url": document_url,
-            "permissions": {
-                "edit": editor_mode in ["edit", "review", "formFilling"],
-                "download": True,
-                "print": True,
-                "review": editor_mode == "review",
-                "comment": True,
-                "fillForms": editor_mode == "formFilling",
-                "modifyFilter": True,
-                "modifyContentControl": True,
-                "copy": True,
-                "modify": True
-            }
+            "permissions": permissions
         },
         "editorConfig": {
             "mode": editor_mode,
@@ -131,10 +129,11 @@ def generate_jwt_payload(document_key, document_url, title, editor_mode="edit", 
                 "name": user.get_full_name() if user else "Anonymous"
             }
         }
-        # DO NOT include: 'exp', 'token', or any other top-level fields
+        # Do NOT include 'exp' or other top-level fields
     }
-    
+
     return payload
+
 
 def get_jwt_token(payload):
     """Generate JWT token with proper encoding"""
