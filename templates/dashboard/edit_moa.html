@@ -38,7 +38,7 @@ document.addEventListener("DOMContentLoaded", function() {
         "editorConfig": {
             "mode": editorMode,
             "lang": "en",
-            "callbackUrl": "{{ request.scheme }}://{{ request.get_host }}{% url 'dashboard:onlyoffice_callback' %}",
+            "callbackUrl": "{{ request.scheme }}://{{ request.get_host }}{% url 'dashboard:onlyoffice_callback' doc_id=required_doc.id %}",
             "customization": {
                 "autosave": true,
                 "compactToolbar": false,
@@ -65,3 +65,4 @@ document.addEventListener("DOMContentLoaded", function() {
 });
 </script>
 {% endblock %}
+
