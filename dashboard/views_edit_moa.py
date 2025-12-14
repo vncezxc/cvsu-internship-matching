@@ -1,4 +1,3 @@
-
 import jwt
 import datetime
 import logging
@@ -36,17 +35,26 @@ def get_absolute_file_url(file_field):
 
         # For production, construct Spaces URL
         if not settings.DEBUG:
-            region = settings.AWS_S3_REGION_NAME
-            bucket = settings.AWS_STORAGE_BUCKET_NAME
-
             # Get the exact file path from the field name
             file_path = file_field.name
             
             # Remove any leading slashes
             file_path = file_path.lstrip('/')
             
-            # Construct the correct URL - file_path already includes the folder structure
-            full_url = f"https://{bucket}.{region}.digitaloceanspaces.com/media/{file_path}"
+            # If file_path already starts with 'media/', keep it
+            # Otherwise prepend 'media/'
+            if not file_path.startswith('media/'):
+                file_path = f"media/{file_path}"
+            
+            # Use custom domain if configured
+            if hasattr(settings, 'AWS_S3_CUSTOM_DOMAIN') and settings.AWS_S3_CUSTOM_DOMAIN:
+                full_url = f"https://{settings.AWS_S3_CUSTOM_DOMAIN}/{file_path}"
+            else:
+                # Use default Spaces endpoint
+                bucket = settings.AWS_STORAGE_BUCKET_NAME
+                region = settings.AWS_S3_REGION_NAME
+                full_url = f"https://{bucket}.{region}.digitaloceanspaces.com/{file_path}"
+            
             logger.info(f"✅ Constructed Spaces URL: {full_url}")
             return full_url
 
@@ -75,7 +83,8 @@ def get_or_create_editable_document(required_doc, user):
                 if required_doc.template_file:
                     original_name = required_doc.template_file.name
                     base_name, ext = os.path.splitext(os.path.basename(original_name))
-                    # FIXED: Keep in the same folder structure - document_templates/
+                    
+                    # Create filename in document_templates folder
                     new_filename = f"document_templates/moa_{user.username}_{slugify(base_name)}_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}{ext}"
                     
                     # Read the template file
@@ -93,19 +102,19 @@ def get_or_create_editable_document(required_doc, user):
                     )
                     bucket = getattr(settings, 'AWS_STORAGE_BUCKET_NAME', None)
                     
-                    # Upload to document_templates/ folder
+                    # Upload to bucket with 'media/' prefix
                     s3.put_object(
                         Bucket=bucket,
-                        Key=f"media/{new_filename}",  # ✅ Keep in media/document_templates/
+                        Key=f"media/{new_filename}",  # ✅ This becomes: media/document_templates/...
                         Body=content,
                         ContentType='application/vnd.openxmlformats-officedocument.wordprocessingml.document',
                         ACL='public-read'
                     )
                     
-                    # Save the filename as-is
-                    student_doc.file.name = new_filename  # ✅ Save without 'media/' prefix
+                    # Save the filename (without 'media/' prefix)
+                    student_doc.file.name = new_filename
                     student_doc.save()
-                    logger.info(f"✅ Created editable copy for student: {new_filename}")
+                    logger.info(f"✅ Created editable copy for student: media/{new_filename}")
                     
             return student_doc.file
             
@@ -324,18 +333,17 @@ def onlyoffice_callback(request, doc_id):
                 # COORDINATOR: Update template file
                 original_name = required_doc.template_file.name
                 base_name, ext = os.path.splitext(os.path.basename(original_name))
-                # FIXED: Keep in document_templates/ folder
                 new_filename = f"document_templates/template_{slugify(base_name)}_v{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}{ext}"
                 
                 s3.put_object(
                     Bucket=bucket,
-                    Key=f"media/{new_filename}",  # ✅ Keep in media/document_templates/
+                    Key=f"media/{new_filename}",  # ✅ This goes to: bucket/media/document_templates/...
                     Body=response.content,
                     ContentType='application/vnd.openxmlformats-officedocument.wordprocessingml.document',
                     ACL='public-read'
                 )
                 
-                # Save the filename as-is (without 'media/' prefix)
+                # Save the filename (without 'media/' prefix)
                 required_doc.template_file.name = new_filename
                 required_doc.save()
                 logger.info(f"✅ Updated template for doc {doc_id} by coordinator {user.username}")
@@ -353,18 +361,17 @@ def onlyoffice_callback(request, doc_id):
                     if student_doc:
                         original_name = required_doc.template_file.name
                         base_name, ext = os.path.splitext(os.path.basename(original_name))
-                        # FIXED: Keep in document_templates/ folder
                         new_filename = f"document_templates/moa_{user.username}_{slugify(base_name)}_edited_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}{ext}"
                         
                         s3.put_object(
                             Bucket=bucket,
-                            Key=f"media/{new_filename}",  # ✅ Keep in media/document_templates/
+                            Key=f"media/{new_filename}",  # ✅ This goes to: bucket/media/document_templates/...
                             Body=response.content,
                             ContentType='application/vnd.openxmlformats-officedocument.wordprocessingml.document',
                             ACL='public-read'
                         )
                         
-                        # Save the filename as-is (without 'media/' prefix)
+                        # Save the filename (without 'media/' prefix)
                         student_doc.file.name = new_filename
                         student_doc.status = 'submitted'
                         student_doc.save()
