@@ -88,17 +88,24 @@ def get_or_create_editable_document(required_doc, user):
 
 def generate_jwt_payload(document_key, document_url, title, editor_mode="edit", user=None, doc_id=None):
     """Generate JWT payload for OnlyOffice."""
+    is_coordinator = user.is_coordinator if user else False
+    
     permissions = {
-        "edit": True,
+        "edit": True,  # Everyone can edit
         "download": True,
         "print": True,
         "review": True,
         "comment": True,
-        "fillForms": True
+        "fillForms": True,
+        "modifyFilter": is_coordinator,
+        "modifyContentControl": True
     }
 
     if doc_id is None:
         raise ValueError("doc_id must be provided for OnlyOffice callback URL.")
+    
+    callback_url = f"{getattr(settings, 'BASE_URL', 'https://cvsu-internship-matching.onrender.com')}/dashboard/required-documents/{doc_id}/onlyoffice-callback/"
+    
     payload = {
         "document": {
             "fileType": "docx",
@@ -107,16 +114,18 @@ def generate_jwt_payload(document_key, document_url, title, editor_mode="edit", 
             "url": document_url,
             "permissions": permissions
         },
+        "documentType": "word",
         "editorConfig": {
-            "mode": editor_mode,
+            "mode": "edit",  # Always edit mode
             "lang": "en",
-            "callbackUrl": f"{getattr(settings, 'BASE_URL', 'https://cvsu-internship-matching.onrender.com')}/dashboard/required-documents/{doc_id}/onlyoffice-callback/",
+            "callbackUrl": callback_url,
             "customization": {
                 "autosave": True,
                 "compactToolbar": False,
                 "feedback": False,
                 "help": False,
-                "toolbarNoTabs": False
+                "toolbarNoTabs": False,
+                "forcesave": True
             },
             "user": {
                 "id": str(user.id) if user else "anonymous",
@@ -184,7 +193,7 @@ def edit_moa_view(request, doc_id):
         messages.error(request, "Could not generate document URL.")
         return redirect('dashboard:student_documents')
 
-    editor_mode = "edit" if request.user.is_coordinator else "formFilling"
+    editor_mode = "edit"
     document_key = f"{request.user.id}_{doc_id}"
 
     payload = generate_jwt_payload(

@@ -81,51 +81,64 @@
     </div>
     <script src="{{ onlyoffice_url }}/web-apps/apps/api/documents/api.js"></script>
     <script>
-      document.addEventListener("DOMContentLoaded", function() {
-        try {
-          // Determine permissions based on editor_mode
-          const isEditable = {% if editor_mode == 'edit' %}true{% else %}false{% endif %};
-          const config = {
-            document: {
-              fileType: "{{ file_type|default:'docx' }}",
-              key: "{{ document_key }}",
-              title: "{{ required_doc.name }}",
-              url: "{{ document_url }}",
-              permissions: {
-                edit: isEditable,
-                download: true,
-                print: true,
-                review: isEditable,
-                comment: isEditable,
-                fillForms: true
-              }
-            },
-            editorConfig: {
-              mode: "{{ editor_mode }}",
-              lang: "en",
-              // callbackUrl is set by backend JWT payload; do not override here
-              customization: {
-                autosave: true,
-                compactToolbar: false,
-                feedback: false,
-                help: false,
-                toolbarNoTabs: false
-              },
-              user: {
-                id: "{{ request.user.id }}",
-                name: "{{ request.user.get_full_name }}"
-              }
-            },
-            token: "{{ token }}",
-            height: "700px",
-            width: "100%"
-          };
-          window.docEditor = new DocsAPI.DocEditor("onlyoffice-editor", config);
-        } catch (err) {
-          console.error("OnlyOffice editor initialization failed:", err);
-        }
-      });
-    </script>
+  document.addEventListener("DOMContentLoaded", function() {
+    try {
+      const editorMode = "{{ editor_mode }}";
+      const isCoordinator = "{{ request.user.is_coordinator }}" === "True";
+      
+      // Coordinators get full edit, students get edit too (not just fillForms)
+      const permissions = {
+        edit: true,  // Allow editing for both
+        download: true,
+        print: true,
+        review: true,
+        comment: true,
+        fillForms: true,
+        modifyFilter: isCoordinator,
+        modifyContentControl: true,
+        review: true
+      };
+
+      const config = {
+        document: {
+          fileType: "docx",
+          key: "{{ document_key }}",
+          title: "{{ required_doc.name }}",
+          url: "{{ document_url }}",
+          permissions: permissions
+        },
+        documentType: "word",
+        editorConfig: {
+          mode: "edit",  // Always use edit mode
+          lang: "en",
+          callbackUrl: "{{ BASE_URL }}/dashboard/required-documents/{{ required_doc.id }}/onlyoffice-callback/",
+          customization: {
+            autosave: true,
+            compactToolbar: false,
+            feedback: false,
+            help: false,
+            toolbarNoTabs: false,
+            forcesave: true
+          },
+          user: {
+            id: "{{ request.user.id }}",
+            name: "{{ request.user.get_full_name }}"
+          }
+        },
+        token: "{{ token }}",
+        height: "700px",
+        width: "100%"
+      };
+      
+      console.log("OnlyOffice Config:", config);
+      window.docEditor = new DocsAPI.DocEditor("onlyoffice-editor", config);
+      
+    } catch (err) {
+      console.error("OnlyOffice editor initialization failed:", err);
+      alert("Failed to load editor: " + err.message);
+    }
+  });
+</script>
   {% else %}
     <p class="text-danger">You do not have permission to edit this document.</p>
   {% endif %}
