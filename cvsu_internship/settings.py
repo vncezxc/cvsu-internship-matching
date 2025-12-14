@@ -345,7 +345,7 @@ AWS_SECRET_ACCESS_KEY = get_config('AWS_SECRET_ACCESS_KEY', default='')
 AWS_STORAGE_BUCKET_NAME = get_config('AWS_STORAGE_BUCKET_NAME', default='')
 AWS_S3_ENDPOINT_URL = get_config('AWS_S3_ENDPOINT_URL', default='https://sgp1.digitaloceanspaces.com')
 AWS_S3_REGION_NAME = get_config('AWS_S3_REGION_NAME', default='sgp1')
-AWS_S3_CUSTOM_DOMAIN = get_config('AWS_S3_CUSTOM_DOMAIN', default='')
+AWS_S3_CUSTOM_DOMAIN = get_config('AWS_S3_CUSTOM_DOMAIN', default='cvsu-internship-moa.sgp1.cdn.digitaloceanspaces.com')
 
 # S3/Spaces settings
 AWS_S3_OBJECT_PARAMETERS = {
