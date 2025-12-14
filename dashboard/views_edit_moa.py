@@ -75,7 +75,7 @@ def get_or_create_editable_document(required_doc, user):
             # FIXED: Use 'document_type' instead of 'required_document'
             student_doc, created = StudentDocument.objects.get_or_create(
                 student=user.student_profile,
-                document_type=required_doc,  # ✅ Changed from required_document
+                document_type=required_doc,
                 defaults={'status': 'pending'}
             )
             
@@ -84,14 +84,14 @@ def get_or_create_editable_document(required_doc, user):
                     original_name = required_doc.template_file.name
                     base_name, ext = os.path.splitext(os.path.basename(original_name))
                     
-                    # Create filename in document_templates folder
-                    new_filename = f"document_templates/moa_{user.username}_{slugify(base_name)}_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}{ext}"
+                    # ✅ STUDENTS: Save to student_documents folder
+                    new_filename = f"student_documents/moa_{user.username}_{slugify(base_name)}_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}{ext}"
                     
                     # Read the template file
                     with required_doc.template_file.open('rb') as source_file:
                         content = source_file.read()
                     
-                    # Upload to Spaces with explicit public ACL
+                    # Upload to Spaces
                     session = boto3.session.Session()
                     s3 = session.client(
                         's3',
@@ -102,10 +102,10 @@ def get_or_create_editable_document(required_doc, user):
                     )
                     bucket = getattr(settings, 'AWS_STORAGE_BUCKET_NAME', None)
                     
-                    # Upload to bucket with 'media/' prefix
+                    # Upload to student_documents folder
                     s3.put_object(
                         Bucket=bucket,
-                        Key=f"media/{new_filename}",  # ✅ This becomes: media/document_templates/...
+                        Key=f"media/{new_filename}",  # ✅ media/student_documents/...
                         Body=content,
                         ContentType='application/vnd.openxmlformats-officedocument.wordprocessingml.document',
                         ACL='public-read'
@@ -133,7 +133,7 @@ def generate_jwt_payload(document_key, document_url, title, editor_mode="edit", 
     is_coordinator = user.is_coordinator if user else False
     
     permissions = {
-        "edit": True,  # Everyone can edit
+        "edit": True,
         "download": True,
         "print": True,
         "review": True,
@@ -158,7 +158,7 @@ def generate_jwt_payload(document_key, document_url, title, editor_mode="edit", 
         },
         "documentType": "word",
         "editorConfig": {
-            "mode": "edit",  # Always edit mode
+            "mode": "edit",
             "lang": "en",
             "callbackUrl": callback_url,
             "customization": {
@@ -213,7 +213,6 @@ def test_onlyoffice_connection():
 def edit_moa_view(request, doc_id):
     """
     View for students and coordinators to edit MOA.
-    Coordinators get full edit; students get formFilling.
     """
     connected, message = test_onlyoffice_connection()
     if not connected:
@@ -330,14 +329,14 @@ def onlyoffice_callback(request, doc_id):
             bucket = getattr(settings, 'AWS_STORAGE_BUCKET_NAME', None)
 
             if is_coordinator:
-                # COORDINATOR: Update template file
+                # ✅ COORDINATOR: Update template file (save to document_templates/)
                 original_name = required_doc.template_file.name
                 base_name, ext = os.path.splitext(os.path.basename(original_name))
                 new_filename = f"document_templates/template_{slugify(base_name)}_v{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}{ext}"
                 
                 s3.put_object(
                     Bucket=bucket,
-                    Key=f"media/{new_filename}",  # ✅ This goes to: bucket/media/document_templates/...
+                    Key=f"media/{new_filename}",  # ✅ media/document_templates/...
                     Body=response.content,
                     ContentType='application/vnd.openxmlformats-officedocument.wordprocessingml.document',
                     ACL='public-read'
@@ -349,10 +348,9 @@ def onlyoffice_callback(request, doc_id):
                 logger.info(f"✅ Updated template for doc {doc_id} by coordinator {user.username}")
 
             else:
-                # STUDENT: Update student document
+                # ✅ STUDENT: Update student document (save to student_documents/)
                 try:
                     student_profile = user.student_profile
-                    # ✅ FIXED: Use document_type instead of required_document
                     student_doc = StudentDocument.objects.filter(
                         student=student_profile,
                         document_type=required_doc
@@ -361,11 +359,11 @@ def onlyoffice_callback(request, doc_id):
                     if student_doc:
                         original_name = required_doc.template_file.name
                         base_name, ext = os.path.splitext(os.path.basename(original_name))
-                        new_filename = f"document_templates/moa_{user.username}_{slugify(base_name)}_edited_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}{ext}"
+                        new_filename = f"student_documents/moa_{user.username}_{slugify(base_name)}_edited_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}{ext}"
                         
                         s3.put_object(
                             Bucket=bucket,
-                            Key=f"media/{new_filename}",  # ✅ This goes to: bucket/media/document_templates/...
+                            Key=f"media/{new_filename}",  # ✅ media/student_documents/...
                             Body=response.content,
                             ContentType='application/vnd.openxmlformats-officedocument.wordprocessingml.document',
                             ACL='public-read'
