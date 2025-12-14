@@ -41,11 +41,6 @@ def get_absolute_file_url(file_field):
             # Remove any leading slashes
             file_path = file_path.lstrip('/')
             
-            # If file_path already starts with 'media/', keep it
-            # Otherwise prepend 'media/'
-            if not file_path.startswith('media/'):
-                file_path = f"media/{file_path}"
-            
             # Use custom domain if configured
             if hasattr(settings, 'AWS_S3_CUSTOM_DOMAIN') and settings.AWS_S3_CUSTOM_DOMAIN:
                 full_url = f"https://{settings.AWS_S3_CUSTOM_DOMAIN}/{file_path}"
@@ -72,7 +67,7 @@ def get_or_create_editable_document(required_doc, user):
     """Get or create an editable document copy for the user."""
     try:
         if user.is_student:
-            # FIXED: Use 'document_type' instead of 'required_document'
+            # Get or create student document
             student_doc, created = StudentDocument.objects.get_or_create(
                 student=user.student_profile,
                 document_type=required_doc,
@@ -84,14 +79,14 @@ def get_or_create_editable_document(required_doc, user):
                     original_name = required_doc.template_file.name
                     base_name, ext = os.path.splitext(os.path.basename(original_name))
                     
-                    # ✅ STUDENTS: Save to student_documents folder
-                    new_filename = f"student_documents/moa_{user.username}_{slugify(base_name)}_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}{ext}"
+                    # ✅ Follow the model's upload_to path: user_{id}/documents/
+                    new_filename = f"user_{user.id}/documents/moa_{slugify(base_name)}_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}{ext}"
                     
                     # Read the template file
                     with required_doc.template_file.open('rb') as source_file:
                         content = source_file.read()
                     
-                    # Upload to Spaces
+                    # Upload to Spaces directly
                     session = boto3.session.Session()
                     s3 = session.client(
                         's3',
@@ -102,19 +97,19 @@ def get_or_create_editable_document(required_doc, user):
                     )
                     bucket = getattr(settings, 'AWS_STORAGE_BUCKET_NAME', None)
                     
-                    # Upload to student_documents folder
+                    # Upload to the correct path (Django will prepend 'media/' via AWS_LOCATION)
                     s3.put_object(
                         Bucket=bucket,
-                        Key=f"media/{new_filename}",  # ✅ media/student_documents/...
+                        Key=new_filename,  # ✅ Just the path, no 'media/' prefix
                         Body=content,
                         ContentType='application/vnd.openxmlformats-officedocument.wordprocessingml.document',
                         ACL='public-read'
                     )
                     
-                    # Save the filename (without 'media/' prefix)
+                    # Save the filename (Django will prepend 'media/' automatically)
                     student_doc.file.name = new_filename
                     student_doc.save()
-                    logger.info(f"✅ Created editable copy for student: media/{new_filename}")
+                    logger.info(f"✅ Created editable copy for student: {new_filename}")
                     
             return student_doc.file
             
@@ -336,19 +331,19 @@ def onlyoffice_callback(request, doc_id):
                 
                 s3.put_object(
                     Bucket=bucket,
-                    Key=f"media/{new_filename}",  # ✅ media/document_templates/...
+                    Key=new_filename,  # ✅ Just the path: document_templates/...
                     Body=response.content,
                     ContentType='application/vnd.openxmlformats-officedocument.wordprocessingml.document',
                     ACL='public-read'
                 )
                 
-                # Save the filename (without 'media/' prefix)
+                # Save the filename (Django will prepend 'media/' automatically)
                 required_doc.template_file.name = new_filename
                 required_doc.save()
                 logger.info(f"✅ Updated template for doc {doc_id} by coordinator {user.username}")
 
             else:
-                # ✅ STUDENT: Update student document (save to student_documents/)
+                # ✅ STUDENT: Update student document (save to user_{id}/documents/)
                 try:
                     student_profile = user.student_profile
                     student_doc = StudentDocument.objects.filter(
@@ -359,17 +354,18 @@ def onlyoffice_callback(request, doc_id):
                     if student_doc:
                         original_name = required_doc.template_file.name
                         base_name, ext = os.path.splitext(os.path.basename(original_name))
-                        new_filename = f"student_documents/moa_{user.username}_{slugify(base_name)}_edited_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}{ext}"
+                        # ✅ Follow the model's upload_to path: user_{id}/documents/
+                        new_filename = f"user_{user.id}/documents/moa_{slugify(base_name)}_edited_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}{ext}"
                         
                         s3.put_object(
                             Bucket=bucket,
-                            Key=f"media/{new_filename}",  # ✅ media/student_documents/...
+                            Key=new_filename,  # ✅ Just the path: user_{id}/documents/...
                             Body=response.content,
                             ContentType='application/vnd.openxmlformats-officedocument.wordprocessingml.document',
                             ACL='public-read'
                         )
                         
-                        # Save the filename (without 'media/' prefix)
+                        # Save the filename (Django will prepend 'media/' automatically)
                         student_doc.file.name = new_filename
                         student_doc.status = 'submitted'
                         student_doc.save()
