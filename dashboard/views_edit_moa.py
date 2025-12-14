@@ -38,21 +38,13 @@ def get_absolute_file_url(file_field):
             region = settings.AWS_S3_REGION_NAME
             bucket = settings.AWS_STORAGE_BUCKET_NAME
 
-            # Handle file path (remove any extra prefixes)
-            file_path = file_field.name.strip().lstrip('/')
+            # Get the exact file path from the field name
+            file_path = file_field.name
             
-            # Handle the double bucket name issue
-            # Remove duplicate bucket prefixes
-            while file_path.startswith(f"{bucket}/"):
-                file_path = file_path[len(f"{bucket}/"):]
+            # Remove any leading slashes
+            file_path = file_path.lstrip('/')
             
-            # Remove old format prefix if present
-            if file_path.startswith('cvsu-internship-moa/'):
-                file_path = file_path[len('cvsu-internship-moa/'):]
-            if file_path.startswith('media/'):
-                file_path = file_path[len('media/'):]
-
-            # Construct the correct URL
+            # Construct the correct URL - file_path already includes the folder structure
             full_url = f"https://{bucket}.{region}.digitaloceanspaces.com/media/{file_path}"
             logger.info(f"✅ Constructed Spaces URL: {full_url}")
             return full_url
@@ -82,7 +74,7 @@ def get_or_create_editable_document(required_doc, user):
                 if required_doc.template_file:
                     original_name = required_doc.template_file.name
                     base_name, ext = os.path.splitext(os.path.basename(original_name))
-                    new_filename = f"student_profiles/moa_{user.username}_{slugify(base_name)}_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}{ext}"
+                    new_filename = f"media/student_profiles/moa_{user.username}_{slugify(base_name)}_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}{ext}"
                     
                     # Read the template file
                     with required_doc.template_file.open('rb') as source_file:
@@ -99,7 +91,7 @@ def get_or_create_editable_document(required_doc, user):
                     )
                     bucket = getattr(settings, 'AWS_STORAGE_BUCKET_NAME', None)
                     
-                    # Upload directly to the correct path (no extra prefix)
+                    # Upload directly to media/ (no bucket prefix)
                     s3.put_object(
                         Bucket=bucket,
                         Key=new_filename,
@@ -330,11 +322,11 @@ def onlyoffice_callback(request, doc_id):
                 # COORDINATOR: Update template file
                 original_name = required_doc.template_file.name
                 base_name, ext = os.path.splitext(os.path.basename(original_name))
-                new_filename = f"document_templates/template_{slugify(base_name)}_v{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}{ext}"
+                new_filename = f"media/document_templates/template_{slugify(base_name)}_v{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}{ext}"
                 
                 s3.put_object(
                     Bucket=bucket,
-                    Key=new_filename,
+                    Key=new_filename,  # No bucket prefix
                     Body=response.content,
                     ContentType='application/vnd.openxmlformats-officedocument.wordprocessingml.document',
                     ACL='public-read'
@@ -358,11 +350,11 @@ def onlyoffice_callback(request, doc_id):
                     if student_doc:
                         original_name = required_doc.template_file.name
                         base_name, ext = os.path.splitext(os.path.basename(original_name))
-                        new_filename = f"student_profiles/moa_{user.username}_{slugify(base_name)}_edited_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}{ext}"
+                        new_filename = f"media/student_profiles/moa_{user.username}_{slugify(base_name)}_edited_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}{ext}"
                         
                         s3.put_object(
                             Bucket=bucket,
-                            Key=new_filename,
+                            Key=new_filename,  # No bucket prefix
                             Body=response.content,
                             ContentType='application/vnd.openxmlformats-officedocument.wordprocessingml.document',
                             ACL='public-read'
