@@ -1,4 +1,3 @@
-
 import jwt
 import datetime
 import logging
@@ -41,8 +40,11 @@ def get_absolute_file_url(file_field):
             region = settings.AWS_S3_REGION_NAME
             bucket = settings.AWS_STORAGE_BUCKET_NAME
 
-            # Remove duplicate bucket prefix if present
+            # Remove duplicate bucket prefix if present and handle old format
             file_path = file_field.name.strip().lstrip('/')
+            if file_path.startswith('cvsu-internship-moa/'):
+                # Remove the extra prefix for old files
+                file_path = file_path[len('cvsu-internship-moa/'):]
             if file_path.startswith(f"{bucket}/"):
                 file_path = file_path[len(f"{bucket}/"):]
 
@@ -92,21 +94,19 @@ def get_or_create_editable_document(required_doc, user):
                     )
                     bucket = getattr(settings, 'AWS_STORAGE_BUCKET_NAME', None)
                     
-                    # Upload with full path including cvsu-internship-moa/media/
-                    full_key = f"cvsu-internship-moa/media/{new_filename}"
-                    
+                    # Upload directly to the correct path (no extra prefix)
                     s3.put_object(
                         Bucket=bucket,
-                        Key=full_key,
+                        Key=new_filename,
                         Body=content,
                         ContentType='application/vnd.openxmlformats-officedocument.wordprocessingml.document',
                         ACL='public-read'
                     )
                     
-                    # Save just the filename, not the full path
+                    # Save the filename as-is
                     student_doc.file.name = new_filename
                     student_doc.save()
-                    logger.info(f"✅ Created editable copy for student: {full_key}")
+                    logger.info(f"✅ Created editable copy for student: {new_filename}")
                     
             return student_doc.file
             
@@ -325,7 +325,7 @@ def onlyoffice_callback(request, doc_id):
                 # COORDINATOR: Update template file
                 original_name = required_doc.template_file.name
                 base_name, ext = os.path.splitext(os.path.basename(original_name))
-                new_filename = f"cvsu-internship-moa/media/document_templates/template_{slugify(base_name)}_v{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}{ext}"
+                new_filename = f"document_templates/template_{slugify(base_name)}_v{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}{ext}"
                 
                 s3.put_object(
                     Bucket=bucket,
@@ -335,8 +335,8 @@ def onlyoffice_callback(request, doc_id):
                     ACL='public-read'
                 )
                 
-                # Save without the cvsu-internship-moa/media/ prefix
-                required_doc.template_file.name = new_filename.replace('cvsu-internship-moa/media/', '')
+                # Save the filename as-is
+                required_doc.template_file.name = new_filename
                 required_doc.save()
                 logger.info(f"✅ Updated template for doc {doc_id} by coordinator {user.username}")
 
@@ -353,7 +353,7 @@ def onlyoffice_callback(request, doc_id):
                     if student_doc:
                         original_name = required_doc.template_file.name
                         base_name, ext = os.path.splitext(os.path.basename(original_name))
-                        new_filename = f"cvsu-internship-moa/media/student_profiles/moa_{user.username}_{slugify(base_name)}_edited_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}{ext}"
+                        new_filename = f"student_profiles/moa_{user.username}_{slugify(base_name)}_edited_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}{ext}"
                         
                         s3.put_object(
                             Bucket=bucket,
@@ -363,8 +363,8 @@ def onlyoffice_callback(request, doc_id):
                             ACL='public-read'
                         )
                         
-                        # Save without the cvsu-internship-moa/media/ prefix
-                        student_doc.file.name = new_filename.replace('cvsu-internship-moa/media/', '')
+                        # Save the filename as-is
+                        student_doc.file.name = new_filename
                         student_doc.status = 'submitted'
                         student_doc.save()
                         logger.info(f"✅ Saved edited document for student {user.username}")
