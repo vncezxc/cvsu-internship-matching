@@ -19,19 +19,32 @@ logger = logging.getLogger(__name__)
 
 def get_absolute_file_url(file_field):
     """
-    OnlyOffice-safe absolute URL.
-    Trust django-storages + CDN.
+    FORCE OnlyOffice to read from:
+    /cvsu-internship-moa/document_templates/
     """
     if not file_field:
         return ""
 
     try:
-        url = file_field.url
-        logger.info(f"🔗 Using storage URL: {url}")
-        return url
+        raw_url = file_field.url
+        logger.info(f"🔗 Raw storage URL: {raw_url}")
+
+        # CDN base
+        cdn = "https://cvsu-internship-moa.sgp1.cdn.digitaloceanspaces.com/"
+
+        # Ensure path starts with cvsu-internship-moa/
+        path = file_field.name.lstrip("/")
+
+        if not path.startswith("cvsu-internship-moa/"):
+            path = f"cvsu-internship-moa/{path}"
+
+        forced_url = f"{cdn}{path}"
+        logger.info(f"🧷 FORCED OnlyOffice URL: {forced_url}")
+
+        return forced_url
 
     except Exception as e:
-        logger.error(f"❌ Error getting file URL: {e}", exc_info=True)
+        logger.error(f"❌ Error forcing file URL: {e}", exc_info=True)
         return ""
 
 
