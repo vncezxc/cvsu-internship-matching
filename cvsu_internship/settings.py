@@ -357,7 +357,7 @@ AWS_DEFAULT_ACL = 'public-read'
 AWS_QUERYSTRING_AUTH = False
 AWS_S3_FILE_OVERWRITE = False
 AWS_S3_SIGNATURE_VERSION = 's3v4'
-
+AWS_S3_ADDRESSING_STYLE = 'virtual'
 # Cloudinary Configuration
 CLOUDINARY_STORAGE = {
     'CLOUD_NAME': get_config('CLOUDINARY_CLOUD_NAME', default=''),
