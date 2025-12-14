@@ -18,44 +18,17 @@ logger = logging.getLogger(__name__)
 
 
 def get_absolute_file_url(file_field):
-    """Get absolute URL for a file OnlyOffice can access."""
+    """
+    OnlyOffice-safe absolute URL.
+    Trust django-storages + CDN.
+    """
     if not file_field:
-        logger.error("❌ No file_field provided")
         return ""
-    
+
     try:
         url = file_field.url
-        logger.info(f"📄 File field name: {file_field.name}")
-        logger.info(f"🔗 File URL from field: {url}")
-
-        # If already a full URL from Spaces, use it directly
-        if url.startswith('http://') or url.startswith('https://'):
-            logger.info(f"✅ Using absolute URL: {url}")
-            return url
-
-        # For production, construct Spaces URL
-        if not settings.DEBUG:
-            # Get the file path from the field name
-            # It will be like: document_templates/file.docx OR user_5/documents/file.docx
-            file_path = file_field.name.lstrip('/')
-            
-            # Use CDN custom domain
-            if hasattr(settings, 'AWS_S3_CUSTOM_DOMAIN') and settings.AWS_S3_CUSTOM_DOMAIN:
-                # No need to add 'media/' - it's already in the URL from Django
-                full_url = f"https://{settings.AWS_S3_CUSTOM_DOMAIN}/{file_path}"
-            else:
-                # Use default Spaces endpoint
-                bucket = settings.AWS_STORAGE_BUCKET_NAME
-                region = settings.AWS_S3_REGION_NAME
-                full_url = f"https://{bucket}.{region}.digitaloceanspaces.com/{file_path}"
-            
-            logger.info(f"✅ Constructed Spaces URL: {full_url}")
-            return full_url
-
-        # Local development
-        local_url = f"http://localhost:8000{url if url.startswith('/') else '/' + url}"
-        logger.info(f"✅ Using local URL: {local_url}")
-        return local_url
+        logger.info(f"🔗 Using storage URL: {url}")
+        return url
 
     except Exception as e:
         logger.error(f"❌ Error getting file URL: {e}", exc_info=True)
