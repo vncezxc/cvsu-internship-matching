@@ -21,20 +21,42 @@ logger = logging.getLogger(__name__)
 def get_absolute_file_url(file_field):
     """Get absolute URL for a file OnlyOffice can access."""
     if not file_field:
+        logger.error("No file_field provided")
         return ""
+    
     try:
         url = file_field.url
-        if url.startswith('http'):
+        
+        # Log what we're working with
+        logger.info(f"File field name: {file_field.name}")
+        logger.info(f"File URL from field: {url}")
+        
+        # If already a full URL from Spaces, use it directly
+        if url.startswith('http://') or url.startswith('https://'):
+            logger.info(f"✅ Using absolute URL: {url}")
             return url
+        
+        # For production, construct Spaces URL
         if not settings.DEBUG:
-            base_url = getattr(settings, 'BASE_URL', 'https://cvsu-internship-matching.onrender.com')
-            if url.startswith('/'):
-                return f"{base_url}{url}"
-            else:
-                return f"{base_url}/{url}"
-        return f"http://localhost:8000{url}"
+            bucket = settings.AWS_STORAGE_BUCKET_NAME
+            region = settings.AWS_S3_REGION_NAME
+            
+            # Get the file path - it should already include cvsu-internship-moa/media/...
+            file_path = file_field.name.lstrip('/')
+            
+            # Construct URL: https://BUCKET.REGION.digitaloceanspaces.com/FILEPATH
+            full_url = f"https://{bucket}.{region}.digitaloceanspaces.com/{file_path}"
+            
+            logger.info(f"✅ Constructed Spaces URL: {full_url}")
+            return full_url
+        
+        # Local development
+        local_url = f"http://localhost:8000{url if url.startswith('/') else '/' + url}"
+        logger.info(f"✅ Using local URL: {local_url}")
+        return local_url
+        
     except Exception as e:
-        logger.error(f"Error getting file URL: {e}")
+        logger.error(f"❌ Error getting file URL: {e}", exc_info=True)
         return ""
 
 

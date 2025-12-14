@@ -343,8 +343,8 @@ CORS_ALLOW_HEADERS = [
 AWS_ACCESS_KEY_ID = get_config('AWS_ACCESS_KEY_ID', default='')
 AWS_SECRET_ACCESS_KEY = get_config('AWS_SECRET_ACCESS_KEY', default='')
 AWS_STORAGE_BUCKET_NAME = get_config('AWS_STORAGE_BUCKET_NAME', default='')
-AWS_S3_ENDPOINT_URL = get_config('AWS_S3_ENDPOINT_URL', default='https://nyc3.digitaloceanspaces.com')
-AWS_S3_REGION_NAME = get_config('AWS_S3_REGION_NAME', default='nyc3')
+AWS_S3_ENDPOINT_URL = get_config('AWS_S3_ENDPOINT_URL', default='https://sgp1.digitaloceanspaces.com')
+AWS_S3_REGION_NAME = get_config('AWS_S3_REGION_NAME', default='sgp1')
 AWS_S3_CUSTOM_DOMAIN = get_config('AWS_S3_CUSTOM_DOMAIN', default='')
 
 # S3/Spaces settings
@@ -352,7 +352,7 @@ AWS_S3_OBJECT_PARAMETERS = {
     'CacheControl': 'max-age=86400',
     'ACL': 'public-read',
 }
-AWS_LOCATION = 'media'
+AWS_LOCATION = 'csvu-internship-moa/media'
 AWS_DEFAULT_ACL = 'public-read'
 AWS_QUERYSTRING_AUTH = False
 AWS_S3_FILE_OVERWRITE = False
