@@ -102,7 +102,7 @@ BASE_URL = get_config('BASE_URL', default='https://cvsu-internship-matching.onre
 # OnlyOffice Configuration
 # ---------------------------------------
 # OnlyOffice DocumentServer URL (use HTTPS with trailing slash)
-ONLYOFFICE_URL = get_config('ONLYOFFICE_URL', default='')
+ONLYOFFICE_URL = get_config('ONLYOFFICE_URL', default='https://onlyoffice.cvsuinternshipmatching.me/')
 # Ensure URL has trailing slash
 if ONLYOFFICE_URL and not ONLYOFFICE_URL.endswith('/'):
     ONLYOFFICE_URL = ONLYOFFICE_URL + '/'

@@ -103,7 +103,7 @@
             editorConfig: {
               mode: "{{ editor_mode }}",
               lang: "en",
-              callbackUrl: "{{ BASE_URL }}/dashboard/required-documents/{{ required_doc.id }}/onlyoffice-callback/",
+              // callbackUrl is set by backend JWT payload; do not override here
               customization: {
                 autosave: true,
                 compactToolbar: false,
