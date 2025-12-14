@@ -42,7 +42,7 @@ def get_absolute_file_url(file_field):
             bucket = settings.AWS_STORAGE_BUCKET_NAME
 
             # Remove duplicate bucket prefix if present
-            file_path = file_field.name.lstrip('/')
+            file_path = file_field.name.strip().lstrip('/')
             if file_path.startswith(f"{bucket}/"):
                 file_path = file_path[len(f"{bucket}/"):]
 
