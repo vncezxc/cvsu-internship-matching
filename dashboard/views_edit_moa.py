@@ -20,13 +20,13 @@ logger = logging.getLogger(__name__)
 def get_absolute_file_url(file_field):
     """Get absolute URL for a file OnlyOffice can access."""
     if not file_field:
-        logger.error("No file_field provided")
+        logger.error("❌ No file_field provided")
         return ""
     
     try:
         url = file_field.url
-        logger.info(f"File field name: {file_field.name}")
-        logger.info(f"File URL from field: {url}")
+        logger.info(f"📄 File field name: {file_field.name}")
+        logger.info(f"🔗 File URL from field: {url}")
 
         # If already a full URL from Spaces, use it directly
         if url.startswith('http://') or url.startswith('https://'):
@@ -35,14 +35,13 @@ def get_absolute_file_url(file_field):
 
         # For production, construct Spaces URL
         if not settings.DEBUG:
-            # Get the exact file path from the field name
-            file_path = file_field.name
+            # Get the file path from the field name
+            # It will be like: document_templates/file.docx OR user_5/documents/file.docx
+            file_path = file_field.name.lstrip('/')
             
-            # Remove any leading slashes
-            file_path = file_path.lstrip('/')
-            
-            # Use custom domain if configured
+            # Use CDN custom domain
             if hasattr(settings, 'AWS_S3_CUSTOM_DOMAIN') and settings.AWS_S3_CUSTOM_DOMAIN:
+                # No need to add 'media/' - it's already in the URL from Django
                 full_url = f"https://{settings.AWS_S3_CUSTOM_DOMAIN}/{file_path}"
             else:
                 # Use default Spaces endpoint
@@ -79,14 +78,19 @@ def get_or_create_editable_document(required_doc, user):
                     original_name = required_doc.template_file.name
                     base_name, ext = os.path.splitext(os.path.basename(original_name))
                     
-                    # ✅ Follow the model's upload_to path: user_{id}/documents/
-                    new_filename = f"user_{user.id}/documents/moa_{slugify(base_name)}_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}{ext}"
+                    # ✅ Use the model's upload_to function format: user_{id}/documents/filename.docx
+                    # Django will handle adding this to the correct bucket location
+                    timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
+                    filename = f"moa_{slugify(base_name)}_{timestamp}{ext}"
+                    
+                    # The upload_to function will create: user_{id}/documents/filename.docx
+                    # This matches your model's student_document_path function
                     
                     # Read the template file
                     with required_doc.template_file.open('rb') as source_file:
                         content = source_file.read()
                     
-                    # Upload to Spaces directly
+                    # Upload to Spaces
                     session = boto3.session.Session()
                     s3 = session.client(
                         's3',
@@ -97,19 +101,22 @@ def get_or_create_editable_document(required_doc, user):
                     )
                     bucket = getattr(settings, 'AWS_STORAGE_BUCKET_NAME', None)
                     
-                    # Upload to the correct path (Django will prepend 'media/' via AWS_LOCATION)
+                    # ✅ Path matches model: user_{id}/documents/filename.docx (NO 'media/' prefix)
+                    s3_key = f"user_{user.id}/documents/{filename}"
+                    
+                    # Upload with the correct key
                     s3.put_object(
                         Bucket=bucket,
-                        Key=new_filename,  # ✅ Just the path, no 'media/' prefix
+                        Key=s3_key,
                         Body=content,
                         ContentType='application/vnd.openxmlformats-officedocument.wordprocessingml.document',
                         ACL='public-read'
                     )
                     
-                    # Save the filename (Django will prepend 'media/' automatically)
-                    student_doc.file.name = new_filename
+                    # ✅ Save just the path (Django will use this with MEDIA_ROOT/MEDIA_URL)
+                    student_doc.file.name = s3_key
                     student_doc.save()
-                    logger.info(f"✅ Created editable copy for student: {new_filename}")
+                    logger.info(f"✅ Created editable copy for student: {s3_key}")
                     
             return student_doc.file
             
@@ -206,9 +213,7 @@ def test_onlyoffice_connection():
 @login_required
 @csrf_exempt
 def edit_moa_view(request, doc_id):
-    """
-    View for students and coordinators to edit MOA.
-    """
+    """View for students and coordinators to edit MOA."""
     connected, message = test_onlyoffice_connection()
     if not connected:
         messages.error(request, f"OnlyOffice server not accessible: {message}")
@@ -230,7 +235,8 @@ def edit_moa_view(request, doc_id):
         return redirect('dashboard:student_documents')
 
     editor_mode = "edit"
-    document_key = f"{request.user.id}_{doc_id}"
+    # Include timestamp to make key unique for each editing session
+    document_key = f"{request.user.id}_{doc_id}_{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}"
 
     payload = generate_jwt_payload(
         document_key=document_key,
@@ -245,10 +251,6 @@ def edit_moa_view(request, doc_id):
         messages.error(request, "Failed to generate security token.")
         return redirect('dashboard:student_documents')
 
-    request.session['onlyoffice_document_key'] = document_key
-    request.session['onlyoffice_document_id'] = doc_id
-    request.session['onlyoffice_user_type'] = 'coordinator' if request.user.is_coordinator else 'student'
-
     context = {
         'required_doc': required_doc,
         'document_url': document_url,
@@ -260,7 +262,6 @@ def edit_moa_view(request, doc_id):
         'debug_mode': settings.DEBUG,
     }
     return render(request, 'dashboard/edit_moa.html', context)
-
 
 
 @csrf_exempt
@@ -275,32 +276,28 @@ def onlyoffice_callback(request, doc_id):
         status = data.get('status', 0)
         document_key = data.get('key', '')
         
-        logger.info(f"OnlyOffice callback: status={status}, key={document_key}, doc_id={doc_id}")
+        logger.info(f"📝 OnlyOffice callback: status={status}, key={document_key}, doc_id={doc_id}")
 
         # Status 2 = document ready to save
         if status == 2:
             url = data.get('url')
             if not url:
-                logger.error("No download URL in callback")
+                logger.error("❌ No download URL in callback")
                 return JsonResponse({'error': 1})
 
             # Download the edited document from OnlyOffice
             response = requests.get(url, verify=False, timeout=30)
             if response.status_code != 200:
-                logger.error(f"Failed to download from OnlyOffice: {response.status_code}")
+                logger.error(f"❌ Failed to download from OnlyOffice: {response.status_code}")
                 return JsonResponse({'error': 1})
 
-            # Parse document_key to find user type and user_id
+            # Parse document_key to find user_id
+            # Format: "userid_docid_timestamp"
             key_parts = document_key.split('_')
-            is_coordinator = key_parts[0] == 'coord'
-            
-            if is_coordinator:
-                user_id = int(key_parts[1]) if len(key_parts) > 1 else None
-            else:
-                user_id = int(key_parts[0]) if len(key_parts) > 0 else None
+            user_id = int(key_parts[0]) if len(key_parts) > 0 else None
 
             if not user_id:
-                logger.error(f"Could not parse user_id from key: {document_key}")
+                logger.error(f"❌ Could not parse user_id from key: {document_key}")
                 return JsonResponse({'error': 1})
 
             # Get the user and required document
@@ -309,7 +306,7 @@ def onlyoffice_callback(request, doc_id):
                 user = User.objects.get(id=user_id)
                 required_doc = RequiredDocument.objects.get(id=doc_id)
             except (User.DoesNotExist, RequiredDocument.DoesNotExist) as e:
-                logger.error(f"User or document not found: {e}")
+                logger.error(f"❌ User or document not found: {e}")
                 return JsonResponse({'error': 1})
 
             # Setup S3/Spaces connection
@@ -323,27 +320,28 @@ def onlyoffice_callback(request, doc_id):
             )
             bucket = getattr(settings, 'AWS_STORAGE_BUCKET_NAME', None)
 
-            if is_coordinator:
-                # ✅ COORDINATOR: Update template file (save to document_templates/)
+            if user.is_coordinator:
+                # ✅ COORDINATOR: Update template file (saved to document_templates/)
                 original_name = required_doc.template_file.name
                 base_name, ext = os.path.splitext(os.path.basename(original_name))
-                new_filename = f"document_templates/template_{slugify(base_name)}_v{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}{ext}"
+                timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
+                new_filename = f"document_templates/template_{slugify(base_name)}_v{timestamp}{ext}"
                 
                 s3.put_object(
                     Bucket=bucket,
-                    Key=new_filename,  # ✅ Just the path: document_templates/...
+                    Key=new_filename,
                     Body=response.content,
                     ContentType='application/vnd.openxmlformats-officedocument.wordprocessingml.document',
                     ACL='public-read'
                 )
                 
-                # Save the filename (Django will prepend 'media/' automatically)
+                # Save the filename
                 required_doc.template_file.name = new_filename
                 required_doc.save()
                 logger.info(f"✅ Updated template for doc {doc_id} by coordinator {user.username}")
 
             else:
-                # ✅ STUDENT: Update student document (save to user_{id}/documents/)
+                # ✅ STUDENT: Update student document (saved to user_{id}/documents/)
                 try:
                     student_profile = user.student_profile
                     student_doc = StudentDocument.objects.filter(
@@ -354,24 +352,27 @@ def onlyoffice_callback(request, doc_id):
                     if student_doc:
                         original_name = required_doc.template_file.name
                         base_name, ext = os.path.splitext(os.path.basename(original_name))
-                        # ✅ Follow the model's upload_to path: user_{id}/documents/
-                        new_filename = f"user_{user.id}/documents/moa_{slugify(base_name)}_edited_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}{ext}"
+                        timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
+                        filename = f"moa_{slugify(base_name)}_edited_{timestamp}{ext}"
+                        
+                        # ✅ Path matches model: user_{id}/documents/filename.docx
+                        new_filename = f"user_{user.id}/documents/{filename}"
                         
                         s3.put_object(
                             Bucket=bucket,
-                            Key=new_filename,  # ✅ Just the path: user_{id}/documents/...
+                            Key=new_filename,
                             Body=response.content,
                             ContentType='application/vnd.openxmlformats-officedocument.wordprocessingml.document',
                             ACL='public-read'
                         )
                         
-                        # Save the filename (Django will prepend 'media/' automatically)
+                        # Save the filename
                         student_doc.file.name = new_filename
                         student_doc.status = 'submitted'
                         student_doc.save()
                         logger.info(f"✅ Saved edited document for student {user.username}")
                     else:
-                        logger.error(f"StudentDocument not found for user {user.username}")
+                        logger.error(f"❌ StudentDocument not found for user {user.username}")
                         return JsonResponse({'error': 1})
                         
                 except Exception as e:
@@ -386,6 +387,7 @@ def onlyoffice_callback(request, doc_id):
     except Exception as e:
         logger.error(f"❌ OnlyOffice callback error: {e}", exc_info=True)
         return JsonResponse({'error': 1, 'message': str(e)})
+
 
 @login_required
 @csrf_exempt
@@ -424,10 +426,6 @@ def edit_required_document_full_view(request, doc_id):
     if not token:
         messages.error(request, "Failed to generate security token.")
         return redirect('dashboard:required_documents_list')
-
-    request.session['onlyoffice_document_key'] = document_key
-    request.session['onlyoffice_document_id'] = doc_id
-    request.session['onlyoffice_user_type'] = 'coordinator'
 
     context = {
         'required_doc': required_doc,

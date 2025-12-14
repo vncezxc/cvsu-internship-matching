@@ -352,7 +352,7 @@ AWS_S3_OBJECT_PARAMETERS = {
     'CacheControl': 'max-age=86400',
     'ACL': 'public-read',
 }
-AWS_LOCATION = 'media'
+AWS_LOCATION = ''
 AWS_DEFAULT_ACL = 'public-read'
 AWS_QUERYSTRING_AUTH = False
 AWS_S3_FILE_OVERWRITE = False
@@ -423,11 +423,10 @@ WHITENOISE_SKIP_COMPRESS_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.webp',
 # Media files configuration
 MEDIA_URL = '/media/'
 if USE_DIGITAL_OCEAN_SPACES and AWS_S3_CUSTOM_DOMAIN:
-    # Use custom domain for Digital Ocean Spaces
-    MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/media/'
+    # ✅ CHANGED: Simplified URL without /media/ prefix
+    MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/'
 elif USE_DIGITAL_OCEAN_SPACES:
-    # Use Spaces endpoint URL
-    MEDIA_URL = f'{AWS_S3_ENDPOINT_URL}/{AWS_STORAGE_BUCKET_NAME}/media/'
+    MEDIA_URL = f'{AWS_S3_ENDPOINT_URL}/{AWS_STORAGE_BUCKET_NAME}/'
 
 MEDIA_ROOT = BASE_DIR / 'media'
 
