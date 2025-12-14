@@ -64,25 +64,59 @@ def get_or_create_editable_document(required_doc, user):
     """Get or create an editable document copy for the user."""
     try:
         if user.is_student:
+            # FIXED: Use 'document_type' instead of 'required_document'
             student_doc, created = StudentDocument.objects.get_or_create(
                 student=user.student_profile,
-                required_document=required_doc,
-                defaults={'status': 'pending', 'document_type': 'moa'}
+                document_type=required_doc,  # ✅ Changed from required_document
+                defaults={'status': 'pending'}
             )
+            
             if created or not student_doc.file:
                 if required_doc.template_file:
                     original_name = required_doc.template_file.name
                     base_name, ext = os.path.splitext(os.path.basename(original_name))
-                    new_filename = f"moa_{user.username}_{slugify(base_name)}_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}{ext}"
+                    new_filename = f"student_profiles/moa_{user.username}_{slugify(base_name)}_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}{ext}"
+                    
+                    # Read the template file
                     with required_doc.template_file.open('rb') as source_file:
-                        student_doc.file.save(new_filename, source_file, save=True)
-                    logger.info(f"Created editable copy for student: {new_filename}")
+                        content = source_file.read()
+                    
+                    # Upload to Spaces with explicit public ACL
+                    session = boto3.session.Session()
+                    s3 = session.client(
+                        's3',
+                        region_name=getattr(settings, 'AWS_S3_REGION_NAME', 'sgp1'),
+                        endpoint_url=getattr(settings, 'AWS_S3_ENDPOINT_URL', None),
+                        aws_access_key_id=getattr(settings, 'AWS_ACCESS_KEY_ID', None),
+                        aws_secret_access_key=getattr(settings, 'AWS_SECRET_ACCESS_KEY', None),
+                    )
+                    bucket = getattr(settings, 'AWS_STORAGE_BUCKET_NAME', None)
+                    
+                    # Upload with full path including cvsu-internship-moa/media/
+                    full_key = f"cvsu-internship-moa/media/{new_filename}"
+                    
+                    s3.put_object(
+                        Bucket=bucket,
+                        Key=full_key,
+                        Body=content,
+                        ContentType='application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                        ACL='public-read'
+                    )
+                    
+                    # Save just the filename, not the full path
+                    student_doc.file.name = new_filename
+                    student_doc.save()
+                    logger.info(f"✅ Created editable copy for student: {full_key}")
+                    
             return student_doc.file
+            
         elif user.is_coordinator:
             return required_doc.template_file
+            
     except Exception as e:
-        logger.error(f"Error creating editable document: {e}")
+        logger.error(f"❌ Error creating editable document: {e}", exc_info=True)
         return required_doc.template_file
+    
     return required_doc.template_file
 
 
@@ -255,17 +289,12 @@ def onlyoffice_callback(request, doc_id):
                 return JsonResponse({'error': 1})
 
             # Parse document_key to find user type and user_id
-            # Format: "userid_docid" or "coord_userid_docid_uuid"
             key_parts = document_key.split('_')
-            
-            # Check if coordinator or student
             is_coordinator = key_parts[0] == 'coord'
             
             if is_coordinator:
-                # Coordinator editing template: "coord_123_456_abc123"
                 user_id = int(key_parts[1]) if len(key_parts) > 1 else None
             else:
-                # Student editing their copy: "123_456"
                 user_id = int(key_parts[0]) if len(key_parts) > 0 else None
 
             if not user_id:
@@ -285,7 +314,7 @@ def onlyoffice_callback(request, doc_id):
             session = boto3.session.Session()
             s3 = session.client(
                 's3',
-                region_name=getattr(settings, 'AWS_S3_REGION_NAME', 'nyc3'),
+                region_name=getattr(settings, 'AWS_S3_REGION_NAME', 'sgp1'),
                 endpoint_url=getattr(settings, 'AWS_S3_ENDPOINT_URL', None),
                 aws_access_key_id=getattr(settings, 'AWS_ACCESS_KEY_ID', None),
                 aws_secret_access_key=getattr(settings, 'AWS_SECRET_ACCESS_KEY', None),
@@ -296,7 +325,7 @@ def onlyoffice_callback(request, doc_id):
                 # COORDINATOR: Update template file
                 original_name = required_doc.template_file.name
                 base_name, ext = os.path.splitext(os.path.basename(original_name))
-                new_filename = f"document_templates/template_{slugify(base_name)}_v{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}{ext}"
+                new_filename = f"cvsu-internship-moa/media/document_templates/template_{slugify(base_name)}_v{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}{ext}"
                 
                 s3.put_object(
                     Bucket=bucket,
@@ -306,7 +335,8 @@ def onlyoffice_callback(request, doc_id):
                     ACL='public-read'
                 )
                 
-                required_doc.template_file.name = new_filename
+                # Save without the cvsu-internship-moa/media/ prefix
+                required_doc.template_file.name = new_filename.replace('cvsu-internship-moa/media/', '')
                 required_doc.save()
                 logger.info(f"✅ Updated template for doc {doc_id} by coordinator {user.username}")
 
@@ -314,15 +344,16 @@ def onlyoffice_callback(request, doc_id):
                 # STUDENT: Update student document
                 try:
                     student_profile = user.student_profile
+                    # ✅ FIXED: Use document_type instead of required_document
                     student_doc = StudentDocument.objects.filter(
                         student=student_profile,
-                        required_document=required_doc
+                        document_type=required_doc
                     ).first()
                     
                     if student_doc:
                         original_name = required_doc.template_file.name
                         base_name, ext = os.path.splitext(os.path.basename(original_name))
-                        new_filename = f"student_profiles/moa_{user.username}_{slugify(base_name)}_edited_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}{ext}"
+                        new_filename = f"cvsu-internship-moa/media/student_profiles/moa_{user.username}_{slugify(base_name)}_edited_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}{ext}"
                         
                         s3.put_object(
                             Bucket=bucket,
@@ -332,7 +363,8 @@ def onlyoffice_callback(request, doc_id):
                             ACL='public-read'
                         )
                         
-                        student_doc.file.name = new_filename
+                        # Save without the cvsu-internship-moa/media/ prefix
+                        student_doc.file.name = new_filename.replace('cvsu-internship-moa/media/', '')
                         student_doc.status = 'submitted'
                         student_doc.save()
                         logger.info(f"✅ Saved edited document for student {user.username}")
@@ -341,18 +373,17 @@ def onlyoffice_callback(request, doc_id):
                         return JsonResponse({'error': 1})
                         
                 except Exception as e:
-                    logger.error(f"Error updating student document: {e}")
+                    logger.error(f"❌ Error updating student document: {e}", exc_info=True)
                     return JsonResponse({'error': 1})
 
             return JsonResponse({'error': 0})
 
-        # For other statuses (1, 3, 4, 6, 7), just acknowledge
+        # For other statuses, just acknowledge
         return JsonResponse({'error': 0})
 
     except Exception as e:
         logger.error(f"❌ OnlyOffice callback error: {e}", exc_info=True)
         return JsonResponse({'error': 1, 'message': str(e)})
-
 
 @login_required
 @csrf_exempt
