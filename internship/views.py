@@ -230,10 +230,16 @@ Best regards,
 {student_profile.phone_number or ''}
 """
             recipient_list = [internship.company.hr_email or internship.company.company_email]
+            import logging
+            logger = logging.getLogger(__name__)
+            from django.conf import settings
+            logger.info(f"EMAIL_BACKEND in use: {getattr(settings, 'EMAIL_BACKEND', None)}")
+            # Force SendGrid: use DEFAULT_FROM_EMAIL as sender
+            from django.conf import settings
             email = EmailMessage(
                 subject=subject,
                 body=message,
-                from_email=student_user.email,  # Use student's updated email as sender
+                from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', 'internmatchingcvsu@gmail.com'),
                 to=recipient_list,
                 reply_to=[student_user.email],
             )
@@ -244,9 +250,15 @@ Best regards,
                     cv_name = student_profile.cv.name.split('/')[-1]
                     with open(cv_path, 'rb') as cv_file:
                         email.attach(cv_name, cv_file.read(), student_profile.cv.file.content_type or 'application/octet-stream')
-                except Exception:
-                    pass
-            email.send(fail_silently=True)
+                except Exception as e:
+                    logger.error(f"Error attaching CV: {e}")
+            try:
+                email.send(fail_silently=False)
+                logger.info(f"Internship application email sent to: {recipient_list}")
+            except Exception as e:
+                logger.error(f"Error sending internship application email: {e}")
+                messages.error(request, f"Failed to send application email: {e}")
+                return redirect('internship:applications')
             messages.success(request, f'Successfully applied to {internship.title} at {internship.company.name}.')
             return redirect('internship:applications')
         
