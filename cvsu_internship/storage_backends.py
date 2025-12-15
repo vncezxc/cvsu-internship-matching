@@ -50,6 +50,10 @@ class MediaStorage(S3Boto3Storage):
         """Override save to ensure proper path handling."""
         # Normalize the name before saving
         name = self._normalize_name(name)
+        # Debug log: print the final path being saved
+        import logging
+        logger = logging.getLogger("django.storage")
+        logger.warning(f"[MediaStorage] Saving file to: {name}")
         return super()._save(name, content)
     
     def url(self, name, parameters=None, expire=None, http_method=None):
