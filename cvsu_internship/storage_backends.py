@@ -9,7 +9,7 @@ class MediaStorage(S3Boto3Storage):
     Custom storage backend for DigitalOcean Spaces.
     Ensures files are stored directly in the bucket without extra folders.
     """
-    location = ''  # CRITICAL: Must be empty
+    location = 'cvsu-internship-moa'  # Always use this folder as root
     default_acl = 'public-read'
     file_overwrite = False
     custom_domain = settings.AWS_S3_CUSTOM_DOMAIN
@@ -22,28 +22,13 @@ class MediaStorage(S3Boto3Storage):
     
     def _normalize_name(self, name):
         """
-        Override to prevent bucket name from being added to path.
-        This is the KEY fix to prevent cvsu-internship-moa/cvsu-internship-moa/
+        Always ensure files are saved under 'cvsu-internship-moa/' prefix for OnlyOffice compatibility.
         """
-        # Remove any leading slashes
         name = name.lstrip('/')
-        
-        # Remove bucket name if it's at the start of the path
-        bucket_prefix = f"{settings.AWS_STORAGE_BUCKET_NAME}/"
-        if name.startswith(bucket_prefix):
-            name = name[len(bucket_prefix):]
-        
-        # Remove media/ prefix if it exists (we want files directly in bucket root)
-        if name.startswith('media/'):
-            name = name[5:]  # Remove 'media/' prefix
-            
-        # Remove any duplicate bucket names
-        bucket_name = settings.AWS_STORAGE_BUCKET_NAME
-        # Handle cases like bucket-name/bucket-name/path
-        double_prefix = f"{bucket_name}/{bucket_name}/"
-        if name.startswith(double_prefix):
-            name = name[len(bucket_name) + 1:]  # Remove first bucket name
-        
+        # Always prefix with 'cvsu-internship-moa/' if not already present
+        prefix = 'cvsu-internship-moa/'
+        if not name.startswith(prefix):
+            name = prefix + name
         return name
     
     def _save(self, name, content):
