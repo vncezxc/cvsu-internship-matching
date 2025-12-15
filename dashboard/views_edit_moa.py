@@ -92,21 +92,23 @@ def get_or_create_editable_document(required_doc, user):
                     )
                     bucket = getattr(settings, 'AWS_STORAGE_BUCKET_NAME', None)
                     
-                    # Upload with full path including cvsu-internship-moa/media/
-                    full_key = f"{new_filename}"
-                    
+                    # Ensure the key never includes the bucket name as a prefix
+                    key = new_filename.lstrip('/')
+                    if key.startswith(f"{bucket}/"):
+                        key = key[len(f"{bucket}/"):]
+
                     s3.put_object(
                         Bucket=bucket,
-                        Key=full_key,
+                        Key=key,
                         Body=content,
                         ContentType='application/vnd.openxmlformats-officedocument.wordprocessingml.document',
                         ACL='public-read'
                     )
-                    
+
                     # Save just the filename, not the full path
-                    student_doc.file.name = new_filename
+                    student_doc.file.name = key
                     student_doc.save()
-                    logger.info(f"✅ Created editable copy for student: {full_key}")
+                    logger.info(f"✅ Created editable copy for student: {key}")
                     
             return student_doc.file
             
@@ -325,18 +327,22 @@ def onlyoffice_callback(request, doc_id):
                 # COORDINATOR: Update template file
                 original_name = required_doc.template_file.name
                 base_name, ext = os.path.splitext(os.path.basename(original_name))
-                new_filename = f"cvsu-internship-moa/media/document_templates/template_{slugify(base_name)}_v{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}{ext}"
-                
+                new_filename = f"document_templates/template_{slugify(base_name)}_v{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}{ext}"
+
+                # Ensure the key never includes the bucket name as a prefix
+                key = new_filename.lstrip('/')
+                if key.startswith(f"{bucket}/"):
+                    key = key[len(f"{bucket}/"):]
+
                 s3.put_object(
                     Bucket=bucket,
-                    Key=new_filename,
+                    Key=key,
                     Body=response.content,
                     ContentType='application/vnd.openxmlformats-officedocument.wordprocessingml.document',
                     ACL='public-read'
                 )
-                
-                # Save without the cvsu-internship-moa/media/ prefix
-                required_doc.template_file.name = new_filename.replace('cvsu-internship-moa/media/', '')
+
+                required_doc.template_file.name = key
                 required_doc.save()
                 logger.info(f"✅ Updated template for doc {doc_id} by coordinator {user.username}")
 
@@ -344,34 +350,37 @@ def onlyoffice_callback(request, doc_id):
                 # STUDENT: Update student document
                 try:
                     student_profile = user.student_profile
-                    # ✅ FIXED: Use document_type instead of required_document
                     student_doc = StudentDocument.objects.filter(
                         student=student_profile,
                         document_type=required_doc
                     ).first()
-                    
+
                     if student_doc:
                         original_name = required_doc.template_file.name
                         base_name, ext = os.path.splitext(os.path.basename(original_name))
-                        new_filename = f"cvsu-internship-moa/media/student_profiles/moa_{user.username}_{slugify(base_name)}_edited_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}{ext}"
-                        
+                        new_filename = f"student_profiles/moa_{user.username}_{slugify(base_name)}_edited_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}{ext}"
+
+                        # Ensure the key never includes the bucket name as a prefix
+                        key = new_filename.lstrip('/')
+                        if key.startswith(f"{bucket}/"):
+                            key = key[len(f"{bucket}/"):]
+
                         s3.put_object(
                             Bucket=bucket,
-                            Key=new_filename,
+                            Key=key,
                             Body=response.content,
                             ContentType='application/vnd.openxmlformats-officedocument.wordprocessingml.document',
                             ACL='public-read'
                         )
-                        
-                        # Save without the cvsu-internship-moa/media/ prefix
-                        student_doc.file.name = new_filename.replace('cvsu-internship-moa/media/', '')
+
+                        student_doc.file.name = key
                         student_doc.status = 'submitted'
                         student_doc.save()
                         logger.info(f"✅ Saved edited document for student {user.username}")
                     else:
                         logger.error(f"StudentDocument not found for user {user.username}")
                         return JsonResponse({'error': 1})
-                        
+
                 except Exception as e:
                     logger.error(f"❌ Error updating student document: {e}", exc_info=True)
                     return JsonResponse({'error': 1})
