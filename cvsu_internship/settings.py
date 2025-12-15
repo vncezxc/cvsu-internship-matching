@@ -420,10 +420,7 @@ STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 WHITENOISE_MAX_AGE = 31536000  # 1 year cache for static files
 WHITENOISE_SKIP_COMPRESS_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.ico', '.mp4', '.webm']
 
-MEDIA_URL = (
-    'https://cvsu-internship-moa.sgp1.cdn.digitaloceanspaces.com/'
-    'cvsu-internship-moa/'
-)
+MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/{AWS_LOCATION}/'
 
 MEDIA_ROOT = BASE_DIR / 'media'
 

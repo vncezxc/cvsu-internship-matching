@@ -93,7 +93,7 @@ def get_or_create_editable_document(required_doc, user):
                     bucket = getattr(settings, 'AWS_STORAGE_BUCKET_NAME', None)
                     
                     # Upload with full path including cvsu-internship-moa/media/
-                    full_key = f"cvsu-internship-moa/media/{new_filename}"
+                    full_key = f"{new_filename}"
                     
                     s3.put_object(
                         Bucket=bucket,
