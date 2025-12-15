@@ -420,14 +420,7 @@ STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 WHITENOISE_MAX_AGE = 31536000  # 1 year cache for static files
 WHITENOISE_SKIP_COMPRESS_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.ico', '.mp4', '.webm']
 
-# Media files configuration
-MEDIA_URL = '/media/'
-if USE_DIGITAL_OCEAN_SPACES and AWS_S3_CUSTOM_DOMAIN:
-    # Use custom domain for Digital Ocean Spaces
-    MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/media/'
-elif USE_DIGITAL_OCEAN_SPACES:
-    # Use Spaces endpoint URL
-    MEDIA_URL = f'{AWS_S3_ENDPOINT_URL}/{AWS_STORAGE_BUCKET_NAME}/media/'
+MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/'
 
 MEDIA_ROOT = BASE_DIR / 'media'
 
