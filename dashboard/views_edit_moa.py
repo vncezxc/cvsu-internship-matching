@@ -1,3 +1,4 @@
+# views_edit_moa.py
 import jwt
 import datetime
 import logging
@@ -5,6 +6,8 @@ import os
 import uuid
 import boto3
 import requests
+from django.core.files.storage import default_storage
+from django.core.files.base import ContentFile
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -46,33 +49,21 @@ def get_or_create_editable_document(required_doc, user):
                     timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
                     filename = f"moa_{slugify(base_name)}_{timestamp}{ext}"
 
+                    # Read template content
                     with required_doc.template_file.open('rb') as source_file:
                         content = source_file.read()
 
-                    session = boto3.session.Session()
-                    s3 = session.client(
-                        's3',
-                        region_name=getattr(settings, 'AWS_S3_REGION_NAME', 'sgp1'),
-                        endpoint_url=getattr(settings, 'AWS_S3_ENDPOINT_URL', None),
-                        aws_access_key_id=getattr(settings, 'AWS_ACCESS_KEY_ID', None),
-                        aws_secret_access_key=getattr(settings, 'AWS_SECRET_ACCESS_KEY', None),
-                    )
-                    bucket = getattr(settings, 'AWS_STORAGE_BUCKET_NAME', None)
+                    # ✅ Use Django's storage system instead of direct S3
+                    # Store in user-specific folder directly in bucket
+                    storage_path = f"user_{user.id}/documents/{filename}"
                     
-                    # ✅ Path WITHOUT bucket name prefix
-                    s3_key = f"user_{user.id}/documents/{filename}"
-
-                    s3.put_object(
-                        Bucket=bucket,
-                        Key=s3_key,
-                        Body=content,
-                        ContentType='application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-                        ACL='public-read'
-                    )
+                    # Save using Django's storage
+                    content_file = ContentFile(content)
+                    saved_path = default_storage.save(storage_path, content_file)
                     
-                    student_doc.file.name = s3_key
+                    student_doc.file.name = saved_path
                     student_doc.save()
-                    logger.info(f"✅ Created student doc: {s3_key}")
+                    logger.info(f"✅ Created student doc: {saved_path}")
                     
             return student_doc.file
         elif user.is_coordinator:
@@ -251,37 +242,23 @@ def onlyoffice_callback(request, doc_id):
                 logger.error(f"❌ User or document not found: {e}")
                 return JsonResponse({'error': 1})
 
-            session = boto3.session.Session()
-            s3 = session.client(
-                's3',
-                region_name=getattr(settings, 'AWS_S3_REGION_NAME', 'sgp1'),
-                endpoint_url=getattr(settings, 'AWS_S3_ENDPOINT_URL', None),
-                aws_access_key_id=getattr(settings, 'AWS_ACCESS_KEY_ID', None),
-                aws_secret_access_key=getattr(settings, 'AWS_SECRET_ACCESS_KEY', None),
-            )
-            bucket = getattr(settings, 'AWS_STORAGE_BUCKET_NAME', None)
-
             if user.is_coordinator:
-                # ✅ COORDINATOR: Save to document_templates/ (NO bucket prefix)
+                # ✅ COORDINATOR: Save to document_templates/ using Django storage
                 original_name = required_doc.template_file.name
                 base_name, ext = os.path.splitext(os.path.basename(original_name))
                 timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
                 new_filename = f"document_templates/template_{slugify(base_name)}_v{timestamp}{ext}"
                 
-                s3.put_object(
-                    Bucket=bucket,
-                    Key=new_filename,
-                    Body=response.content,
-                    ContentType='application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-                    ACL='public-read'
-                )
+                # Use Django's storage system
+                content_file = ContentFile(response.content)
+                saved_path = default_storage.save(new_filename, content_file)
                 
-                required_doc.template_file.name = new_filename
+                required_doc.template_file.name = saved_path
                 required_doc.save()
-                logger.info(f"✅ Updated template: {new_filename}")
+                logger.info(f"✅ Updated template: {saved_path}")
                 
             else:
-                # ✅ STUDENT: Save to user_{id}/documents/ (NO bucket prefix)
+                # ✅ STUDENT: Save to user_{id}/documents/ using Django storage
                 try:
                     student_profile = user.student_profile
                     student_doc = StudentDocument.objects.filter(
@@ -296,18 +273,14 @@ def onlyoffice_callback(request, doc_id):
                         filename = f"moa_{slugify(base_name)}_edited_{timestamp}{ext}"
                         new_filename = f"user_{user.id}/documents/{filename}"
                         
-                        s3.put_object(
-                            Bucket=bucket,
-                            Key=new_filename,
-                            Body=response.content,
-                            ContentType='application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-                            ACL='public-read'
-                        )
+                        # Use Django's storage system
+                        content_file = ContentFile(response.content)
+                        saved_path = default_storage.save(new_filename, content_file)
                         
-                        student_doc.file.name = new_filename
+                        student_doc.file.name = saved_path
                         student_doc.status = 'submitted'
                         student_doc.save()
-                        logger.info(f"✅ Saved student doc: {new_filename}")
+                        logger.info(f"✅ Saved student doc: {saved_path}")
                     else:
                         logger.error(f"❌ StudentDocument not found for user {user.username}")
                         return JsonResponse({'error': 1})
