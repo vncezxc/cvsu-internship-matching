@@ -342,7 +342,7 @@ CORS_ALLOW_HEADERS = [
 # Digital Ocean Spaces Configuration
 AWS_ACCESS_KEY_ID = get_config('AWS_ACCESS_KEY_ID', default='')
 AWS_SECRET_ACCESS_KEY = get_config('AWS_SECRET_ACCESS_KEY', default='')
-AWS_STORAGE_BUCKET_NAME = get_config('AWS_STORAGE_BUCKET_NAME', default='')
+AWS_STORAGE_BUCKET_NAME = get_config('AWS_STORAGE_BUCKET_NAME', default='cvsu-internship-moa')
 AWS_S3_ENDPOINT_URL = get_config('AWS_S3_ENDPOINT_URL', default='https://sgp1.digitaloceanspaces.com')
 AWS_S3_REGION_NAME = get_config('AWS_S3_REGION_NAME', default='sgp1')
 AWS_S3_CUSTOM_DOMAIN = get_config('AWS_S3_CUSTOM_DOMAIN', default='cvsu-internship-moa.sgp1.cdn.digitaloceanspaces.com')
@@ -352,7 +352,8 @@ AWS_S3_OBJECT_PARAMETERS = {
     'CacheControl': 'max-age=86400',
     'ACL': 'public-read',
 }
-AWS_LOCATION = 'cvsu-internship-moa'
+
+AWS_LOCATION = ''
 AWS_DEFAULT_ACL = 'public-read'
 AWS_QUERYSTRING_AUTH = False
 AWS_S3_FILE_OVERWRITE = False
@@ -420,7 +421,7 @@ STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 WHITENOISE_MAX_AGE = 31536000  # 1 year cache for static files
 WHITENOISE_SKIP_COMPRESS_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.ico', '.mp4', '.webm']
 
-MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/{AWS_LOCATION}/'
+MEDIA_URL = ''
 
 MEDIA_ROOT = BASE_DIR / 'media'
 
