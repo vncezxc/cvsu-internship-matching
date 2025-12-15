@@ -74,8 +74,9 @@ def get_or_create_editable_document(required_doc, user):
             if created or not student_doc.file:
                 if required_doc.template_file:
                     original_name = required_doc.template_file.name
+                    # Use the same filename as the template, but in the student_profiles folder
                     base_name, ext = os.path.splitext(os.path.basename(original_name))
-                    new_filename = f"student_profiles/moa_{user.username}_{slugify(base_name)}_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}{ext}"
+                    new_filename = f"student_profiles/moa_{user.username}_{slugify(base_name)}{ext}"
                     
                     # Read the template file
                     with required_doc.template_file.open('rb') as source_file:
@@ -328,8 +329,9 @@ def onlyoffice_callback(request, doc_id):
             if is_coordinator:
                 # COORDINATOR: Update template file
                 original_name = required_doc.template_file.name
+                # Use the same filename as the template, in the document_templates folder
                 base_name, ext = os.path.splitext(os.path.basename(original_name))
-                new_filename = f"document_templates/template_{slugify(base_name)}_v{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}{ext}"
+                new_filename = f"document_templates/template_{slugify(base_name)}{ext}"
 
 
                 # Ensure key does not start with the bucket name
@@ -361,8 +363,9 @@ def onlyoffice_callback(request, doc_id):
 
                     if student_doc:
                         original_name = required_doc.template_file.name
+                        # Use the same filename as the template, but in the student_profiles folder
                         base_name, ext = os.path.splitext(os.path.basename(original_name))
-                        new_filename = f"student_profiles/moa_{user.username}_{slugify(base_name)}_edited_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}{ext}"
+                        new_filename = f"student_profiles/moa_{user.username}_{slugify(base_name)}{ext}"
 
 
                         # Ensure key does not start with the bucket name
