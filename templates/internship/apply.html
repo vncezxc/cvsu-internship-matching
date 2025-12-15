@@ -58,7 +58,7 @@
                                             <i class="fas fa-graduation-cap me-1"></i>
                                             {{ course.name }}
                                             {% if course == profile.course %}
-                                                <span class="badge bg-success text-dark ms-1">Your Course</span>
+                                                <span class="badge bg-success text-white ms-1">Your Course</span>
                                             {% endif %}
                                         </li>
                                     {% endfor %}
@@ -74,6 +74,7 @@
                                     <div class="progress-bar bg-primary" role="progressbar" style="width: {{ match_score }}%;" aria-valuenow="{{ match_score }}" aria-valuemin="0" aria-valuemax="100"></div>
                                 </div>
                                 <p class="mb-0"><span class="badge bg-primary text-dark">{{ match_score }}%</span> match with your profile</p>
+                                                            <p class="mb-0"><span class="badge bg-primary text-white">{{ match_score }}%</span> match with your profile</p>
                             </div>
                         </div>
                         
@@ -188,7 +189,7 @@
                         <h6>Your Skills</h6>
                         <div>
                             {% for skill in profile.skills.all %}
-                                <span class="badge {% if skill in internship.required_skills.all %}bg-success text-dark{% else %}bg-primary text-dark{% endif %} me-1 mb-1">{{ skill.name }}</span>
+                                <span class="badge {% if skill in internship.required_skills.all %}bg-success text-white{% else %}bg-primary text-white{% endif %} me-1 mb-1">{{ skill.name }}</span>
                             {% empty %}
                                 <span class="text-muted">No skills added yet</span>
                             {% endfor %}
