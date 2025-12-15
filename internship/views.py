@@ -246,10 +246,10 @@ Best regards,
             # Attach CV if available
             if student_profile.cv:
                 try:
-                    cv_path = student_profile.cv.path
                     cv_name = student_profile.cv.name.split('/')[-1]
-                    with open(cv_path, 'rb') as cv_file:
-                        email.attach(cv_name, cv_file.read(), student_profile.cv.file.content_type or 'application/octet-stream')
+                    student_profile.cv.open('rb')
+                    email.attach(cv_name, student_profile.cv.read(), student_profile.cv.file.content_type or 'application/octet-stream')
+                    student_profile.cv.close()
                 except Exception as e:
                     logger.error(f"Error attaching CV: {e}")
             try:
