@@ -612,22 +612,28 @@ def get_absolute_media_url(relative_url):
     """Convert relative media URL to absolute URL for OnlyOffice"""
     if not relative_url:
         return ""
-    
+
     # If already absolute (Cloudinary or Spaces)
     if relative_url.startswith(('http://', 'https://')):
         return relative_url
-    
+
+
+    # Always ensure the path starts with 'cvsu-internship-moa/' for DigitalOcean Spaces
+    NESTED_PREFIX = 'cvsu-internship-moa/'
+    if not relative_url.startswith(NESTED_PREFIX):
+        relative_url = NESTED_PREFIX + relative_url.lstrip('/')
+
     # For production with Digital Ocean Spaces
     if USE_DIGITAL_OCEAN_SPACES:
         if AWS_S3_CUSTOM_DOMAIN:
-            return f'https://{AWS_S3_CUSTOM_DOMAIN}/media/{relative_url}'
+            return f'https://{AWS_S3_CUSTOM_DOMAIN}/{relative_url}'
         else:
-            return f'{AWS_S3_ENDPOINT_URL}/{AWS_STORAGE_BUCKET_NAME}/media/{relative_url}'
-    
+            return f'{AWS_S3_ENDPOINT_URL}/{AWS_STORAGE_BUCKET_NAME}/{relative_url}'
+
     # For production without Spaces
     if not DEBUG:
         return f"{BASE_URL}/media/{relative_url}"
-    
+
     # For local development
     return f"http://localhost:8000/media/{relative_url}"
 
