@@ -25,15 +25,36 @@ def get_absolute_file_url(file_field):
         return ""
     
     try:
-        from cvsu_internship.settings import get_absolute_media_url
         url = file_field.url
+
+        # Log what we're working with
         logger.info(f"File field name: {file_field.name}")
         logger.info(f"File URL from field: {url}")
 
-        # Always use the helper to generate the correct public URL
-        abs_url = get_absolute_media_url(file_field.name)
-        logger.info(f"✅ Using absolute URL: {abs_url}")
-        return abs_url
+        # If already a full URL from Spaces, use it directly
+        if url.startswith('http://') or url.startswith('https://'):
+            logger.info(f"✅ Using absolute URL: {url}")
+            return url
+
+        # For production, use the full path as-is
+        if not settings.DEBUG:
+            region = settings.AWS_S3_REGION_NAME
+            bucket = settings.AWS_STORAGE_BUCKET_NAME
+
+            # Remove duplicate bucket prefix if present
+            file_path = file_field.name.strip().lstrip('/')
+            if file_path.startswith(f"{bucket}/"):
+                file_path = file_path[len(f"{bucket}/"):]
+
+            full_url = f"https://{bucket}.{region}.digitaloceanspaces.com/{file_path}"
+            logger.info(f"✅ Constructed Spaces URL: {full_url}")
+            return full_url
+
+        # Local development
+        local_url = f"http://localhost:8000{url if url.startswith('/') else '/' + url}"
+        logger.info(f"✅ Using local URL: {local_url}")
+        return local_url
+
     except Exception as e:
         logger.error(f"❌ Error getting file URL: {e}", exc_info=True)
         return ""
@@ -71,12 +92,11 @@ def get_or_create_editable_document(required_doc, user):
                     )
                     bucket = getattr(settings, 'AWS_STORAGE_BUCKET_NAME', None)
                     
-                    # Guarantee the key never includes the bucket name as a prefix
+
+                    # Ensure key does not start with the bucket name
                     key = new_filename.lstrip('/')
-                    bucket_prefixes = [f"{bucket}/", f"/{bucket}/"]
-                    for prefix in bucket_prefixes:
-                        if key.startswith(prefix):
-                            key = key[len(prefix):]
+                    if key.startswith(f"{bucket}/"):
+                        key = key[len(f"{bucket}/"):]
 
                     logger.info(f"Uploading to S3 Key: {key}")
                     s3.put_object(
@@ -311,12 +331,11 @@ def onlyoffice_callback(request, doc_id):
                 base_name, ext = os.path.splitext(os.path.basename(original_name))
                 new_filename = f"document_templates/template_{slugify(base_name)}_v{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}{ext}"
 
-                # Guarantee the key never includes the bucket name as a prefix
+
+                # Ensure key does not start with the bucket name
                 key = new_filename.lstrip('/')
-                bucket_prefixes = [f"{bucket}/", f"/{bucket}/"]
-                for prefix in bucket_prefixes:
-                    if key.startswith(prefix):
-                        key = key[len(prefix):]
+                if key.startswith(f"{bucket}/"):
+                    key = key[len(f"{bucket}/"):]
 
                 logger.info(f"Uploading to S3 Key: {key}")
                 s3.put_object(
@@ -345,12 +364,11 @@ def onlyoffice_callback(request, doc_id):
                         base_name, ext = os.path.splitext(os.path.basename(original_name))
                         new_filename = f"student_profiles/moa_{user.username}_{slugify(base_name)}_edited_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}{ext}"
 
-                        # Guarantee the key never includes the bucket name as a prefix
+
+                        # Ensure key does not start with the bucket name
                         key = new_filename.lstrip('/')
-                        bucket_prefixes = [f"{bucket}/", f"/{bucket}/"]
-                        for prefix in bucket_prefixes:
-                            if key.startswith(prefix):
-                                key = key[len(prefix):]
+                        if key.startswith(f"{bucket}/"):
+                            key = key[len(f"{bucket}/"):]
 
                         logger.info(f"Uploading to S3 Key: {key}")
                         s3.put_object(
