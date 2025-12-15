@@ -288,7 +288,7 @@ class RequiredDocument(models.Model):
     description = models.TextField(blank=True)
     is_required = models.BooleanField(default=True)
     template_file = models.FileField(
-        upload_to='document_templates/',
+        upload_to='cvsu-internship-moa/document_templates/',
         validators=[FileExtensionValidator(allowed_extensions=['pdf', 'docx'])],
         blank=True, null=True,
         help_text='PDF template for this document (uploaded by coordinator)'
