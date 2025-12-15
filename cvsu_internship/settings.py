@@ -334,34 +334,29 @@ CORS_ALLOW_HEADERS = [
 # ---------------------------------------
 # Storage Configuration (Digital Ocean Spaces/S3)
 # ---------------------------------------
+# Storage configuration priority:
+# 1. Digital Ocean Spaces (if credentials provided)
+# 2. Cloudinary (if credentials provided)
+# 3. Local storage (fallback)
 
 # Digital Ocean Spaces Configuration
 AWS_ACCESS_KEY_ID = get_config('AWS_ACCESS_KEY_ID', default='')
 AWS_SECRET_ACCESS_KEY = get_config('AWS_SECRET_ACCESS_KEY', default='')
-AWS_STORAGE_BUCKET_NAME = get_config('AWS_STORAGE_BUCKET_NAME', default='cvsu-internship-moa')
-AWS_S3_REGION_NAME = get_config('AWS_S3_REGION_NAME', default='sgp1')
+AWS_STORAGE_BUCKET_NAME = get_config('AWS_STORAGE_BUCKET_NAME', default='')
 AWS_S3_ENDPOINT_URL = get_config('AWS_S3_ENDPOINT_URL', default='https://sgp1.digitaloceanspaces.com')
+AWS_S3_REGION_NAME = get_config('AWS_S3_REGION_NAME', default='sgp1')
 AWS_S3_CUSTOM_DOMAIN = get_config('AWS_S3_CUSTOM_DOMAIN', default='cvsu-internship-moa.sgp1.cdn.digitaloceanspaces.com')
 
-# ✅ CRITICAL SETTINGS to prevent bucket name duplication
+# S3/Spaces settings
 AWS_S3_OBJECT_PARAMETERS = {
     'CacheControl': 'max-age=86400',
     'ACL': 'public-read',
 }
-AWS_LOCATION = ''  # ✅ Empty - no prefix
+AWS_LOCATION = 'cvsu-internship-moa/media'
 AWS_DEFAULT_ACL = 'public-read'
 AWS_QUERYSTRING_AUTH = False
 AWS_S3_FILE_OVERWRITE = False
-
-# ✅ Use path-style addressing (not virtual-hosted)
-AWS_S3_ADDRESSING_STYLE = 'path'
-
-# ✅ IMPORTANT: Tell django-storages to use custom domain for URLs
-# This prevents boto3 from constructing URLs - we use CDN instead
-AWS_S3_URL_PROTOCOL = 'https:'
-
-# ✅ Don't verify SSL for upload (since we're using CDN for access)
-AWS_S3_VERIFY = True
+AWS_S3_SIGNATURE_VERSION = 's3v4'
 
 # Cloudinary Configuration
 CLOUDINARY_STORAGE = {
@@ -386,9 +381,11 @@ USE_CLOUDINARY = all([
 ])
 
 if USE_DIGITAL_OCEAN_SPACES:
-    # Use Digital Ocean Spaces with custom storage class
-    DEFAULT_FILE_STORAGE = 'cvsu_internship.storage_backends.MediaStorage'
+    # Use Digital Ocean Spaces
+    DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+    AWS_S3_ENDPOINT_URL = AWS_S3_ENDPOINT_URL
     
+    # Configure Cloudinary SDK if also available (for possible hybrid use)
     if USE_CLOUDINARY:
         import cloudinary
         cloudinary.config(
@@ -399,6 +396,7 @@ if USE_DIGITAL_OCEAN_SPACES:
         )
     
 elif USE_CLOUDINARY:
+    # Use Cloudinary
     DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
     
     import cloudinary
@@ -409,6 +407,7 @@ elif USE_CLOUDINARY:
         secure=True,
     )
 else:
+    # Fallback to local storage
     DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
 
 # Static & Media Files Configuration
@@ -416,14 +415,23 @@ STATIC_URL = 'static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
+# WhiteNoise configuration for static files
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
-WHITENOISE_MAX_AGE = 31536000
+WHITENOISE_MAX_AGE = 31536000  # 1 year cache for static files
 WHITENOISE_SKIP_COMPRESS_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.ico', '.mp4', '.webm']
 
-# ✅ Media URL points directly to CDN
-MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/' if USE_DIGITAL_OCEAN_SPACES else '/media/'
+# Media files configuration
+MEDIA_URL = '/media/'
+if USE_DIGITAL_OCEAN_SPACES and AWS_S3_CUSTOM_DOMAIN:
+    # Use custom domain for Digital Ocean Spaces
+    MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/media/'
+elif USE_DIGITAL_OCEAN_SPACES:
+    # Use Spaces endpoint URL
+    MEDIA_URL = f'{AWS_S3_ENDPOINT_URL}/{AWS_STORAGE_BUCKET_NAME}/media/'
+
 MEDIA_ROOT = BASE_DIR / 'media'
 
+# File upload settings
 FILE_UPLOAD_MAX_MEMORY_SIZE = 10485760  # 10MB
 DATA_UPLOAD_MAX_MEMORY_SIZE = 10485760  # 10MB
 
