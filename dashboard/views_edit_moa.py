@@ -92,11 +92,14 @@ def get_or_create_editable_document(required_doc, user):
                     )
                     bucket = getattr(settings, 'AWS_STORAGE_BUCKET_NAME', None)
                     
-                    # Ensure the key never includes the bucket name as a prefix
+                    # Guarantee the key never includes the bucket name as a prefix
                     key = new_filename.lstrip('/')
-                    if key.startswith(f"{bucket}/"):
-                        key = key[len(f"{bucket}/"):]
+                    bucket_prefixes = [f"{bucket}/", f"/{bucket}/"]
+                    for prefix in bucket_prefixes:
+                        if key.startswith(prefix):
+                            key = key[len(prefix):]
 
+                    logger.info(f"Uploading to S3 Key: {key}")
                     s3.put_object(
                         Bucket=bucket,
                         Key=key,
@@ -329,11 +332,14 @@ def onlyoffice_callback(request, doc_id):
                 base_name, ext = os.path.splitext(os.path.basename(original_name))
                 new_filename = f"document_templates/template_{slugify(base_name)}_v{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}{ext}"
 
-                # Ensure the key never includes the bucket name as a prefix
+                # Guarantee the key never includes the bucket name as a prefix
                 key = new_filename.lstrip('/')
-                if key.startswith(f"{bucket}/"):
-                    key = key[len(f"{bucket}/"):]
+                bucket_prefixes = [f"{bucket}/", f"/{bucket}/"]
+                for prefix in bucket_prefixes:
+                    if key.startswith(prefix):
+                        key = key[len(prefix):]
 
+                logger.info(f"Uploading to S3 Key: {key}")
                 s3.put_object(
                     Bucket=bucket,
                     Key=key,
@@ -360,11 +366,14 @@ def onlyoffice_callback(request, doc_id):
                         base_name, ext = os.path.splitext(os.path.basename(original_name))
                         new_filename = f"student_profiles/moa_{user.username}_{slugify(base_name)}_edited_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}{ext}"
 
-                        # Ensure the key never includes the bucket name as a prefix
+                        # Guarantee the key never includes the bucket name as a prefix
                         key = new_filename.lstrip('/')
-                        if key.startswith(f"{bucket}/"):
-                            key = key[len(f"{bucket}/"):]
+                        bucket_prefixes = [f"{bucket}/", f"/{bucket}/"]
+                        for prefix in bucket_prefixes:
+                            if key.startswith(prefix):
+                                key = key[len(prefix):]
 
+                        logger.info(f"Uploading to S3 Key: {key}")
                         s3.put_object(
                             Bucket=bucket,
                             Key=key,
