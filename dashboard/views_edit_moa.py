@@ -16,23 +16,22 @@ from accounts.models import RequiredDocument, StudentDocument
 
 logger = logging.getLogger(__name__)
 
-# -----------------------------
-# Helpers
-# -----------------------------
+
 def get_absolute_file_url(file_field):
-    """OnlyOffice-safe absolute URL via CDN."""
+    """Get absolute URL for OnlyOffice."""
     if not file_field:
         return ""
     try:
         url = file_field.url
-        logger.info(f"🔗 Using storage URL: {url}")
+        logger.info(f"🔗 File URL: {url}")
         return url
     except Exception as e:
         logger.error(f"❌ Error getting file URL: {e}", exc_info=True)
         return ""
 
+
 def get_or_create_editable_document(required_doc, user):
-    """Get or create editable document copy for student."""
+    """Get or create editable document copy."""
     try:
         if user.is_student:
             student_doc, created = StudentDocument.objects.get_or_create(
@@ -59,6 +58,8 @@ def get_or_create_editable_document(required_doc, user):
                         aws_secret_access_key=getattr(settings, 'AWS_SECRET_ACCESS_KEY', None),
                     )
                     bucket = getattr(settings, 'AWS_STORAGE_BUCKET_NAME', None)
+                    
+                    # ✅ Path WITHOUT bucket name prefix
                     s3_key = f"user_{user.id}/documents/{filename}"
 
                     s3.put_object(
@@ -68,9 +69,11 @@ def get_or_create_editable_document(required_doc, user):
                         ContentType='application/vnd.openxmlformats-officedocument.wordprocessingml.document',
                         ACL='public-read'
                     )
+                    
                     student_doc.file.name = s3_key
                     student_doc.save()
-                    logger.info(f"✅ Created editable copy for student: {s3_key}")
+                    logger.info(f"✅ Created student doc: {s3_key}")
+                    
             return student_doc.file
         elif user.is_coordinator:
             return required_doc.template_file
@@ -78,6 +81,7 @@ def get_or_create_editable_document(required_doc, user):
         logger.error(f"❌ Error creating editable document: {e}", exc_info=True)
         return required_doc.template_file
     return required_doc.template_file
+
 
 def generate_jwt_payload(document_key, document_url, title, editor_mode="edit", user=None, doc_id=None):
     """Generate OnlyOffice JWT payload."""
@@ -94,7 +98,9 @@ def generate_jwt_payload(document_key, document_url, title, editor_mode="edit", 
     }
     if doc_id is None:
         raise ValueError("doc_id must be provided for OnlyOffice callback URL.")
+    
     callback_url = f"{getattr(settings, 'BASE_URL', 'https://cvsu-internship-matching.onrender.com')}/dashboard/required-documents/{doc_id}/onlyoffice-callback/"
+    
     payload = {
         "document": {
             "fileType": "docx",
@@ -105,7 +111,7 @@ def generate_jwt_payload(document_key, document_url, title, editor_mode="edit", 
         },
         "documentType": "word",
         "editorConfig": {
-            "mode": editor_mode,
+            "mode": "edit",
             "lang": "en",
             "callbackUrl": callback_url,
             "customization": {
@@ -124,6 +130,7 @@ def generate_jwt_payload(document_key, document_url, title, editor_mode="edit", 
     }
     return payload
 
+
 def get_jwt_token(payload):
     secret = getattr(settings, 'ONLYOFFICE_SECRET', None)
     if not secret:
@@ -138,6 +145,7 @@ def get_jwt_token(payload):
         logger.error(f"JWT generation failed: {e}")
         return ""
 
+
 def test_onlyoffice_connection():
     url = getattr(settings, 'ONLYOFFICE_URL', None)
     if not url:
@@ -150,13 +158,11 @@ def test_onlyoffice_connection():
     except Exception as e:
         return False, str(e)
 
-# -----------------------------
-# Student MOA Edit View
-# -----------------------------
+
 @login_required
 @csrf_exempt
 def edit_moa_view(request, doc_id):
-    """Student or coordinator edit view for MOA."""
+    """Edit MOA view."""
     connected, message = test_onlyoffice_connection()
     if not connected:
         messages.error(request, f"OnlyOffice server not accessible: {message}")
@@ -178,6 +184,7 @@ def edit_moa_view(request, doc_id):
         return redirect('dashboard:student_documents')
 
     document_key = f"{request.user.id}_{doc_id}_{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}"
+    
     payload = generate_jwt_payload(
         document_key=document_key,
         document_url=document_url,
@@ -203,26 +210,27 @@ def edit_moa_view(request, doc_id):
     }
     return render(request, 'dashboard/edit_moa.html', context)
 
-# -----------------------------
-# OnlyOffice Callback
-# -----------------------------
+
 @csrf_exempt
 def onlyoffice_callback(request, doc_id):
     """Handle OnlyOffice save callback."""
     if request.method != 'POST':
         return JsonResponse({'error': 0})
+        
     try:
         import json
         data = json.loads(request.body)
         status = data.get('status', 0)
         document_key = data.get('key', '')
+        
         logger.info(f"📝 OnlyOffice callback: status={status}, key={document_key}, doc_id={doc_id}")
 
-        if status == 2:  # ready to save
+        if status == 2:
             url = data.get('url')
             if not url:
                 logger.error("❌ No download URL in callback")
                 return JsonResponse({'error': 1})
+                
             response = requests.get(url, verify=False, timeout=30)
             if response.status_code != 200:
                 logger.error(f"❌ Failed to download from OnlyOffice: {response.status_code}")
@@ -230,6 +238,7 @@ def onlyoffice_callback(request, doc_id):
 
             key_parts = document_key.split('_')
             user_id = int(key_parts[0]) if len(key_parts) > 0 else None
+            
             if not user_id:
                 logger.error(f"❌ Could not parse user_id from key: {document_key}")
                 return JsonResponse({'error': 1})
@@ -253,11 +262,12 @@ def onlyoffice_callback(request, doc_id):
             bucket = getattr(settings, 'AWS_STORAGE_BUCKET_NAME', None)
 
             if user.is_coordinator:
-                # Update template
+                # ✅ COORDINATOR: Save to document_templates/ (NO bucket prefix)
                 original_name = required_doc.template_file.name
                 base_name, ext = os.path.splitext(os.path.basename(original_name))
                 timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
-                new_filename = f"cv-internship-moa/document_templates/template_{slugify(base_name)}_v{timestamp}{ext}"
+                new_filename = f"document_templates/template_{slugify(base_name)}_v{timestamp}{ext}"
+                
                 s3.put_object(
                     Bucket=bucket,
                     Key=new_filename,
@@ -265,23 +275,27 @@ def onlyoffice_callback(request, doc_id):
                     ContentType='application/vnd.openxmlformats-officedocument.wordprocessingml.document',
                     ACL='public-read'
                 )
+                
                 required_doc.template_file.name = new_filename
                 required_doc.save()
-                logger.info(f"✅ Updated template for doc {doc_id} by coordinator {user.username}")
+                logger.info(f"✅ Updated template: {new_filename}")
+                
             else:
-                # Update student document
+                # ✅ STUDENT: Save to user_{id}/documents/ (NO bucket prefix)
                 try:
                     student_profile = user.student_profile
                     student_doc = StudentDocument.objects.filter(
                         student=student_profile,
                         document_type=required_doc
                     ).first()
+                    
                     if student_doc:
                         original_name = required_doc.template_file.name
                         base_name, ext = os.path.splitext(os.path.basename(original_name))
                         timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
                         filename = f"moa_{slugify(base_name)}_edited_{timestamp}{ext}"
                         new_filename = f"user_{user.id}/documents/{filename}"
+                        
                         s3.put_object(
                             Bucket=bucket,
                             Key=new_filename,
@@ -289,29 +303,31 @@ def onlyoffice_callback(request, doc_id):
                             ContentType='application/vnd.openxmlformats-officedocument.wordprocessingml.document',
                             ACL='public-read'
                         )
+                        
                         student_doc.file.name = new_filename
                         student_doc.status = 'submitted'
                         student_doc.save()
-                        logger.info(f"✅ Saved edited document for student {user.username}")
+                        logger.info(f"✅ Saved student doc: {new_filename}")
                     else:
                         logger.error(f"❌ StudentDocument not found for user {user.username}")
                         return JsonResponse({'error': 1})
                 except Exception as e:
                     logger.error(f"❌ Error updating student document: {e}", exc_info=True)
                     return JsonResponse({'error': 1})
+                    
             return JsonResponse({'error': 0})
+            
         return JsonResponse({'error': 0})
+        
     except Exception as e:
         logger.error(f"❌ OnlyOffice callback error: {e}", exc_info=True)
         return JsonResponse({'error': 1, 'message': str(e)})
 
-# -----------------------------
-# Coordinator Full Template Editor
-# -----------------------------
+
 @login_required
 @csrf_exempt
 def edit_required_document_full_view(request, doc_id):
-    """Coordinator full template editor."""
+    """Coordinator template editor."""
     if not request.user.is_coordinator:
         messages.error(request, "You do not have permission to edit this template.")
         return redirect('dashboard:required_documents_list')
@@ -333,6 +349,7 @@ def edit_required_document_full_view(request, doc_id):
         return redirect('dashboard:required_documents_list')
 
     document_key = f"coord_{request.user.id}_{doc_id}_{uuid.uuid4().hex}"
+    
     payload = generate_jwt_payload(
         document_key=document_key,
         document_url=document_url,
