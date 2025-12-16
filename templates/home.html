@@ -2,159 +2,948 @@
 {% load static %}
 {% block title %}Home - CVSU Internship Matching{% endblock %}
 
+{% block extra_css %}
+<style>
+    /* ===== CVSU COLOR PALETTE ===== */
+    :root {
+        --cvsu-dark-green: #030403;
+        --cvsu-light-gray: #787A66;
+        --cvsu-green: #064E07;
+        --cvsu-gold: #EFB60A;
+        --cvsu-red: #CF120F;
+        --cvsu-white: #FFFFFF;
+    }
+
+    /* ===== IMPROVED NAVIGATION ===== */
+    .navbar {
+        position: fixed !important;
+        top: 0;
+        width: 100%;
+        z-index: 1030;
+        box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+    }
+
+    .navbar.scrolled {
+        padding-top: 5px;
+        padding-bottom: 5px;
+        background-color: rgba(3, 4, 3, 0.95) !important;
+        backdrop-filter: blur(10px);
+    }
+
+    body {
+        padding-top: 76px; /* Offset for fixed navbar */
+        scroll-behavior: smooth;
+    }
+
+    /* ===== BREADCRUMB NAVIGATION ===== */
+    .breadcrumb-nav {
+        position: fixed;
+        right: 20px;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 1000;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .breadcrumb-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background-color: var(--cvsu-light-gray);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+    }
+
+    .breadcrumb-dot:hover {
+        transform: scale(1.3);
+        background-color: var(--cvsu-gold);
+    }
+
+    .breadcrumb-dot.active {
+        background-color: var(--cvsu-green);
+        border-color: var(--cvsu-gold);
+        transform: scale(1.3);
+    }
+
+    .scroll-top-btn {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background-color: var(--cvsu-green);
+        color: white;
+        border: none;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        z-index: 1000;
+        box-shadow: 0 4px 15px rgba(6, 78, 7, 0.3);
+        transition: all 0.3s ease;
+    }
+
+    .scroll-top-btn:hover {
+        background-color: var(--cvsu-gold);
+        transform: translateY(-3px);
+    }
+
+    /* ===== HERO SECTION ===== */
+    .hero-section {
+        background: linear-gradient(135deg, rgba(6, 78, 7, 0.9), rgba(3, 4, 3, 0.95));
+        color: white;
+        padding: 100px 0;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .hero-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('{% static "images/campus.jpg" %}') center/cover;
+        opacity: 0.15;
+    }
+
+    .hero-logo {
+        width: 150px;
+        height: 150px;
+        background: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 30px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        border: 5px solid var(--cvsu-gold);
+        position: relative;
+        z-index: 2;
+    }
+
+    /* ===== COURSES SECTION ===== */
+    .courses-section {
+        background-color: #f8f9fa;
+        padding: 80px 0;
+    }
+
+    .course-card {
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        text-align: center;
+        height: 100%;
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    }
+
+    .course-card:hover {
+        transform: translateY(-10px);
+        border-color: var(--cvsu-gold);
+        box-shadow: 0 15px 30px rgba(239, 182, 10, 0.15);
+    }
+
+    .course-icon {
+        width: 80px;
+        height: 80px;
+        margin: 0 auto 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--cvsu-green), #0a6d0b);
+        color: white;
+        font-size: 2rem;
+    }
+
+    /* ===== FEATURES SECTION ===== */
+    .features-section {
+        padding: 80px 0;
+        background-color: white;
+    }
+
+    .feature-box {
+        text-align: center;
+        padding: 30px;
+        border-radius: 15px;
+        transition: all 0.3s ease;
+    }
+
+    .feature-box:hover {
+        background-color: rgba(239, 182, 10, 0.05);
+        transform: translateY(-5px);
+    }
+
+    .feature-icon {
+        font-size: 3rem;
+        color: var(--cvsu-green);
+        margin-bottom: 20px;
+    }
+
+    /* ===== ABOUT SECTION ===== */
+    .about-section {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        padding: 80px 0;
+    }
+
+    .about-content {
+        background: white;
+        padding: 40px;
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .about-content::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 8px;
+        height: 100%;
+        background: linear-gradient(to bottom, var(--cvsu-green), var(--cvsu-gold));
+    }
+
+    /* ===== FAQ SECTION ===== */
+    .faq-section {
+        padding: 80px 0;
+        background-color: white;
+    }
+
+    .accordion-button {
+        background-color: rgba(6, 78, 7, 0.05);
+        color: var(--cvsu-dark-green);
+        font-weight: 600;
+        border: none;
+        padding: 20px;
+    }
+
+    .accordion-button:not(.collapsed) {
+        background-color: rgba(239, 182, 10, 0.1);
+        color: var(--cvsu-green);
+        border-bottom: 2px solid var(--cvsu-gold);
+    }
+
+    .accordion-button:focus {
+        box-shadow: 0 0 0 0.25rem rgba(239, 182, 10, 0.25);
+        border-color: var(--cvsu-gold);
+    }
+
+    /* ===== CONTACT SECTION ===== */
+    .contact-section {
+        background-color: var(--cvsu-dark-green);
+        color: white;
+        padding: 80px 0;
+        position: relative;
+    }
+
+    .contact-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 5px;
+        background: linear-gradient(to right, var(--cvsu-green), var(--cvsu-gold), var(--cvsu-red));
+    }
+
+    .contact-card {
+        background: rgba(255, 255, 255, 0.05);
+        padding: 30px;
+        border-radius: 15px;
+        border-left: 5px solid var(--cvsu-gold);
+        backdrop-filter: blur(10px);
+        transition: all 0.3s ease;
+    }
+
+    .contact-card:hover {
+        background: rgba(239, 182, 10, 0.1);
+        transform: translateX(10px);
+    }
+
+    /* ===== STATS SECTION ===== */
+    .stats-section {
+        background: linear-gradient(135deg, var(--cvsu-green), #0a6d0b);
+        color: white;
+        padding: 60px 0;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .stats-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23efb60a' fill-opacity='0.05' fill-rule='evenodd'/%3E%3C/svg%3E");
+    }
+
+    .stat-number {
+        font-size: 3.5rem;
+        font-weight: 800;
+        color: var(--cvsu-gold);
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    /* ===== RESPONSIVE DESIGN ===== */
+    @media (max-width: 768px) {
+        .breadcrumb-nav {
+            display: none;
+        }
+        
+        .scroll-top-btn {
+            bottom: 20px;
+            right: 20px;
+            width: 45px;
+            height: 45px;
+        }
+        
+        body {
+            padding-top: 70px;
+        }
+        
+        .hero-section {
+            padding: 60px 0;
+        }
+        
+        .hero-logo {
+            width: 120px;
+            height: 120px;
+        }
+        
+        .stat-number {
+            font-size: 2.5rem;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container">
-    <div class="row justify-content-center mb-4">
-        <div class="col-lg-8 text-center">
-            <img src="{% static 'images/banner1.png' %}" alt="Banner" style="width: 100%; max-height: 120px; object-fit: cover; border-radius: 1rem; opacity: 0.18; position: absolute; left: 0; right: 0; z-index: 1;">
-            <span style="display: inline-flex; align-items: center; justify-content: center; background: #fff; border-radius: 50%; box-shadow: 0 2px 8px rgba(0,0,0,0.07); padding: 6px; border: 2px solid #e0e0e0; height: 92px; width: 92px; margin-bottom: 10px; margin-top: 10px; position: relative; z-index: 2;">
-                <img src="{% static 'images/logo (2).png' %}" alt="CvSU Logo" style="height:80px; display: block; margin: auto;">
-            </span>
-        </div>
-    </div>
-    <!-- Hero Section -->
-    <section class="py-5 text-center">
-        <div class="row py-lg-5">
-            <div class="col-lg-8 mx-auto">
-                <h1 class="fw-bold text-success">Cavite State University Bacoor Campus Internship Matching System</h1>
-                <p class="lead text-muted">Connecting students with the right internship opportunities at Cavite State University Bacoor Campus.</p>
-                <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
+<!-- Breadcrumb Navigation Dots -->
+<div class="breadcrumb-nav">
+    <div class="breadcrumb-dot active" data-section="home"></div>
+    <div class="breadcrumb-dot" data-section="courses"></div>
+    <div class="breadcrumb-dot" data-section="features"></div>
+    <div class="breadcrumb-dot" data-section="about"></div>
+    <div class="breadcrumb-dot" data-section="stats"></div>
+    <div class="breadcrumb-dot" data-section="faq"></div>
+    <div class="breadcrumb-dot" data-section="contact"></div>
+</div>
+
+<!-- Scroll to Top Button -->
+<button class="scroll-top-btn" id="scrollTopBtn">
+    <i class="fas fa-chevron-up"></i>
+</button>
+
+<!-- HERO SECTION -->
+<section id="home" class="hero-section">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8 text-center">
+                <div class="hero-logo">
+                    <img src="{% static 'images/logo (2).png' %}" alt="CVSU Logo" style="height: 100px;">
+                </div>
+                <h1 class="display-4 fw-bold mb-4">CVSU Internship Matching Portal</h1>
+                <p class="lead mb-5">Connecting Cavite State University Bacoor Campus students with the perfect internship opportunities through intelligent matching and seamless coordination.</p>
+                <div class="d-grid gap-3 d-sm-flex justify-content-sm-center">
                     {% if user.is_authenticated %}
                         {% if user.is_student %}
-                            <a href="{% url 'dashboard:student_dashboard' %}" class="btn btn-success btn-lg px-4 gap-3">Go to Dashboard</a>
+                            <a href="{% url 'dashboard:student_dashboard' %}" class="btn btn-lg px-4" style="background-color: var(--cvsu-gold); color: var(--cvsu-dark-green); font-weight: 600;">
+                                Go to Dashboard <i class="fas fa-arrow-right ms-2"></i>
+                            </a>
                         {% elif user.is_adviser %}
-                            <a href="{% url 'dashboard:adviser_dashboard' %}" class="btn btn-success btn-lg px-4 gap-3">Go to Dashboard</a>
+                            <a href="{% url 'dashboard:adviser_dashboard' %}" class="btn btn-lg px-4" style="background-color: var(--cvsu-gold); color: var(--cvsu-dark-green); font-weight: 600;">
+                                Go to Dashboard <i class="fas fa-arrow-right ms-2"></i>
+                            </a>
                         {% elif user.is_coordinator %}
-                            <a href="{% url 'dashboard:coordinator_dashboard' %}" class="btn btn-success btn-lg px-4 gap-3">Go to Dashboard</a>
+                            <a href="{% url 'dashboard:coordinator_dashboard' %}" class="btn btn-lg px-4" style="background-color: var(--cvsu-gold); color: var(--cvsu-dark-green); font-weight: 600;">
+                                Go to Dashboard <i class="fas fa-arrow-right ms-2"></i>
+                            </a>
                         {% endif %}
                     {% else %}
-                        <a href="/accounts/login/" class="btn btn-success btn-lg px-4 gap-3">Login</a>
-                        <a href="/accounts/register/student/" class="btn btn-outline-success btn-lg px-4">Register</a>
+                        <a href="/accounts/login/" class="btn btn-lg px-4" style="background-color: var(--cvsu-gold); color: var(--cvsu-dark-green); font-weight: 600;">
+                            Login <i class="fas fa-sign-in-alt ms-2"></i>
+                        </a>
+                        <a href="/accounts/register/student/" class="btn btn-lg px-4" style="background-color: transparent; border: 2px solid var(--cvsu-gold); color: white; font-weight: 600;">
+                            Register <i class="fas fa-user-plus ms-2"></i>
+                        </a>
                     {% endif %}
                 </div>
             </div>
         </div>
-    </section>
+    </div>
+</section>
 
-    <!-- Features Section -->
-    <section class="py-5 bg-light rounded">
-        <div class="container">
-            <h2 class="text-center mb-5">How It Works</h2>
-            <div class="row g-4">
-                <div class="col-md-4">
-                    <div class="card h-100 border-0 shadow-sm">
-                        <div class="card-body text-center">
-                            <div class="mb-3">
-                                <i class="fas fa-user-graduate fa-3x text-success"></i>
+<!-- COURSES SECTION -->
+<section id="courses" class="courses-section">
+    <div class="container">
+        <div class="row justify-content-center mb-5">
+            <div class="col-lg-8 text-center">
+                <h2 class="fw-bold mb-3" style="color: var(--cvsu-green);">Our Programs</h2>
+                <p class="lead text-muted">Explore internship opportunities across all CVSU Bacoor programs</p>
+            </div>
+        </div>
+        
+        <div class="row g-4">
+            <!-- IT Program -->
+            <div class="col-md-4 col-sm-6">
+                <div class="course-card">
+                    <div class="course-icon">
+                        <i class="fas fa-laptop-code"></i>
+                    </div>
+                    <h4 class="fw-bold mb-3">Information Technology</h4>
+                    <p class="text-muted">Develop software solutions, manage networks, and create innovative tech applications through industry internships.</p>
+                </div>
+            </div>
+            
+            <!-- Hospitality Management -->
+            <div class="col-md-4 col-sm-6">
+                <div class="course-card">
+                    <div class="course-icon">
+                        <i class="fas fa-concierge-bell"></i>
+                    </div>
+                    <h4 class="fw-bold mb-3">Hospitality Management</h4>
+                    <p class="text-muted">Master hotel operations, event management, and tourism services with leading hospitality industry partners.</p>
+                </div>
+            </div>
+            
+            <!-- Psychology -->
+            <div class="col-md-4 col-sm-6">
+                <div class="course-card">
+                    <div class="course-icon">
+                        <i class="fas fa-brain"></i>
+                    </div>
+                    <h4 class="fw-bold mb-3">Psychology</h4>
+                    <p class="text-muted">Gain practical experience in human behavior analysis, counseling, and psychological assessment.</p>
+                </div>
+            </div>
+            
+            <!-- Criminology -->
+            <div class="col-md-4 col-sm-6">
+                <div class="course-card">
+                    <div class="course-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <h4 class="fw-bold mb-3">Criminology</h4>
+                    <p class="text-muted">Develop skills in law enforcement, forensic science, and criminal investigation with government agencies.</p>
+                </div>
+            </div>
+            
+            <!-- Business Administration -->
+            <div class="col-md-4 col-sm-6">
+                <div class="course-card">
+                    <div class="course-icon">
+                        <i class="fas fa-briefcase"></i>
+                    </div>
+                    <h4 class="fw-bold mb-3">Business Administration</h4>
+                    <p class="text-muted">Learn business operations, management strategies, and entrepreneurial skills in corporate settings.</p>
+                </div>
+            </div>
+            
+            <!-- Education -->
+            <div class="col-md-4 col-sm-6">
+                <div class="course-card">
+                    <div class="course-icon">
+                        <i class="fas fa-chalkboard-teacher"></i>
+                    </div>
+                    <h4 class="fw-bold mb-3">Teacher Education</h4>
+                    <p class="text-muted">Prepare for teaching careers with practical classroom experience in educational institutions.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- FEATURES SECTION -->
+<section id="features" class="features-section">
+    <div class="container">
+        <div class="row justify-content-center mb-5">
+            <div class="col-lg-8 text-center">
+                <h2 class="fw-bold mb-3" style="color: var(--cvsu-green);">How It Works</h2>
+                <p class="lead text-muted">Streamlined process for students, advisers, and coordinators</p>
+            </div>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="feature-box">
+                    <div class="feature-icon">
+                        <i class="fas fa-user-graduate"></i>
+                    </div>
+                    <h4 class="fw-bold mb-3">For Students</h4>
+                    <p>Create your profile, upload documents, and get matched with companies that align with your skills and career goals.</p>
+                    <ul class="text-start ps-3">
+                        <li>Smart matching algorithm</li>
+                        <li>Document management</li>
+                        <li>Progress tracking</li>
+                        <li>Company reviews</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="feature-box">
+                    <div class="feature-icon">
+                        <i class="fas fa-chalkboard-teacher"></i>
+                    </div>
+                    <h4 class="fw-bold mb-3">For OJT Advisers</h4>
+                    <p>Monitor student progress, approve applications, and provide guidance throughout the internship journey.</p>
+                    <ul class="text-start ps-3">
+                        <li>Student monitoring</li>
+                        <li>Document verification</li>
+                        <li>Progress reports</li>
+                        <li>Communication tools</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="feature-box">
+                    <div class="feature-icon">
+                        <i class="fas fa-tasks"></i>
+                    </div>
+                    <h4 class="fw-bold mb-3">For OJT Coordinators</h4>
+                    <p>Manage the entire OJT ecosystem, from company partnerships to student placements and evaluation.</p>
+                    <ul class="text-start ps-3">
+                        <li>Company management</li>
+                        <li>Placement coordination</li>
+                        <li>System administration</li>
+                        <li>Analytics & reports</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ABOUT SECTION -->
+<section id="about" class="about-section">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6 mb-4 mb-lg-0">
+                <img src="{% static 'images/campus.jpg' %}" alt="CVSU Bacoor Campus" class="img-fluid rounded-3 shadow-lg" style="border: 5px solid white;">
+            </div>
+            <div class="col-lg-6">
+                <div class="about-content">
+                    <h2 class="fw-bold mb-4" style="color: var(--cvsu-green);">About CVSU Bacoor Campus</h2>
+                    <p class="mb-4">Cavite State University - Bacoor Campus is a premier educational institution committed to providing quality, relevant, and responsive education. Our Internship Matching System bridges the gap between academic learning and real-world experience.</p>
+                    
+                    <div class="row mt-4">
+                        <div class="col-6 mb-3">
+                            <div class="d-flex align-items-center">
+                                <div class="me-3" style="color: var(--cvsu-gold);">
+                                    <i class="fas fa-graduation-cap fa-2x"></i>
+                                </div>
+                                <div>
+                                    <h5 class="fw-bold mb-0">Quality Education</h5>
+                                    <small class="text-muted">Industry-aligned programs</small>
+                                </div>
                             </div>
-                            <h5 class="card-title">For Students</h5>
-                            <p class="card-text">Create your profile, upload your CV, and get matched with internships that align with your skills and preferences.</p>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <div class="d-flex align-items-center">
+                                <div class="me-3" style="color: var(--cvsu-green);">
+                                    <i class="fas fa-handshake fa-2x"></i>
+                                </div>
+                                <div>
+                                    <h5 class="fw-bold mb-0">Industry Partners</h5>
+                                    <small class="text-muted">100+ companies</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <div class="d-flex align-items-center">
+                                <div class="me-3" style="color: var(--cvsu-red);">
+                                    <i class="fas fa-briefcase fa-2x"></i>
+                                </div>
+                                <div>
+                                    <h5 class="fw-bold mb-0">Career Ready</h5>
+                                    <small class="text-muted">95% employment rate</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <div class="d-flex align-items-center">
+                                <div class="me-3" style="color: var(--cvsu-light-gray);">
+                                    <i class="fas fa-users fa-2x"></i>
+                                </div>
+                                <div>
+                                    <h5 class="fw-bold mb-0">Expert Advisers</h5>
+                                    <small class="text-muted">Dedicated faculty</small>
+                                </div>
+                            </div>
                         </div>
                     </div>
+                    
+                    <p class="mt-4"><strong>Vision:</strong> A premier university in historical Cavite recognized for excellence in the development of globally competitive and morally upright individuals.</p>
                 </div>
-                <div class="col-md-4">
-                    <div class="card h-100 border-0 shadow-sm">
-                        <div class="card-body text-center">
-                            <div class="mb-3">
-                                <i class="fas fa-chalkboard-teacher fa-3x text-success"></i>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- STATS SECTION -->
+<section id="stats" class="stats-section">
+    <div class="container">
+        <div class="row text-center">
+            <div class="col-md-3 col-6 mb-4">
+                <div class="p-3">
+                    <div class="stat-number">500+</div>
+                    <p class="h5 mt-2">Students Placed</p>
+                </div>
+            </div>
+            <div class="col-md-3 col-6 mb-4">
+                <div class="p-3">
+                    <div class="stat-number">100+</div>
+                    <p class="h5 mt-2">Partner Companies</p>
+                </div>
+            </div>
+            <div class="col-md-3 col-6 mb-4">
+                <div class="p-3">
+                    <div class="stat-number">95%</div>
+                    <p class="h5 mt-2">Satisfaction Rate</p>
+                </div>
+            </div>
+            <div class="col-md-3 col-6 mb-4">
+                <div class="p-3">
+                    <div class="stat-number">6</div>
+                    <p class="h5 mt-2">Programs Offered</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- FAQ SECTION -->
+<section id="faq" class="faq-section">
+    <div class="container">
+        <div class="row justify-content-center mb-5">
+            <div class="col-lg-8 text-center">
+                <h2 class="fw-bold mb-3" style="color: var(--cvsu-green);">Frequently Asked Questions</h2>
+                <p class="lead text-muted">Find answers to common questions about the internship program</p>
+            </div>
+        </div>
+        
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <div class="accordion" id="faqAccordion">
+                    <div class="accordion-item mb-3 border rounded-3">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#faq1" aria-expanded="true" aria-controls="faq1">
+                                How do I register as a student?
+                            </button>
+                        </h2>
+                        <div id="faq1" class="accordion-collapse collapse show" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                Click the "Register" button on the homepage and select "Student Registration." Fill out the required information using your CvSU email address for faster verification. You'll need to provide your student ID, program details, and upload required documents.
                             </div>
-                            <h5 class="card-title">For OJT Advisers</h5>
-                            <p class="card-text">Track your students' progress, manage internship applications, and generate reports for documentation.</p>
                         </div>
                     </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="card h-100 border-0 shadow-sm">
-                        <div class="card-body text-center">
-                            <div class="mb-3">
-                                <i class="fas fa-building fa-3x text-success"></i>
+                    
+                    <div class="accordion-item mb-3 border rounded-3">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq2" aria-expanded="false" aria-controls="faq2">
+                                How are internship matches determined?
+                            </button>
+                        </h2>
+                        <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                Our AI-powered matching algorithm considers your skills, academic performance, preferences, and career goals. It matches you with companies that align with your profile and program requirements. Advisers and coordinators review matches before finalization.
                             </div>
-                            <h5 class="card-title">For OJT Coordinators</h5>
-                            <p class="card-text">Manage company listings, oversee the entire OJT process, and ensure successful internship placements.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="accordion-item mb-3 border rounded-3">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq3" aria-expanded="false" aria-controls="faq3">
+                                What documents do I need to upload?
+                            </button>
+                        </h2>
+                        <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                Required documents include: (1) Updated resume/CV, (2) Parent/Guardian consent form, (3) Medical certificate, (4) Endorsement letter from your adviser, and (5) Academic records. Specific requirements may vary by program.
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="accordion-item mb-3 border rounded-3">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq4" aria-expanded="false" aria-controls="faq4">
+                                Can I choose my own internship company?
+                            </button>
+                        </h2>
+                        <div id="faq4" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                Yes, you can suggest a company for your internship. However, the company must be approved by your OJT coordinator and meet CVSU's partnership criteria. You'll need to provide company details and get approval before proceeding.
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="accordion-item mb-3 border rounded-3">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq5" aria-expanded="false" aria-controls="faq5">
+                                Who can I contact for technical support?
+                            </button>
+                        </h2>
+                        <div id="faq5" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                For technical issues, email <a href="mailto:support@bacoor.cvsu.edu.ph">support@bacoor.cvsu.edu.ph</a>. For internship-related questions, contact your OJT adviser or coordinator. Visit the <a href="#contact">Contact section</a> for more options.
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </section>
+    </div>
+</section>
 
-    <!-- Stats Section -->
-    <section class="py-5">
-        <div class="container">
-            <h2 class="text-center mb-5">Our Impact</h2>
-            <div class="row g-4 text-center">
-                <div class="col-md-4">
-                    <div class="p-3">
-                        <h2 class="display-4 fw-bold text-success">500+</h2>
-                        <p class="lead">Students Placed</p>
+<!-- CONTACT SECTION -->
+<section id="contact" class="contact-section">
+    <div class="container">
+        <div class="row justify-content-center mb-5">
+            <div class="col-lg-8 text-center">
+                <h2 class="fw-bold mb-3">Contact Us</h2>
+                <p class="lead" style="color: var(--cvsu-light-gray);">Get in touch with our OJT coordination team</p>
+            </div>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="contact-card">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="me-3" style="color: var(--cvsu-gold);">
+                            <i class="fas fa-map-marker-alt fa-2x"></i>
+                        </div>
+                        <div>
+                            <h4 class="fw-bold mb-0">Location</h4>
+                        </div>
                     </div>
+                    <p>Molino IV, Bacoor City, Cavite<br>Philippines 4102</p>
                 </div>
-                <div class="col-md-4">
-                    <div class="p-3">
-                        <h2 class="display-4 fw-bold text-success">100+</h2>
-                        <p class="lead">Partner Companies</p>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="contact-card">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="me-3" style="color: var(--cvsu-gold);">
+                            <i class="fas fa-envelope fa-2x"></i>
+                        </div>
+                        <div>
+                            <h4 class="fw-bold mb-0">Email</h4>
+                        </div>
                     </div>
+                    <p>
+                        <strong>General Inquiries:</strong><br>
+                        <a href="mailto:info@bacoor.cvsu.edu.ph" style="color: var(--cvsu-gold);">info@bacoor.cvsu.edu.ph</a>
+                    </p>
+                    <p>
+                        <strong>OJT Coordination:</strong><br>
+                        <a href="mailto:ojt@bacoor.cvsu.edu.ph" style="color: var(--cvsu-gold);">ojt@bacoor.cvsu.edu.ph</a>
+                    </p>
                 </div>
-                <div class="col-md-4">
-                    <div class="p-3">
-                        <h2 class="display-4 fw-bold text-success">95%</h2>
-                        <p class="lead">Satisfaction Rate</p>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="contact-card">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="me-3" style="color: var(--cvsu-gold);">
+                            <i class="fas fa-phone fa-2x"></i>
+                        </div>
+                        <div>
+                            <h4 class="fw-bold mb-0">Phone</h4>
+                        </div>
                     </div>
+                    <p>
+                        <strong>Main Office:</strong><br>
+                        (046) 476-5029
+                    </p>
+                    <p>
+                        <strong>OJT Office:</strong><br>
+                        (046) 476-5030
+                    </p>
+                    <p class="mt-3">
+                        <strong>Office Hours:</strong><br>
+                        Monday-Friday, 8:00 AM - 5:00 PM
+                    </p>
                 </div>
             </div>
         </div>
-    </section>
-
-    <!-- Testimonials Section -->
-    <section class="py-5 bg-light rounded">
-        <div class="container">
-            <h2 class="text-center mb-5">Success Stories</h2>
-            <div class="row">
-                <div class="col-md-6 mb-4">
-                    <div class="card border-0 shadow-sm">
-                        <div class="card-body p-4">
-                            <div class="d-flex align-items-center mb-3">
-                                <div class="flex-shrink-0">
-                                    <img src="https://via.placeholder.com/50" alt="Student" class="rounded-circle">
-                                </div>
-                                <div class="flex-grow-1 ms-3">
-                                    <h5 class="mb-0">Juan Dela Cruz</h5>
-                                    <small class="text-muted">BSIT Graduate, 2023</small>
-                                </div>
-                            </div>
-                            <p class="card-text">"The CVSU Internship Matching System helped me find the perfect internship that aligned with my skills in web development. I'm now employed full-time at the same company!"</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-6 mb-4">
-                    <div class="card border-0 shadow-sm">
-                        <div class="card-body p-4">
-                            <div class="d-flex align-items-center mb-3">
-                                <div class="flex-shrink-0">
-                                    <img src="https://via.placeholder.com/50" alt="Student" class="rounded-circle">
-                                </div>
-                                <div class="flex-grow-1 ms-3">
-                                    <h5 class="mb-0">Maria Santos</h5>
-                                    <small class="text-muted">BSCS Graduate, 2022</small>
-                                </div>
-                            </div>
-                            <p class="card-text">"The AI matching algorithm connected me with a tech startup that perfectly matched my interests in AI and machine learning. The experience was invaluable for my career."</p>
-                        </div>
-                    </div>
+        
+        <div class="row mt-5">
+            <div class="col-12 text-center">
+                <p class="mb-4">Follow us on social media for updates and announcements</p>
+                <div class="d-flex justify-content-center gap-3">
+                    <a href="#" class="btn" style="background-color: var(--cvsu-gold); color: var(--cvsu-dark-green); width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                        <i class="fab fa-facebook-f"></i>
+                    </a>
+                    <a href="#" class="btn" style="background-color: var(--cvsu-gold); color: var(--cvsu-dark-green); width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                        <i class="fab fa-twitter"></i>
+                    </a>
+                    <a href="#" class="btn" style="background-color: var(--cvsu-gold); color: var(--cvsu-dark-green); width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                        <i class="fab fa-instagram"></i>
+                    </a>
+                    <a href="#" class="btn" style="background-color: var(--cvsu-gold); color: var(--cvsu-dark-green); width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                        <i class="fab fa-linkedin-in"></i>
+                    </a>
                 </div>
             </div>
         </div>
-    </section>
+    </div>
+</section>
 
-    <!-- CTA Section -->
-    <section class="py-5 text-center">
-        <div class="container">
-            <h2>Ready to find your perfect internship match?</h2>
-            <p class="lead mb-4">Join our platform today and take the first step toward your professional career.</p>
-            {% if not user.is_authenticated %}
-                <a href="{% url 'account_signup' %}" class="btn btn-success btn-lg">Register Now</a>
-            {% endif %}
-        </div>
-    </section>
+<!-- FINAL CTA -->
+<div class="bg-white py-5">
+    <div class="container text-center">
+        <h2 class="fw-bold mb-4" style="color: var(--cvsu-green);">Ready to Start Your Internship Journey?</h2>
+        <p class="lead mb-5">Join hundreds of CVSU students who have found their perfect internship match</p>
+        {% if not user.is_authenticated %}
+            <a href="/accounts/register/student/" class="btn btn-lg px-5 py-3" style="background-color: var(--cvsu-green); color: white; font-weight: 600;">
+                Get Started Now <i class="fas fa-rocket ms-2"></i>
+            </a>
+        {% else %}
+            <a href="{% if user.is_student %}{% url 'dashboard:student_dashboard' %}{% elif user.is_adviser %}{% url 'dashboard:adviser_dashboard' %}{% elif user.is_coordinator %}{% url 'dashboard:coordinator_dashboard' %}{% endif %}" 
+               class="btn btn-lg px-5 py-3" style="background-color: var(--cvsu-green); color: white; font-weight: 600;">
+                Go to Your Dashboard <i class="fas fa-arrow-right ms-2"></i>
+            </a>
+        {% endif %}
+    </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Fixed navbar on scroll
+    window.addEventListener('scroll', function() {
+        const navbar = document.querySelector('.navbar');
+        if (window.scrollY > 50) {
+            navbar.classList.add('scrolled');
+        } else {
+            navbar.classList.remove('scrolled');
+        }
+    });
+
+    // Breadcrumb navigation
+    const sections = ['home', 'courses', 'features', 'about', 'stats', 'faq', 'contact'];
+    const breadcrumbDots = document.querySelectorAll('.breadcrumb-dot');
+    const scrollTopBtn = document.getElementById('scrollTopBtn');
+
+    // Update active breadcrumb dot
+    function updateBreadcrumb() {
+        let currentSection = '';
+        
+        sections.forEach(section => {
+            const element = document.getElementById(section);
+            if (element) {
+                const rect = element.getBoundingClientRect();
+                if (rect.top <= window.innerHeight / 2 && rect.bottom >= window.innerHeight / 2) {
+                    currentSection = section;
+                }
+            }
+        });
+        
+        breadcrumbDots.forEach((dot, index) => {
+            if (sections[index] === currentSection) {
+                dot.classList.add('active');
+            } else {
+                dot.classList.remove('active');
+            }
+        });
+        
+        // Show/hide scroll to top button
+        if (window.scrollY > 300) {
+            scrollTopBtn.style.display = 'flex';
+        } else {
+            scrollTopBtn.style.display = 'none';
+        }
+    }
+
+    // Scroll to section when breadcrumb dot is clicked
+    breadcrumbDots.forEach((dot, index) => {
+        dot.addEventListener('click', () => {
+            const section = document.getElementById(sections[index]);
+            if (section) {
+                window.scrollTo({
+                    top: section.offsetTop - 70,
+                    behavior: 'smooth'
+                });
+            }
+        });
+    });
+
+    // Scroll to top functionality
+    scrollTopBtn.addEventListener('click', () => {
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
+    });
+
+    // Smooth scroll for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function(e) {
+            if (this.getAttribute('href') !== '#') {
+                e.preventDefault();
+                const targetId = this.getAttribute('href');
+                if (targetId.startsWith('#') && targetId.length > 1) {
+                    const targetElement = document.querySelector(targetId);
+                    if (targetElement) {
+                        window.scrollTo({
+                            top: targetElement.offsetTop - 70,
+                            behavior: 'smooth'
+                        });
+                    }
+                }
+            }
+        });
+    });
+
+    // Initialize
+    window.addEventListener('scroll', updateBreadcrumb);
+    window.addEventListener('load', updateBreadcrumb);
+
+    // Add animation to stats
+    function animateStats() {
+        const statNumbers = document.querySelectorAll('.stat-number');
+        statNumbers.forEach(stat => {
+            const finalNumber = parseInt(stat.textContent);
+            let currentNumber = 0;
+            const increment = finalNumber / 50;
+            const timer = setInterval(() => {
+                currentNumber += increment;
+                if (currentNumber >= finalNumber) {
+                    stat.textContent = finalNumber + (stat.textContent.includes('+') ? '+' : '');
+                    clearInterval(timer);
+                } else {
+                    stat.textContent = Math.floor(currentNumber) + (stat.textContent.includes('+') ? '+' : '');
+                }
+            }, 30);
+        });
+    }
+
+    // Trigger stats animation when section is in view
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                animateStats();
+                observer.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.5 });
+
+    const statsSection = document.getElementById('stats');
+    if (statsSection) {
+        observer.observe(statsSection);
+    }
+</script>
 {% endblock %}

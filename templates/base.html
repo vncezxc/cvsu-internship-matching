@@ -38,68 +38,302 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Leaflet CSS for maps -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="/static/css/main.css">
-    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&display=swap" rel="stylesheet">
     
     <style>
-        body, h1, h2, h3, h4, h5, h6, .navbar, .btn, .card, .accordion {
-            font-family: 'Nunito', Arial, sans-serif;
+        :root {
+            --cvsu-dark-green: #030403;
+            --cvsu-light-gray: #787A66;
+            --cvsu-green: #064E07;
+            --cvsu-gold: #EFB60A;
+            --cvsu-red: #CF120F;
+            --cvsu-white: #FFFFFF;
         }
-        .navbar, .bg-success, .btn-success {
-            background-color: #006d38 !important;
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-        .btn-success, .progress-bar.bg-success {
-            background-color: #006d38 !important;
-            border-color: #006d38 !important;
+        
+        body, h1, h2, h3, h4, h5, h6, .navbar, .btn, .card, .accordion, p, a, span, div {
+            font-family: 'Nunito', Arial, sans-serif !important;
         }
-        .btn-outline-success {
-            color: #006d38 !important;
-            border-color: #006d38 !important;
+        
+        body {
+            background-color: #f8f9fa;
+            color: #333;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding-top: 80px !important; /* Space for fixed navbar */
         }
-        .btn-outline-success:hover {
-            background-color: #f9b233 !important;
-            color: #fff !important;
-            border-color: #f9b233 !important;
+        
+        main {
+            flex: 1;
+            position: relative;
         }
-        .navbar-brand, .navbar-nav .nav-link.active, .navbar-nav .nav-link {
-            color: #f9b233 !important;
+        
+        /* ===== ALWAYS VISIBLE FIXED NAVBAR ===== */
+        .navbar {
+            background: linear-gradient(135deg, var(--cvsu-green), #0a6d0b) !important;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            position: fixed !important; /* FIXED POSITION */
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 9999 !important; /* Very high z-index */
+            transition: all 0.3s ease;
+            padding: 0.5rem 0 !important;
         }
-        .navbar-nav .nav-link:hover {
+        
+        .navbar.scrolled {
+            background: rgba(3, 4, 3, 0.98) !important; /* Slightly transparent when scrolled */
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.15);
+            padding: 0.3rem 0 !important;
+        }
+        
+        /* Ensure navbar is always on top of everything */
+        .navbar,
+        .navbar * {
+            z-index: 9999 !important;
+        }
+        
+        /* Mobile navbar toggler fix */
+        @media (max-width: 991.98px) {
+            .navbar-collapse {
+                background: linear-gradient(135deg, var(--cvsu-green), #0a6d0b) !important;
+                padding: 1rem;
+                border-radius: 0 0 15px 15px;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                z-index: 9999;
+            }
+            
+            .navbar.scrolled .navbar-collapse {
+                background: rgba(3, 4, 3, 0.98) !important;
+                backdrop-filter: blur(10px);
+            }
+        }
+        
+        /* Navbar brand styling */
+        .navbar-brand {
+            font-weight: 800;
+            font-size: 1.3rem;
+            color: var(--cvsu-gold) !important;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.25rem 0;
+            transition: all 0.3s ease;
+        }
+        
+        .navbar-brand:hover {
             color: #fff700 !important;
+            transform: translateY(-1px);
         }
-        .footer, .bg-dark {
-            background-color: #003300 !important;
+        
+        .logo-container {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            height: 44px;
+            width: 44px;
+            background: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            transition: all 0.3s ease;
+            border: 2px solid var(--cvsu-gold);
         }
-        .text-success {
-            color: #006d38 !important;
+        
+        .logo-container:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(239, 182, 10, 0.3);
         }
-        .bg-light {
-            background-color: #f9f9f9 !important;
+        
+        .logo-img {
+            height: 32px;
+            display: block;
+            margin: auto;
+            filter: drop-shadow(0 0 2px var(--cvsu-green));
         }
-        .card {
-            border-radius: 1rem;
+        
+        /* Navbar links */
+        .navbar-nav .nav-link {
+            color: rgba(255, 255, 255, 0.9) !important;
+            font-weight: 600;
+            padding: 0.5rem 1rem !important;
+            margin: 0 0.15rem;
+            border-radius: 50px;
+            transition: all 0.3s ease;
+            position: relative;
         }
-        .btn, .card, .progress-bar {
-            transition: all 0.2s;
+        
+        .navbar-nav .nav-link:hover {
+            color: var(--cvsu-gold) !important;
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
         }
-        .btn:hover {
-            transform: translateY(-2px) scale(1.03);
-            box-shadow: 0 4px 16px rgba(0,109,56,0.08);
+        
+        .navbar-nav .nav-link.active {
+            color: var(--cvsu-gold) !important;
+            background: rgba(255, 255, 255, 0.15);
         }
+        
+        .navbar-nav .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            width: 0;
+            height: 3px;
+            background: var(--cvsu-gold);
+            border-radius: 3px;
+            transition: all 0.3s ease;
+            transform: translateX(-50%);
+        }
+        
+        .navbar-nav .nav-link:hover::after,
+        .navbar-nav .nav-link.active::after {
+            width: 70%;
+        }
+        
+        /* Navbar toggler */
+        .navbar-toggler {
+            border: 2px solid rgba(239, 182, 10, 0.3);
+            padding: 0.4rem 0.7rem;
+        }
+        
+        .navbar-toggler:focus {
+            box-shadow: 0 0 0 3px rgba(239, 182, 10, 0.25);
+        }
+        
+        .navbar-toggler-icon {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28239, 182, 10, 1%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+        }
+        
+        /* Dropdown menu */
+        .dropdown-menu {
+            background: rgba(255, 255, 255, 0.98);
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            backdrop-filter: blur(10px);
+            margin-top: 0.5rem !important;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* ===== GLOBAL SCROLL-TO-TOP BUTTON ===== */
+        .global-scroll-top-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--cvsu-green), #0a6d0b);
+            color: white;
+            border: none;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 9998;
+            box-shadow: 0 4px 15px rgba(6, 78, 7, 0.3);
+            transition: all 0.3s ease;
+            font-size: 1.2rem;
+        }
+        
+        .global-scroll-top-btn:hover {
+            background: linear-gradient(135deg, var(--cvsu-gold), #f9b233);
+            transform: translateY(-3px) scale(1.1);
+            box-shadow: 0 8px 25px rgba(239, 182, 10, 0.4);
+        }
+        
+        /* ===== FOOTER ===== */
+        .footer {
+            background: linear-gradient(135deg, var(--cvsu-dark-green), #1a1a1a) !important;
+            color: rgba(255, 255, 255, 0.85);
+            padding: 3rem 0 1.5rem;
+            margin-top: auto;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .footer::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(to right, var(--cvsu-green), var(--cvsu-gold), var(--cvsu-red));
+        }
+        
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 768px) {
+            body {
+                padding-top: 70px !important;
+            }
+            
+            .global-scroll-top-btn {
+                bottom: 20px;
+                right: 20px;
+                width: 45px;
+                height: 45px;
+            }
+            
+            .navbar-brand {
+                font-size: 1.1rem;
+            }
+            
+            .logo-container {
+                height: 38px;
+                width: 38px;
+            }
+            
+            .logo-img {
+                height: 28px;
+            }
+        }
+        
+        /* ===== UTILITY ===== */
+        .text-success { color: var(--cvsu-green) !important; }
+        .text-warning { color: var(--cvsu-gold) !important; }
+        .text-danger { color: var(--cvsu-red) !important; }
+        .text-muted { color: var(--cvsu-light-gray) !important; }
+        .bg-success { background-color: var(--cvsu-green) !important; }
+        .bg-dark { background-color: var(--cvsu-dark-green) !important; }
     </style>
     
     {% block extra_css %}{% endblock %}
 </head>
 <body>
-    <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-success">
+    <!-- Global Scroll to Top Button -->
+    <button class="global-scroll-top-btn" id="globalScrollTopBtn">
+        <i class="fas fa-chevron-up"></i>
+    </button>
+
+    <!-- Fixed Navigation - ALWAYS VISIBLE -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
         <div class="container">
-            <a class="navbar-brand d-flex align-items-center" href="{% url 'home' %}">
-                <span style="display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; height: 44px; width: 44px; margin-right: 0.5rem; background: #fff;">
-                    <img src="{% static 'images/logo (2).png' %}" alt="CVSU Logo" height="36" style="display: block; margin: auto; filter: drop-shadow(0 0 2px #006d38);">
+            <a class="navbar-brand" href="{% url 'home' %}">
+                <span class="logo-container">
+                    <img src="{% static 'images/logo (2).png' %}" alt="CVSU Logo" class="logo-img">
                 </span>
-                <span>CVSU Internship Matching</span>
+                <span>CVSU Internship</span>
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
@@ -107,59 +341,98 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'home' %}">Home</a>
+                        <a class="nav-link {% if request.path == '/' %}active{% endif %}" href="{% url 'home' %}">
+                            <i class="fas fa-home me-1"></i> Home
+                        </a>
                     </li>
                     {% if user.is_authenticated %}
                         {% if user.is_student %}
                             <li class="nav-item">
-                                <a class="nav-link" href="{% url 'dashboard:student_dashboard' %}">Dashboard</a>
+                                <a class="nav-link {% if 'dashboard' in request.path %}active{% endif %}" href="{% url 'dashboard:student_dashboard' %}">
+                                    <i class="fas fa-tachometer-alt me-1"></i> Dashboard
+                                </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" href="{% url 'internship:matches' %}">Matches</a>
+                                <a class="nav-link {% if 'matches' in request.path %}active{% endif %}" href="{% url 'internship:matches' %}">
+                                    <i class="fas fa-handshake me-1"></i> Matches
+                                </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" href="{% url 'chat:chat_list' %}">Messages</a>
+                                <a class="nav-link {% if 'chat' in request.path %}active{% endif %}" href="{% url 'chat:chat_list' %}">
+                                    <i class="fas fa-comments me-1"></i> Messages
+                                    {% if user.unread_messages_count %}
+                                        <span class="badge bg-danger ms-1">{{ user.unread_messages_count }}</span>
+                                    {% endif %}
+                                </a>
                             </li>
                         {% elif user.is_adviser %}
                             <li class="nav-item">
-                                <a class="nav-link" href="{% url 'dashboard:adviser_dashboard' %}">Dashboard</a>
+                                <a class="nav-link {% if 'dashboard' in request.path %}active{% endif %}" href="{% url 'dashboard:adviser_dashboard' %}">
+                                    <i class="fas fa-tachometer-alt me-1"></i> Dashboard
+                                </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" href="{% url 'dashboard:student_list' %}">Students</a>
+                                <a class="nav-link {% if 'student_list' in request.path %}active{% endif %}" href="{% url 'dashboard:student_list' %}">
+                                    <i class="fas fa-users me-1"></i> Students
+                                </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" href="{% url 'chat:chat_list' %}">Messages</a>
+                                <a class="nav-link {% if 'chat' in request.path %}active{% endif %}" href="{% url 'chat:chat_list' %}">
+                                    <i class="fas fa-comments me-1"></i> Messages
+                                    {% if user.unread_messages_count %}
+                                        <span class="badge bg-danger ms-1">{{ user.unread_messages_count }}</span>
+                                    {% endif %}
+                                </a>
                             </li>
                         {% elif user.is_coordinator %}
                             <li class="nav-item">
-                                <a class="nav-link" href="{% url 'dashboard:coordinator_dashboard' %}">Dashboard</a>
+                                <a class="nav-link {% if 'dashboard' in request.path %}active{% endif %}" href="{% url 'dashboard:coordinator_dashboard' %}">
+                                    <i class="fas fa-tachometer-alt me-1"></i> Dashboard
+                                </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" href="{% url 'chat:chat_list' %}">Messages</a>
+                                <a class="nav-link {% if 'chat' in request.path %}active{% endif %}" href="{% url 'chat:chat_list' %}">
+                                    <i class="fas fa-comments me-1"></i> Messages
+                                    {% if user.unread_messages_count %}
+                                        <span class="badge bg-danger ms-1">{{ user.unread_messages_count }}</span>
+                                    {% endif %}
+                                </a>
                             </li>
                         {% endif %}
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="fas fa-user-circle"></i> {{ user.username }}
+                                <i class="fas fa-user-circle me-1"></i> {{ user.username|truncatechars:15 }}
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
                                 {% if user.is_student %}
-                                    <li><a class="dropdown-item" href="{% url 'accounts:profile' %}">Profile</a></li>
+                                    <li><a class="dropdown-item" href="{% url 'accounts:profile' %}">
+                                        <i class="fas fa-user me-2"></i> Profile
+                                    </a></li>
                                 {% elif user.is_adviser %}
-                                    <li><a class="dropdown-item" href="{% url 'accounts:adviser_profile' %}">Profile</a></li>
+                                    <li><a class="dropdown-item" href="{% url 'accounts:adviser_profile' %}">
+                                        <i class="fas fa-user me-2"></i> Profile
+                                    </a></li>
                                 {% elif user.is_coordinator %}
-                                    <li><a class="dropdown-item" href="{% url 'accounts:coordinator_profile' %}">Profile</a></li>
+                                    <li><a class="dropdown-item" href="{% url 'accounts:coordinator_profile' %}">
+                                        <i class="fas fa-user me-2"></i> Profile
+                                    </a></li>
                                 {% endif %}
                                 <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="{% url 'account_logout' %}">Logout</a></li>
+                                <li><a class="dropdown-item" href="{% url 'account_logout' %}">
+                                    <i class="fas fa-sign-out-alt me-2"></i> Logout
+                                </a></li>
                             </ul>
                         </li>
                     {% else %}
                         <li class="nav-item">
-                            <a class="nav-link" href="/accounts/login/">Login</a>
+                            <a class="nav-link {% if 'login' in request.path %}active{% endif %}" href="/accounts/login/">
+                                <i class="fas fa-sign-in-alt me-1"></i> Login
+                            </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="/accounts/register/student/">Register</a>
+                            <a class="nav-link {% if 'register' in request.path %}active{% endif %}" href="/accounts/register/student/">
+                                <i class="fas fa-user-plus me-1"></i> Register
+                            </a>
                         </li>
                     {% endif %}
                 </ul>
@@ -167,84 +440,149 @@
         </div>
     </nav>
 
-    <!-- Messages -->
-    {% block hide_django_messages %}{% endblock %}
-    {% if not hide_django_messages %}
-    <div class="container mt-3">
-        {% if messages %}
-            {% for message in messages %}
-                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                    {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            {% endfor %}
-        {% endif %}
-    </div>
-    {% endif %}
-    <script>
-      // Prevent auto-dismiss of alerts (Bootstrap 5 default is manual close)
-      // If you want to auto-dismiss after a period, uncomment below:
-      // setTimeout(function() {
-      //   var alerts = document.querySelectorAll('.alert');
-      //   alerts.forEach(function(alert) {
-      //     var bsAlert = new bootstrap.Alert(alert);
-      //     bsAlert.close();
-      //   });
-      // }, 8000);
-    </script>
-
     <!-- Main Content -->
-    <main class="container py-4">
+    <main class="container-fluid px-0">
+        <!-- Messages -->
+        {% block hide_django_messages %}{% endblock %}
+        {% if not hide_django_messages %}
+        <div class="container mt-4">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        <div class="d-flex align-items-center">
+                            <i class="fas 
+                                {% if message.tags == 'success' %}fa-check-circle
+                                {% elif message.tags == 'warning' %}fa-exclamation-triangle
+                                {% elif message.tags == 'error' or message.tags == 'danger' %}fa-times-circle
+                                {% else %}fa-info-circle{% endif %}
+                                me-2"></i>
+                            <div>{{ message }}</div>
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <!-- Page Content -->
         {% block content %}{% endblock %}
     </main>
 
     <!-- Footer -->
-    <footer class="bg-dark text-white py-4 mt-5">
+    <footer class="footer bg-dark text-white">
         <div class="container">
             <div class="row">
-                <div class="col-md-4">
+                <div class="col-lg-4 col-md-6 mb-4">
                     <h5>CVSU Internship Matching</h5>
-                    <p>Connecting students with the right internship opportunities at Cavite State University Bacoor Campus.</p>
+                    <p class="mt-3">Connecting students with the right internship opportunities at Cavite State University Bacoor Campus.</p>
                 </div>
-                <div class="col-md-4">
+                <div class="col-lg-2 col-md-6 mb-4">
                     <h5>Quick Links</h5>
                     <ul class="list-unstyled">
-                        <li><a href="{% url 'home' %}" class="text-white">Home</a></li>
-                        {% if user.is_authenticated %}
-                            <li><a href="{% url 'account_logout' %}" class="text-white">Logout</a></li>
-                        {% else %}
-                            <li><a href="/auth/login/" class="text-white">Login</a></li>
-                            <li><a href="/accounts/register/student/" class="text-white">Register</a></li>
-                        {% endif %}
-                        <li><a href="{% url 'about' %}" class="text-white">About</a></li>
-                        <li><a href="{% url 'contact' %}" class="text-white">Contact</a></li>
-                        <li><a href="{% url 'faq' %}" class="text-white">FAQ</a></li>
+                        <li><a href="{% url 'home' %}">Home</a></li>
+                        <li><a href="{% url 'about' %}">About</a></li>
+                        <li><a href="{% url 'contact' %}">Contact</a></li>
+                        <li><a href="{% url 'faq' %}">FAQ</a></li>
                     </ul>
                 </div>
-                <div class="col-md-4">
-                    <h5>Contact Us</h5>
-                    <address>
-                        <p><i class="fas fa-map-marker-alt"></i> Cavite State University - Bacoor Campus</p>
-                        <p><i class="fas fa-phone"></i> (046) 123-4567</p>
-                        <p><i class="fas fa-envelope"></i> ojt@cvsu.edu.ph</p>
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <h5>Contact Info</h5>
+                    <address class="mt-3">
+                        <p><i class="fas fa-map-marker-alt"></i> CVSU Bacoor Campus<br>Molino IV, Bacoor City, Cavite</p>
+                        <p><i class="fas fa-phone"></i> (046) 476-5029</p>
+                        <p><i class="fas fa-envelope"></i> ojt@bacoor.cvsu.edu.ph</p>
                     </address>
+                </div>
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <h5>Office Hours</h5>
+                    <div class="mt-3">
+                        <p><strong>Monday - Friday:</strong><br>8:00 AM - 5:00 PM</p>
+                    </div>
                 </div>
             </div>
             <hr>
-            <div class="text-center">
-                <p>&copy; {% now "Y" %} CVSU Internship Matching System. All rights reserved.</p>
+            <div class="row">
+                <div class="col-12 text-center">
+                    <p>&copy; {% now "Y" %} Cavite State University - Bacoor Campus. All rights reserved.</p>
+                </div>
             </div>
         </div>
     </footer>
 
     <!-- Bootstrap 5 JS Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- Leaflet JS -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <!-- Custom JS -->
     <script src="/static/js/main.js"></script>
+    
+    <script>
+        // Fixed navbar scroll effect - FOR ALL PAGES
+        window.addEventListener('scroll', function() {
+            const navbar = document.querySelector('.navbar');
+            const scrollTopBtn = document.getElementById('globalScrollTopBtn');
+            
+            // Navbar scroll effect
+            if (window.scrollY > 50) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+            
+            // Show/hide global scroll to top button
+            if (window.scrollY > 300) {
+                scrollTopBtn.style.display = 'flex';
+            } else {
+                scrollTopBtn.style.display = 'none';
+            }
+        });
+
+        // Global scroll to top functionality
+        document.getElementById('globalScrollTopBtn').addEventListener('click', function() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                if (this.getAttribute('href') !== '#') {
+                    e.preventDefault();
+                    const targetId = this.getAttribute('href');
+                    if (targetId.startsWith('#') && targetId.length > 1) {
+                        const targetElement = document.querySelector(targetId);
+                        if (targetElement) {
+                            window.scrollTo({
+                                top: targetElement.offsetTop - 80,
+                                behavior: 'smooth'
+                            });
+                        }
+                    }
+                }
+            });
+        });
+
+        // Auto-dismiss alerts
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(function() {
+                var alerts = document.querySelectorAll('.alert');
+                alerts.forEach(function(alert) {
+                    var bsAlert = new bootstrap.Alert(alert);
+                    bsAlert.close();
+                });
+            }, 5000);
+        });
+
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Trigger scroll event to set initial state
+            window.dispatchEvent(new Event('scroll'));
+        });
+    </script>
+    
     {% block extra_js %}{% endblock %}
 </body>
 </html>
