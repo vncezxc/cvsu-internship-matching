@@ -200,7 +200,15 @@
                             {% for message in messages %}
                                 <div class="message {% if message.sender == request.user %}sent{% else %}received{% endif %}">
                                     {% if message.sender == request.user %}
-                                        <img src="{{ request.user.profile.avatar.url|default:'/static/images/default_avatar.png' }}" class="avatar" alt="avatar">
+                                        {% if request.user.is_student and request.user.student_profile.profile_image %}
+                                            <img src="{{ request.user.student_profile.profile_image.url }}" class="avatar" alt="avatar">
+                                        {% elif request.user.is_adviser and request.user.adviser_profile.profile_image %}
+                                            <img src="{{ request.user.adviser_profile.profile_image.url }}" class="avatar" alt="avatar">
+                                        {% elif request.user.is_coordinator and request.user.coordinator_profile.profile_image %}
+                                            <img src="{{ request.user.coordinator_profile.profile_image.url }}" class="avatar" alt="avatar">
+                                        {% else %}
+                                            <img src="/static/images/default_avatar.png" class="avatar" alt="avatar">
+                                        {% endif %}
                                     {% else %}
                                         <img src="{{ chat_avatar|default:'/static/images/default_avatar.png' }}" class="avatar" alt="avatar">
                                     {% endif %}
