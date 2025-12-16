@@ -14,6 +14,18 @@
         --cvsu-white: #FFFFFF;
     }
 
+    /* Debug overlay for testing z-index issues */
+    /* .debug-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 0, 0, 0.1);
+        pointer-events: none;
+        z-index: 99999;
+    } */
+
     /* ===== IMPROVED NAVIGATION ===== */
     .navbar {
         position: fixed !important;
@@ -99,7 +111,8 @@
         color: white;
         padding: 100px 0;
         position: relative;
-        overflow: hidden;
+        z-index: 1;
+        /* overflow: visible; */
     }
 
     .hero-section::before {
@@ -111,6 +124,22 @@
         bottom: 0;
         background: url('{% static "images/campus.jpg" %}') center/cover;
         opacity: 0.15;
+        z-index: 0;
+        pointer-events: none !important;
+    }
+
+    .hero-section::after {
+        pointer-events: none !important;
+    }
+
+    .hero-section * {
+        pointer-events: auto !important;
+    }
+
+    .hero-section .btn {
+        position: relative;
+        z-index: 100 !important;
+        pointer-events: auto !important;
     }
 
     .hero-logo {
@@ -356,26 +385,36 @@
                 </div>
                 <h1 class="display-4 fw-bold mb-4">CVSU Internship Matching Portal</h1>
                 <p class="lead mb-5">Connecting Cavite State University Bacoor Campus students with the perfect internship opportunities through intelligent matching and seamless coordination.</p>
-                <div class="d-grid gap-3 d-sm-flex justify-content-sm-center">
+                <div class="d-grid gap-3 d-sm-flex justify-content-sm-center" style="position: relative; z-index: 100;">
                     {% if user.is_authenticated %}
                         {% if user.is_student %}
-                            <a href="{% url 'dashboard:student_dashboard' %}" class="btn btn-lg px-4" style="background-color: var(--cvsu-gold); color: var(--cvsu-dark-green); font-weight: 600;">
+                            <a href="{% url 'dashboard:student_dashboard' %}"
+                               class="btn btn-lg px-4"
+                               style="background-color: var(--cvsu-gold); color: var(--cvsu-dark-green); font-weight: 600; position: relative; z-index: 101;">
                                 Go to Dashboard <i class="fas fa-arrow-right ms-2"></i>
                             </a>
                         {% elif user.is_adviser %}
-                            <a href="{% url 'dashboard:adviser_dashboard' %}" class="btn btn-lg px-4" style="background-color: var(--cvsu-gold); color: var(--cvsu-dark-green); font-weight: 600;">
+                            <a href="{% url 'dashboard:adviser_dashboard' %}"
+                               class="btn btn-lg px-4"
+                               style="background-color: var(--cvsu-gold); color: var(--cvsu-dark-green); font-weight: 600; position: relative; z-index: 101;">
                                 Go to Dashboard <i class="fas fa-arrow-right ms-2"></i>
                             </a>
                         {% elif user.is_coordinator %}
-                            <a href="{% url 'dashboard:coordinator_dashboard' %}" class="btn btn-lg px-4" style="background-color: var(--cvsu-gold); color: var(--cvsu-dark-green); font-weight: 600;">
+                            <a href="{% url 'dashboard:coordinator_dashboard' %}"
+                               class="btn btn-lg px-4"
+                               style="background-color: var(--cvsu-gold); color: var(--cvsu-dark-green); font-weight: 600; position: relative; z-index: 101;">
                                 Go to Dashboard <i class="fas fa-arrow-right ms-2"></i>
                             </a>
                         {% endif %}
                     {% else %}
-                        <a href="/accounts/login/" class="btn btn-lg px-4" style="background-color: var(--cvsu-gold); color: var(--cvsu-dark-green); font-weight: 600;">
+                        <a href="/accounts/login/"
+                           class="btn btn-lg px-4"
+                           style="background-color: var(--cvsu-gold); color: var(--cvsu-dark-green); font-weight: 600; position: relative; z-index: 101;">
                             Login <i class="fas fa-sign-in-alt ms-2"></i>
                         </a>
-                        <a href="/accounts/register/student/" class="btn btn-lg px-4" style="background-color: transparent; border: 2px solid var(--cvsu-gold); color: white; font-weight: 600;">
+                        <a href="/accounts/register/student/"
+                           class="btn btn-lg px-4"
+                           style="background-color: transparent; border: 2px solid var(--cvsu-gold); color: white; font-weight: 600; position: relative; z-index: 101;">
                             Register <i class="fas fa-user-plus ms-2"></i>
                         </a>
                     {% endif %}
