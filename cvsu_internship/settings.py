@@ -308,7 +308,8 @@ CORS_ALLOW_ALL_ORIGINS = False
 CORS_ALLOW_CREDENTIALS = True
 
 cors_origins = get_config('CORS_ALLOWED_ORIGINS', default='')
-CORS_ALLOWED_ORIGINS = [origin.strip() for origin in cors_origins.split(',')] if cors_origins else []
+# Remove trailing slashes from origins (CORS requirement)
+CORS_ALLOWED_ORIGINS = [origin.strip().rstrip('/') for origin in cors_origins.split(',')] if cors_origins else []
 
 CORS_ALLOW_METHODS = [
     'DELETE',
