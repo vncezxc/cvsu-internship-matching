@@ -55,9 +55,9 @@
                 <input type="file" name="file" accept=".pdf,.docx" required class="form-control form-control-sm mb-2">
                 <button type="submit" class="btn btn-sm btn-primary">Upload</button>
               </form>
-              {% if doc.name|lower == 'moa' and doc.template_file %}
-                <a href="{% url 'dashboard:edit_moa' doc.id %}" class="btn btn-sm btn-warning mt-2">Edit MOA</a>
-                <a href="{% url 'dashboard:download_edited_moa' doc.id %}" class="btn btn-sm btn-info mt-2">Download Edited MOA</a>
+              {% if doc.template_file %}
+                <a href="{% url 'dashboard:edit_moa' doc.id %}" class="btn btn-sm btn-warning mt-2">Edit Document</a>
+                <a href="{% url 'dashboard:download_edited_moa' doc.id %}" class="btn btn-sm btn-info mt-2">Download</a>
               {% endif %}
             </td>
           </tr>
