@@ -680,7 +680,8 @@ def student_register(request):
             return redirect('accounts:verify_email_code')
     else:
         form = StudentRegisterForm()
-    return render(request, 'account/signup.html', {'form': form, 'register_type': 'student'})
+    coordinator_exists = User.objects.filter(is_coordinator=True).exists()
+    return render(request, 'account/signup.html', {'form': form, 'register_type': 'student', 'coordinator_exists': coordinator_exists})
 
 # adviser_register
 def adviser_register(request):
@@ -710,7 +711,8 @@ def adviser_register(request):
             return redirect('accounts:verify_email_code')
     else:
         form = AdviserRegisterForm()
-    return render(request, 'account/signup.html', {'form': form, 'register_type': 'adviser'})
+    coordinator_exists = User.objects.filter(is_coordinator=True).exists()
+    return render(request, 'account/signup.html', {'form': form, 'register_type': 'adviser', 'coordinator_exists': coordinator_exists})
 
 # coordinator_register
 def coordinator_register(request):
@@ -744,7 +746,8 @@ def coordinator_register(request):
             return redirect('accounts:verify_email_code')
     else:
         form = CoordinatorRegisterForm()
-    return render(request, 'account/signup.html', {'form': form, 'register_type': 'coordinator'})
+    coordinator_exists = User.objects.filter(is_coordinator=True).exists()
+    return render(request, 'account/signup.html', {'form': form, 'register_type': 'coordinator', 'coordinator_exists': coordinator_exists})
 
 @login_required
 def update_ojt_status(request):
@@ -1034,6 +1037,128 @@ def debug_codes(request):
             'codes': codes_list,
             'session_user_id': user_id,
         })
-        
     except User.DoesNotExist:
         return JsonResponse({'error': 'User not found'})
+
+@login_required
+def coordinator_resign(request):
+    """Coordinator can resign and invite a new coordinator"""
+    if not request.user.is_coordinator:
+        messages.error(request, 'Only coordinators can access this page.')
+        return redirect('dashboard:home')
+    
+    from .forms import CoordinatorResignForm
+    from .models import CoordinatorInvitation
+    from datetime import timedelta
+    
+    if request.method == 'POST':
+        form = CoordinatorResignForm(request.POST)
+        if form.is_valid():
+            new_email = form.cleaned_data['new_coordinator_email']
+            
+            # Create invitation token (expires in 7 days)
+            invitation = CoordinatorInvitation.objects.create(
+                email=new_email,
+                invited_by=request.user,
+                expires_at=timezone.now() + timedelta(days=7)
+            )
+            
+            # Send invitation email
+            registration_url = request.build_absolute_uri(
+                f'/accounts/register/coordinator/{invitation.token}/'
+            )
+            
+            send_mail(
+                subject='CVSU Internship System - Coordinator Invitation',
+                message=f'''Hello,
+
+You have been invited to become the new OJT Coordinator for the CVSU Bacoor Internship Matching System.
+
+The current coordinator, {request.user.get_full_name()}, is transferring the role to you.
+
+Please click the link below to register as the new coordinator:
+{registration_url}
+
+This link will expire in 7 days.
+
+If you did not expect this invitation, please ignore this email.
+
+Best regards,
+CVSU Bacoor Internship System
+''',
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[new_email],
+                fail_silently=False,
+            )
+            
+            messages.success(request, f'Invitation sent to {new_email}. Once they register, your coordinator role will be transferred.')
+            return redirect('dashboard:coordinator_dashboard')
+    else:
+        form = CoordinatorResignForm()
+    
+    return render(request, 'accounts/coordinator_resign.html', {'form': form})
+
+def coordinator_register_with_token(request, token):
+    """Special registration for invited coordinators"""
+    from .models import CoordinatorInvitation
+    
+    try:
+        invitation = CoordinatorInvitation.objects.get(token=token)
+    except CoordinatorInvitation.DoesNotExist:
+        messages.error(request, 'Invalid invitation link.')
+        return redirect('accounts:login')
+    
+    if not invitation.is_valid():
+        messages.error(request, 'This invitation has expired or been used.')
+        return redirect('accounts:login')
+    
+    if request.method == 'POST':
+        from .forms import CoordinatorRegisterForm
+        form = CoordinatorRegisterForm(request.POST)
+        
+        # Validate that email matches invitation
+        if form.is_valid():
+            if form.cleaned_data['email'] != invitation.email:
+                messages.error(request, 'Email must match the invited email address.')
+            else:
+                user = form.save(commit=False)
+                user.is_active = False
+                user.save()
+                CoordinatorProfile.objects.create(user=user, department="")
+                
+                # Create EmailAddress for AllAuth
+                EmailAddress.objects.create(
+                    user=user,
+                    email=user.email,
+                    verified=False,
+                    primary=True
+                )
+                
+                # Mark invitation as used
+                invitation.is_used = True
+                invitation.save()
+                
+                # Deactivate old coordinator
+                old_coordinator = invitation.invited_by
+                old_coordinator.is_coordinator = False
+                old_coordinator.is_active = False
+                old_coordinator.save()
+                
+                request.session['verifying_user_id'] = user.id
+                request.session['verifying_user_email'] = user.email
+                request.session['verification_session_time'] = timezone.now().isoformat()
+                
+                send_verification_code(user)
+                messages.success(request, 'Registration successful! Please verify your email. The previous coordinator has been deactivated.')
+                return redirect('accounts:verify_email_code')
+    else:
+        from .forms import CoordinatorRegisterForm
+        form = CoordinatorRegisterForm(initial={'email': invitation.email})
+    
+    return render(request, 'account/signup.html', {
+        'form': form,
+        'register_type': 'coordinator',
+        'invitation_token': token,
+        'invited_email': invitation.email
+    })
+        

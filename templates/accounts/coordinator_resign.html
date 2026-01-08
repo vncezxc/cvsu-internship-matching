@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Resign as Coordinator{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-warning text-dark">
+                    <h4 class="mb-0"><i class="bi bi-exclamation-triangle me-2"></i>Transfer Coordinator Role</h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <h5 class="alert-heading"><i class="bi bi-info-circle me-2"></i>Important Information</h5>
+                        <p>By submitting this form, you will:</p>
+                        <ul>
+                            <li>Invite a new person to become the OJT Coordinator</li>
+                            <li>Send them a secure registration link via email</li>
+                            <li>Your coordinator account will be <strong>deactivated</strong> once they complete registration</li>
+                            <li>This action cannot be undone</li>
+                        </ul>
+                    </div>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="mb-4">
+                            <h5>Enter New Coordinator Details</h5>
+                            {{ form.new_coordinator_email|as_crispy_field }}
+                            <small class="text-muted">
+                                <i class="bi bi-shield-check me-1"></i>
+                                Must be a valid @cvsu.edu.ph email address
+                            </small>
+                        </div>
+
+                        <div class="alert alert-warning">
+                            <strong>Note:</strong> The invitation link will be valid for 7 days. The new coordinator must register within this period.
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center mt-4">
+                            <a href="{% url 'dashboard:coordinator_dashboard' %}" class="btn btn-secondary">
+                                <i class="bi bi-arrow-left me-1"></i>Cancel
+                            </a>
+                            <button type="submit" class="btn btn-warning" onclick="return confirm('Are you sure you want to transfer the coordinator role? Your account will be deactivated once the new coordinator registers.');">
+                                <i class="bi bi-send me-1"></i>Send Invitation
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -15,7 +15,9 @@
                     <div class="mb-3 text-center">
                         <a href="{% url 'accounts:student_register' %}" class="btn btn-outline-success btn-sm {% if register_type == 'student' or not register_type %}active{% endif %}">Student</a>
                         <a href="{% url 'accounts:adviser_register' %}" class="btn btn-outline-success btn-sm {% if register_type == 'adviser' %}active{% endif %}">Adviser</a>
-                        <a href="{% url 'accounts:coordinator_register' %}" class="btn btn-outline-success btn-sm {% if register_type == 'coordinator' %}active{% endif %}">Coordinator</a>
+                        {% if not coordinator_exists %}
+                            <a href="{% url 'accounts:coordinator_register' %}" class="btn btn-outline-success btn-sm {% if register_type == 'coordinator' %}active{% endif %}">Coordinator</a>
+                        {% endif %}
                     </div>
                     {% if form.non_field_errors %}
                         <div class="alert alert-danger">{{ form.non_field_errors|striptags }}</div>

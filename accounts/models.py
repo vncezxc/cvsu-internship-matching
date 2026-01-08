@@ -1,6 +1,24 @@
 from django.db import models
 from django.conf import settings
 import random
+import uuid
+
+# Coordinator invitation token model
+class CoordinatorInvitation(models.Model):
+    email = models.EmailField(unique=True)
+    token = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+    invited_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='sent_invitations')
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_used = models.BooleanField(default=False)
+    expires_at = models.DateTimeField()
+    
+    def __str__(self):
+        return f"Invitation for {self.email}"
+    
+    def is_valid(self):
+        from django.utils import timezone
+        return not self.is_used and timezone.now() < self.expires_at
+
 # 6-digit email verification code model
 class EmailVerificationCode(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='verification_codes')

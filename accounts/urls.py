@@ -53,7 +53,12 @@ urlpatterns = [
     path('register/student/', views.student_register, name='student_register'),
     path('register/adviser/', views.adviser_register, name='adviser_register'),
     path('register/coordinator/', views.coordinator_register, name='coordinator_register'),
+    path('register/coordinator/<uuid:token>/', views.coordinator_register_with_token, name='coordinator_register_with_token'),
     path('register/', views.register_choice, name='register_choice'),
+    
+    # Coordinator resignation
+    path('coordinator/resign/', views.coordinator_resign, name='coordinator_resign'),
+    
     # OJT status update
     path('update-ojt-status/', views.update_ojt_status, name='update_ojt_status'),
     

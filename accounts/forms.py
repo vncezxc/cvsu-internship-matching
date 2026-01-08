@@ -105,6 +105,26 @@ class StudentProfileForm(forms.ModelForm):
             raise forms.ValidationError('Last name must contain only letters, spaces, and hyphens.')
         return last_name
 
+    def clean_phone_number(self):
+        """Validate that phone number contains only numbers, spaces, hyphens, and plus sign."""
+        import re
+        phone_number = self.cleaned_data.get('phone_number', '')
+        if phone_number:
+            # Allow only digits, spaces, hyphens, and plus sign
+            if not re.match(r'^[\d\s\-\+]+$', phone_number):
+                raise forms.ValidationError('Phone number must contain only numbers, spaces, hyphens, and + sign.')
+        return phone_number
+
+    def clean_section(self):
+        """Validate that section follows the format like 3-1, 4-2."""
+        import re
+        section = self.cleaned_data.get('section', '')
+        if section:
+            # Format: digit(s)-digit(s), e.g., 3-1, 4-2
+            if not re.match(r'^\d+-\d+$', section):
+                raise forms.ValidationError('Section must follow the format like "3-1", "4-2", etc.')
+        return section
+
     def save(self, commit=True):
         profile = super().save(commit=False)
         user = profile.user
@@ -157,6 +177,16 @@ class AdviserProfileForm(forms.ModelForm):
     def clean_year_levels(self):
         return self.cleaned_data['year_levels']
 
+    def clean_phone_number(self):
+        """Validate that phone number contains only numbers, spaces, hyphens, and plus sign."""
+        import re
+        phone_number = self.cleaned_data.get('phone_number', '')
+        if phone_number:
+            # Allow only digits, spaces, hyphens, and plus sign
+            if not re.match(r'^[\d\s\-\+]+$', phone_number):
+                raise forms.ValidationError('Phone number must contain only numbers, spaces, hyphens, and + sign.')
+        return phone_number
+
     def clean_sections(self):
         import re
         sections = self.cleaned_data.get('sections', '')
@@ -196,6 +226,17 @@ class CoordinatorProfileForm(forms.ModelForm):
         widgets = {
             'profile_image': forms.FileInput(attrs={'class': 'form-control'}),
         }
+    
+    def clean_phone_number(self):
+        """Validate that phone number contains only numbers, spaces, hyphens, and plus sign."""
+        import re
+        phone_number = self.cleaned_data.get('phone_number', '')
+        if phone_number:
+            # Allow only digits, spaces, hyphens, and plus sign
+            if not re.match(r'^[\d\s\-\+]+$', phone_number):
+                raise forms.ValidationError('Phone number must contain only numbers, spaces, hyphens, and + sign.')
+        return phone_number
+    
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if self.instance and self.instance.user:
@@ -418,3 +459,21 @@ class EmailVerificationCodeForm(forms.Form):
         required=True,
         widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter 6-digit code'})
     )
+
+class CoordinatorResignForm(forms.Form):
+    new_coordinator_email = forms.EmailField(
+        label='New Coordinator Email',
+        required=True,
+        widget=forms.EmailInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter @cvsu.edu.ph email'
+        })
+    )
+    
+    def clean_new_coordinator_email(self):
+        email = self.cleaned_data.get('new_coordinator_email')
+        if not email.endswith('@cvsu.edu.ph'):
+            raise forms.ValidationError('Only @cvsu.edu.ph email addresses are allowed.')
+        if User.objects.filter(email=email).exists():
+            raise forms.ValidationError('This email is already registered in the system.')
+        return email
