@@ -114,6 +114,11 @@ def submit_dtr(request):
         messages.error(request, 'Only students can submit DTRs.')
         return redirect('dashboard:home')
     profile = request.user.student_profile
+    
+    # Check if student is currently undergoing internship
+    if profile.ojt_status != StudentProfile.OJTStatus.ONGOING:
+        messages.error(request, 'You can only submit DTR when your internship status is "Ongoing".')
+        return redirect('dashboard:student_dashboard')
     if request.method == 'POST':
         form = DTRSubmissionForm(request.POST, request.FILES)
         if form.is_valid():
@@ -423,12 +428,16 @@ def coordinator_dashboard(request):
     # Get recent applications
     recent_applications = Application.objects.order_by('-applied_at')[:5]
     
+    # Get approved advisers
+    approved_advisers = User.objects.filter(user_type=User.UserType.ADVISER, is_approved=True, is_active=True).order_by('-date_joined')
+    
     context = {
         'profile': profile,
         'stats': stats,
         'recent_companies': recent_companies,
         'recent_internships': recent_internships,
         'recent_applications': recent_applications,
+        'approved_advisers': approved_advisers,
     }
     return render(request, 'dashboard/coordinator_dashboard.html', context)
 

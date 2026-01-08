@@ -106,13 +106,17 @@ class StudentProfileForm(forms.ModelForm):
         return last_name
 
     def clean_phone_number(self):
-        """Validate that phone number contains only numbers, spaces, hyphens, and plus sign."""
+        """Validate that phone number is exactly 11 digits."""
         import re
         phone_number = self.cleaned_data.get('phone_number', '')
         if phone_number:
-            # Allow only digits, spaces, hyphens, and plus sign
-            if not re.match(r'^[\d\s\-\+]+$', phone_number):
-                raise forms.ValidationError('Phone number must contain only numbers, spaces, hyphens, and + sign.')
+            # Remove any spaces, hyphens, or plus signs
+            digits_only = re.sub(r'[^\\d]', '', phone_number)
+            if len(digits_only) != 11:
+                raise forms.ValidationError('Phone number must be exactly 11 digits.')
+            if not digits_only.isdigit():
+                raise forms.ValidationError('Phone number must contain only numbers.')
+            return digits_only  # Return cleaned version
         return phone_number
 
     def clean_section(self):
@@ -178,13 +182,17 @@ class AdviserProfileForm(forms.ModelForm):
         return self.cleaned_data['year_levels']
 
     def clean_phone_number(self):
-        """Validate that phone number contains only numbers, spaces, hyphens, and plus sign."""
+        """Validate that phone number is exactly 11 digits."""
         import re
         phone_number = self.cleaned_data.get('phone_number', '')
         if phone_number:
-            # Allow only digits, spaces, hyphens, and plus sign
-            if not re.match(r'^[\d\s\-\+]+$', phone_number):
-                raise forms.ValidationError('Phone number must contain only numbers, spaces, hyphens, and + sign.')
+            # Remove any spaces, hyphens, or plus signs
+            digits_only = re.sub(r'[^\\d]', '', phone_number)
+            if len(digits_only) != 11:
+                raise forms.ValidationError('Phone number must be exactly 11 digits.')
+            if not digits_only.isdigit():
+                raise forms.ValidationError('Phone number must contain only numbers.')
+            return digits_only  # Return cleaned version
         return phone_number
 
     def clean_sections(self):
@@ -228,13 +236,17 @@ class CoordinatorProfileForm(forms.ModelForm):
         }
     
     def clean_phone_number(self):
-        """Validate that phone number contains only numbers, spaces, hyphens, and plus sign."""
+        """Validate that phone number is exactly 11 digits."""
         import re
         phone_number = self.cleaned_data.get('phone_number', '')
         if phone_number:
-            # Allow only digits, spaces, hyphens, and plus sign
-            if not re.match(r'^[\d\s\-\+]+$', phone_number):
-                raise forms.ValidationError('Phone number must contain only numbers, spaces, hyphens, and + sign.')
+            # Remove any spaces, hyphens, or plus signs
+            digits_only = re.sub(r'[^\\d]', '', phone_number)
+            if len(digits_only) != 11:
+                raise forms.ValidationError('Phone number must be exactly 11 digits.')
+            if not digits_only.isdigit():
+                raise forms.ValidationError('Phone number must contain only numbers.')
+            return digits_only  # Return cleaned version
         return phone_number
     
     def __init__(self, *args, **kwargs):
