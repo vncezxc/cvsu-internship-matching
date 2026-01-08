@@ -111,11 +111,9 @@ class StudentProfileForm(forms.ModelForm):
         phone_number = self.cleaned_data.get('phone_number', '')
         if phone_number:
             # Remove any spaces, hyphens, or plus signs
-            digits_only = re.sub(r'[^\\d]', '', phone_number)
+            digits_only = re.sub(r'[^0-9]', '', phone_number)
             if len(digits_only) != 11:
                 raise forms.ValidationError('Phone number must be exactly 11 digits.')
-            if not digits_only.isdigit():
-                raise forms.ValidationError('Phone number must contain only numbers.')
             return digits_only  # Return cleaned version
         return phone_number
 
@@ -187,11 +185,9 @@ class AdviserProfileForm(forms.ModelForm):
         phone_number = self.cleaned_data.get('phone_number', '')
         if phone_number:
             # Remove any spaces, hyphens, or plus signs
-            digits_only = re.sub(r'[^\\d]', '', phone_number)
+            digits_only = re.sub(r'[^0-9]', '', phone_number)
             if len(digits_only) != 11:
                 raise forms.ValidationError('Phone number must be exactly 11 digits.')
-            if not digits_only.isdigit():
-                raise forms.ValidationError('Phone number must contain only numbers.')
             return digits_only  # Return cleaned version
         return phone_number
 
@@ -241,11 +237,9 @@ class CoordinatorProfileForm(forms.ModelForm):
         phone_number = self.cleaned_data.get('phone_number', '')
         if phone_number:
             # Remove any spaces, hyphens, or plus signs
-            digits_only = re.sub(r'[^\\d]', '', phone_number)
+            digits_only = re.sub(r'[^0-9]', '', phone_number)
             if len(digits_only) != 11:
                 raise forms.ValidationError('Phone number must be exactly 11 digits.')
-            if not digits_only.isdigit():
-                raise forms.ValidationError('Phone number must contain only numbers.')
             return digits_only  # Return cleaned version
         return phone_number
     
