@@ -23,6 +23,7 @@ urlpatterns = [
 
     # DTR Submission and Review
     path('student/dtr/submit/', views.submit_dtr, name='submit_dtr'),
+    path('student/dtr/', views.student_dtr_list, name='student_dtr_list'),
     path('adviser/dtr/', views.adviser_dtr_list, name='adviser_dtr_list'),
     path('adviser/dtr/<int:dtr_id>/review/', views.review_dtr, name='review_dtr'),
 

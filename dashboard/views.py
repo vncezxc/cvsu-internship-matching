@@ -130,6 +130,16 @@ def submit_dtr(request):
         form = DTRSubmissionForm()
     return render(request, 'dashboard/submit_dtr.html', {'form': form})
 
+# --- Student DTR List ---
+@login_required
+def student_dtr_list(request):
+    if not request.user.is_student:
+        messages.error(request, 'Only students can view their DTR submissions.')
+        return redirect('dashboard:home')
+    profile = request.user.student_profile
+    dtrs = DTR.objects.filter(student=profile).order_by('-week_start')
+    return render(request, 'dashboard/student_dtr_list.html', {'dtrs': dtrs})
+
 # --- DTR List & Review (Adviser) ---
 @login_required
 def adviser_dtr_list(request):

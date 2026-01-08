@@ -1,0 +1,91 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block dashboard_title %}My DTR Submissions{% endblock %}
+
+{% block dashboard_content %}
+<style>
+    .dtr-card { box-shadow: 0 2px 12px rgba(0,0,0,0.1); border-radius: 0.75rem; }
+    .status-badge { font-size: 0.9rem; padding: 0.4rem 0.8rem; }
+</style>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card dtr-card">
+            <div class="card-header bg-primary text-white py-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0"><i class="bi bi-clock-history me-2"></i>My DTR Submissions</h5>
+                    <a href="{% url 'dashboard:submit_dtr' %}" class="btn btn-light btn-sm">
+                        <i class="bi bi-plus-circle me-1"></i>Submit New DTR
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                {% if dtrs %}
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>Week</th>
+                                <th>Hours Rendered</th>
+                                <th>File</th>
+                                <th>Submitted</th>
+                                <th>Status</th>
+                                <th>Remarks</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        {% for dtr in dtrs %}
+                            <tr>
+                                <td>
+                                    <strong>{{ dtr.week_start }}</strong> to <strong>{{ dtr.week_end }}</strong>
+                                </td>
+                                <td>
+                                    <span class="badge bg-info">{{ dtr.hours_rendered }} hrs</span>
+                                </td>
+                                <td>
+                                    {% if dtr.file %}
+                                        <a href="{{ dtr.file.url }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-file-earmark-pdf"></i> View
+                                        </a>
+                                    {% else %}
+                                        <span class="text-muted">No file</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <small class="text-muted">{{ dtr.submitted_at|date:"M d, Y h:i A" }}</small>
+                                </td>
+                                <td>
+                                    {% if dtr.approved %}
+                                        <span class="badge bg-success status-badge">
+                                            <i class="bi bi-check-circle"></i> Approved
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-warning text-dark status-badge">
+                                            <i class="bi bi-hourglass-split"></i> Pending
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if dtr.remarks %}
+                                        <small>{{ dtr.remarks }}</small>
+                                    {% else %}
+                                        <span class="text-muted">—</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                    <div class="alert alert-info mb-0">
+                        <i class="bi bi-info-circle me-2"></i>
+                        You haven't submitted any DTRs yet. 
+                        <a href="{% url 'dashboard:submit_dtr' %}" class="alert-link">Submit your first DTR now!</a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
