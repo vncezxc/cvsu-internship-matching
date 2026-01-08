@@ -680,7 +680,7 @@ def student_register(request):
             return redirect('accounts:verify_email_code')
     else:
         form = StudentRegisterForm()
-    coordinator_exists = User.objects.filter(is_coordinator=True).exists()
+    coordinator_exists = User.objects.filter(user_type=User.UserType.COORDINATOR).exists()
     return render(request, 'account/signup.html', {'form': form, 'register_type': 'student', 'coordinator_exists': coordinator_exists})
 
 # adviser_register
@@ -711,13 +711,13 @@ def adviser_register(request):
             return redirect('accounts:verify_email_code')
     else:
         form = AdviserRegisterForm()
-    coordinator_exists = User.objects.filter(is_coordinator=True).exists()
+    coordinator_exists = User.objects.filter(user_type=User.UserType.COORDINATOR).exists()
     return render(request, 'account/signup.html', {'form': form, 'register_type': 'adviser', 'coordinator_exists': coordinator_exists})
 
 # coordinator_register
 def coordinator_register(request):
     # Check if a coordinator already exists
-    if User.objects.filter(is_coordinator=True).exists():
+    if User.objects.filter(user_type=User.UserType.COORDINATOR).exists():
         messages.error(request, 'A coordinator already exists in the system. Only one coordinator is allowed.')
         return redirect('accounts:login')
     
@@ -746,7 +746,7 @@ def coordinator_register(request):
             return redirect('accounts:verify_email_code')
     else:
         form = CoordinatorRegisterForm()
-    coordinator_exists = User.objects.filter(is_coordinator=True).exists()
+    coordinator_exists = User.objects.filter(user_type=User.UserType.COORDINATOR).exists()
     return render(request, 'account/signup.html', {'form': form, 'register_type': 'coordinator', 'coordinator_exists': coordinator_exists})
 
 @login_required
@@ -1140,7 +1140,7 @@ def coordinator_register_with_token(request, token):
                 
                 # Deactivate old coordinator
                 old_coordinator = invitation.invited_by
-                old_coordinator.is_coordinator = False
+                old_coordinator.user_type = User.UserType.ADVISER  # Demote to adviser
                 old_coordinator.is_active = False
                 old_coordinator.save()
                 
