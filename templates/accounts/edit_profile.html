@@ -39,7 +39,20 @@
                         </div>
                         <div class="row">
                             <div class="col-md-6">{{ form.phone_number|as_crispy_field }}</div>
-                            <div class="col-md-6">{{ form.cv|as_crispy_field }}</div>
+                            <div class="col-md-6">
+                                {% if profile.cv %}
+                                    <div class="mb-2">
+                                        <label class="form-label">Current CV/Resume</label>
+                                        <div class="border rounded p-2 bg-light">
+                                            <a href="{{ profile.cv.url }}" target="_blank" class="btn btn-sm btn-outline-primary d-block mb-2">
+                                                <i class="bi bi-file-earmark-pdf me-1"></i> View Current CV
+                                            </a>
+                                            <small class="text-muted">Uploaded: {{ profile.cv.name|slice:"11:" }}</small>
+                                        </div>
+                                    </div>
+                                {% endif %}
+                                {{ form.cv|as_crispy_field }}
+                            </div>
                         </div>
                         <h5 class="mt-4 mb-3">Address</h5>
                         <div class="row">
