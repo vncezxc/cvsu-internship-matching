@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+{% block title %}Pending Adviser Approvals{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Pending Adviser Registrations</h4>
+                </div>
+                <div class="card-body">
+                    {% if pending_advisers %}
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Email</th>
+                                        <th>Registration Date</th>
+                                        <th>Email Verified</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for adviser in pending_advisers %}
+                                    <tr>
+                                        <td>{{ adviser.get_full_name }}</td>
+                                        <td>{{ adviser.email }}</td>
+                                        <td>{{ adviser.date_joined|date:"M d, Y g:i A" }}</td>
+                                        <td>
+                                            {% if adviser.emailaddress_set.first.verified %}
+                                                <span class="badge bg-success">Verified</span>
+                                            {% else %}
+                                                <span class="badge bg-warning text-dark">Not Verified</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div class="btn-group" role="group">
+                                                <a href="{% url 'accounts:approve_adviser' adviser.id %}" 
+                                                   class="btn btn-sm btn-success"
+                                                   onclick="return confirm('Are you sure you want to approve {{ adviser.get_full_name }}?')">
+                                                    <i class="fas fa-check"></i> Approve
+                                                </a>
+                                                <a href="{% url 'accounts:reject_adviser' adviser.id %}" 
+                                                   class="btn btn-sm btn-danger"
+                                                   onclick="return confirm('Are you sure you want to reject {{ adviser.get_full_name }}? This will delete their account.')">
+                                                    <i class="fas fa-times"></i> Reject
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            No pending adviser registrations at this time.
+                        </div>
+                    {% endif %}
+                    <a href="{% url 'dashboard:coordinator_dashboard' %}" class="btn btn-secondary mt-3">
+                        <i class="fas fa-arrow-left me-1"></i> Back to Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

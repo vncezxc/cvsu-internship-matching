@@ -121,7 +121,10 @@ def submit_dtr(request):
             dtr.student = profile
             dtr.adviser = profile.course.advisers.first() if profile.course else None
             dtr.save()
-            messages.success(request, 'DTR submitted for review.')
+            # Display detailed confirmation
+            file_name = dtr.file.name.split('/')[-1] if dtr.file else 'N/A'
+            success_msg = f'DTR submitted successfully! Week: {dtr.week_start} to {dtr.week_end}, Hours: {dtr.hours_rendered}, File: {file_name}'
+            messages.success(request, success_msg)
             return redirect('dashboard:student_dashboard')
     else:
         form = DTRSubmissionForm()

@@ -4,6 +4,7 @@ from django.contrib import messages
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.forms import PasswordChangeForm
 from django.http import JsonResponse
+from django.conf import settings
 from .models import User, StudentProfile, Skill, RequiredDocument, StudentDocument, AdviserProfile, Course, CoordinatorProfile, EmailVerificationCode
 from .forms import StudentProfileForm, AdviserProfileForm, CoordinatorProfileForm, StudentDocumentUploadForm, StudentCVUploadForm, AddSkillForm, UpdateLocationForm, CourseChoices, CourseForm, SkillForm, StudentRegisterForm, AdviserRegisterForm, CoordinatorRegisterForm
 from django.contrib.auth import login
@@ -532,6 +533,76 @@ def user_list(request):
     users = User.objects.all().order_by('user_type', 'last_name', 'first_name')
     return render(request, 'accounts/user_list.html', {'users': users})
 
+@login_required
+def pending_adviser_approvals(request):
+    """Coordinator: View all pending adviser registrations."""
+    if not request.user.is_coordinator:
+        messages.error(request, 'Only coordinators can approve advisers.')
+        return redirect('dashboard:home')
+    
+    pending_advisers = User.objects.filter(
+        user_type=User.UserType.ADVISER,
+        is_approved=False
+    ).order_by('-date_joined')
+    
+    return render(request, 'accounts/pending_adviser_approvals.html', {
+        'pending_advisers': pending_advisers
+    })
+
+@login_required
+def approve_adviser(request, user_id):
+    """Coordinator: Approve an adviser registration."""
+    if not request.user.is_coordinator:
+        messages.error(request, 'Only coordinators can approve advisers.')
+        return redirect('dashboard:home')
+    
+    adviser = get_object_or_404(User, id=user_id, user_type=User.UserType.ADVISER)
+    adviser.is_approved = True
+    adviser.is_active = True
+    adviser.save()
+    
+    # Send approval email
+    send_mail(
+        'Adviser Account Approved - CVSU Internship Matching',
+        f'Hello {adviser.get_full_name()},\n\n'
+        f'Your adviser account has been approved by the OJT Coordinator.\n'
+        f'You can now log in and complete your profile.\n\n'
+        f'Thank you,\nCVSU Internship Matching Team',
+        settings.DEFAULT_FROM_EMAIL,
+        [adviser.email],
+        fail_silently=False,
+    )
+    
+    messages.success(request, f'Adviser {adviser.get_full_name()} has been approved.')
+    return redirect('accounts:pending_adviser_approvals')
+
+@login_required
+def reject_adviser(request, user_id):
+    """Coordinator: Reject an adviser registration."""
+    if not request.user.is_coordinator:
+        messages.error(request, 'Only coordinators can reject advisers.')
+        return redirect('dashboard:home')
+    
+    adviser = get_object_or_404(User, id=user_id, user_type=User.UserType.ADVISER)
+    
+    # Send rejection email
+    send_mail(
+        'Adviser Account Not Approved - CVSU Internship Matching',
+        f'Hello {adviser.get_full_name()},\n\n'
+        f'Unfortunately, your adviser account registration was not approved.\n'
+        f'Please contact the OJT Coordinator for more information.\n\n'
+        f'Thank you,\nCVSU Internship Matching Team',
+        settings.DEFAULT_FROM_EMAIL,
+        [adviser.email],
+        fail_silently=False,
+    )
+    
+    # Delete the user
+    adviser.delete()
+    
+    messages.success(request, f'Adviser {adviser.get_full_name()} has been rejected and removed.')
+    return redirect('accounts:pending_adviser_approvals')
+
 # Adviser course management
 @login_required
 def manage_courses(request):
@@ -618,6 +689,7 @@ def adviser_register(request):
         if form.is_valid():
             user = form.save(commit=False)
             user.is_active = False  # Start as inactive
+            user.is_approved = False  # Requires coordinator approval
             user.save()
             AdviserProfile.objects.create(user=user, department="", sections="")
             
@@ -634,7 +706,7 @@ def adviser_register(request):
             request.session['verification_session_time'] = timezone.now().isoformat()
             
             send_verification_code(user)
-            messages.success(request, 'Adviser registration successful! Please check your email for verification.')
+            messages.success(request, 'Adviser registration successful! Please check your email for verification. Your account will be activated after coordinator approval.')
             return redirect('accounts:verify_email_code')
     else:
         form = AdviserRegisterForm()
@@ -642,6 +714,11 @@ def adviser_register(request):
 
 # coordinator_register
 def coordinator_register(request):
+    # Check if a coordinator already exists
+    if User.objects.filter(is_coordinator=True).exists():
+        messages.error(request, 'A coordinator already exists in the system. Only one coordinator is allowed.')
+        return redirect('accounts:login')
+    
     if request.method == 'POST':
         form = CoordinatorRegisterForm(request.POST)
         if form.is_valid():
@@ -827,8 +904,11 @@ def verify_email_code(request):
                         code_obj.is_used = True
                         code_obj.save()
                         
-                        # 1. ACTIVATE USER in Django
-                        user.is_active = True
+                        # 1. ACTIVATE USER in Django (but advisers need approval)
+                        if user.is_adviser and not user.is_approved:
+                            user.is_active = False  # Keep inactive until coordinator approves
+                        else:
+                            user.is_active = True
                         user.save()
                         
                         # 2. VERIFY in AllAuth EmailAddress
@@ -851,17 +931,26 @@ def verify_email_code(request):
                             )
                             print(f"[SYNC] Created and verified in AllAuth: {user.email}")
                         
-                        # 3. Login user
-                        user.backend = 'django.contrib.auth.backends.ModelBackend'
-                        login(request, user)
-                        
-                        # 4. Clear session
-                        request.session.pop('verifying_user_id', None)
-                        request.session.pop('verifying_user_email', None)
-                        request.session.pop('verification_session_time', None)
-                        
-                        messages.success(request, 'Email verified successfully! You are now logged in.')
-                        return redirect('dashboard:home')
+                        # 3. Login user or redirect to pending approval
+                        if user.is_adviser and not user.is_approved:
+                            # Don't login, show pending approval message
+                            request.session.pop('verifying_user_id', None)
+                            request.session.pop('verifying_user_email', None)
+                            request.session.pop('verification_session_time', None)
+                            messages.success(request, 'Email verified successfully! Your adviser account is pending coordinator approval. You will receive an email once approved.')
+                            return redirect('account_login')
+                        else:
+                            # Login user
+                            user.backend = 'django.contrib.auth.backends.ModelBackend'
+                            login(request, user)
+                            
+                            # 4. Clear session
+                            request.session.pop('verifying_user_id', None)
+                            request.session.pop('verifying_user_email', None)
+                            request.session.pop('verification_session_time', None)
+                            
+                            messages.success(request, 'Email verified successfully! You are now logged in.')
+                            return redirect('dashboard:home')
                 else:
                     messages.error(request, 'Invalid or expired verification code.')
                     

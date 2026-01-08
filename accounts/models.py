@@ -81,6 +81,10 @@ class User(AbstractUser):
         choices=UserType.choices,
         default=UserType.STUDENT,
     )
+    is_approved = models.BooleanField(
+        default=True,
+        help_text="For advisers: requires coordinator approval. Students and coordinators are auto-approved."
+    )
     
     objects = UserManager()
     

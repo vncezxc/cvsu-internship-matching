@@ -84,6 +84,27 @@ class StudentProfileForm(forms.ModelForm):
             self.fields['last_name'].initial = self.instance.user.last_name
             self.fields['email'].initial = self.instance.user.email
 
+    def clean_student_id(self):
+        """Validate that student ID contains only numbers."""
+        student_id = self.cleaned_data.get('student_id', '')
+        if student_id and not student_id.isdigit():
+            raise forms.ValidationError('Student ID must contain only numbers.')
+        return student_id
+
+    def clean_first_name(self):
+        """Validate that first name contains only letters and spaces."""
+        first_name = self.cleaned_data.get('first_name', '')
+        if first_name and not all(c.isalpha() or c.isspace() or c == '-' for c in first_name):
+            raise forms.ValidationError('First name must contain only letters, spaces, and hyphens.')
+        return first_name
+
+    def clean_last_name(self):
+        """Validate that last name contains only letters and spaces."""
+        last_name = self.cleaned_data.get('last_name', '')
+        if last_name and not all(c.isalpha() or c.isspace() or c == '-' for c in last_name):
+            raise forms.ValidationError('Last name must contain only letters, spaces, and hyphens.')
+        return last_name
+
     def save(self, commit=True):
         profile = super().save(commit=False)
         user = profile.user
@@ -135,6 +156,19 @@ class AdviserProfileForm(forms.ModelForm):
 
     def clean_year_levels(self):
         return self.cleaned_data['year_levels']
+
+    def clean_sections(self):
+        import re
+        sections = self.cleaned_data.get('sections', '')
+        if not sections:
+            return sections
+        # Split by comma and validate each section
+        section_list = [s.strip() for s in sections.split(',') if s.strip()]
+        pattern = re.compile(r'^\d+-\d+$')  # Format: digit(s)-digit(s), e.g., 3-1, 4-2
+        for section in section_list:
+            if not pattern.match(section):
+                raise forms.ValidationError(f'Invalid section format: "{section}". Sections must follow the format like "3-1", "4-2", etc.')
+        return sections
 
     def save(self, commit=True):
         profile = super().save(commit=False)
@@ -264,6 +298,21 @@ class StudentRegisterForm(UserCreationForm):
         if not email.endswith('@cvsu.edu.ph'):
             raise forms.ValidationError('Please use your @cvsu.edu.ph email address.')
         return email
+    
+    def clean_first_name(self):
+        """Validate that first name contains only letters and spaces."""
+        first_name = self.cleaned_data.get('first_name', '')
+        if first_name and not all(c.isalpha() or c.isspace() or c == '-' for c in first_name):
+            raise forms.ValidationError('First name must contain only letters, spaces, and hyphens.')
+        return first_name
+
+    def clean_last_name(self):
+        """Validate that last name contains only letters and spaces."""
+        last_name = self.cleaned_data.get('last_name', '')
+        if last_name and not all(c.isalpha() or c.isspace() or c == '-' for c in last_name):
+            raise forms.ValidationError('Last name must contain only letters, spaces, and hyphens.')
+        return last_name
+    
     email = forms.EmailField(required=True, widget=forms.EmailInput(attrs={'class': 'form-control'}))
     first_name = forms.CharField(max_length=30, widget=forms.TextInput(attrs={'class': 'form-control'}))
     last_name = forms.CharField(max_length=30, widget=forms.TextInput(attrs={'class': 'form-control'}))
@@ -290,6 +339,19 @@ class AdviserRegisterForm(UserCreationForm):
         if not email.endswith('@cvsu.edu.ph'):
             raise forms.ValidationError('Please use your @cvsu.edu.ph email address.')
         return email
+    
+    def clean_first_name(self):
+        first_name = self.cleaned_data.get('first_name', '')
+        if first_name and not all(c.isalpha() or c.isspace() or c == '-' for c in first_name):
+            raise forms.ValidationError('First name must contain only letters, spaces, and hyphens.')
+        return first_name
+
+    def clean_last_name(self):
+        last_name = self.cleaned_data.get('last_name', '')
+        if last_name and not all(c.isalpha() or c.isspace() or c == '-' for c in last_name):
+            raise forms.ValidationError('Last name must contain only letters, spaces, and hyphens.')
+        return last_name
+    
     email = forms.EmailField(required=True, widget=forms.EmailInput(attrs={'class': 'form-control'}))
     first_name = forms.CharField(max_length=30, widget=forms.TextInput(attrs={'class': 'form-control'}))
     last_name = forms.CharField(max_length=30, widget=forms.TextInput(attrs={'class': 'form-control'}))
@@ -316,6 +378,19 @@ class CoordinatorRegisterForm(UserCreationForm):
         if not email.endswith('@cvsu.edu.ph'):
             raise forms.ValidationError('Please use your @cvsu.edu.ph email address.')
         return email
+    
+    def clean_first_name(self):
+        first_name = self.cleaned_data.get('first_name', '')
+        if first_name and not all(c.isalpha() or c.isspace() or c == '-' for c in first_name):
+            raise forms.ValidationError('First name must contain only letters, spaces, and hyphens.')
+        return first_name
+
+    def clean_last_name(self):
+        last_name = self.cleaned_data.get('last_name', '')
+        if last_name and not all(c.isalpha() or c.isspace() or c == '-' for c in last_name):
+            raise forms.ValidationError('Last name must contain only letters, spaces, and hyphens.')
+        return last_name
+    
     email = forms.EmailField(required=True, widget=forms.EmailInput(attrs={'class': 'form-control'}))
     first_name = forms.CharField(max_length=30, widget=forms.TextInput(attrs={'class': 'form-control'}))
     last_name = forms.CharField(max_length=30, widget=forms.TextInput(attrs={'class': 'form-control'}))

@@ -33,6 +33,9 @@ urlpatterns = [
 
     # User management
     path('users/', views.user_list, name='user_list'),
+    path('pending-advisers/', views.pending_adviser_approvals, name='pending_adviser_approvals'),
+    path('approve-adviser/<int:user_id>/', views.approve_adviser, name='approve_adviser'),
+    path('reject-adviser/<int:user_id>/', views.reject_adviser, name='reject_adviser'),
 
     # Adviser course management
     path('manage-courses/', views.manage_courses, name='manage_courses'),
