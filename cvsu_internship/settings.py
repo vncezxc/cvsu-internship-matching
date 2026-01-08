@@ -354,7 +354,7 @@ AWS_S3_OBJECT_PARAMETERS = {
     'ACL': 'public-read',
 }
 
-AWS_LOCATION = ''  # Empty - files go directly in bucket root
+AWS_LOCATION = 'cvsu-internship-moa/'
 AWS_DEFAULT_ACL = 'public-read'
 AWS_QUERYSTRING_AUTH = False
 AWS_S3_FILE_OVERWRITE = False
