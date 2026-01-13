@@ -53,11 +53,60 @@
     </div>
 </div>
 
+<!-- Programs/Courses Student Status -->
+<div class="row mb-4">
+    <div class="col-12">
+        <h4 class="mb-3"><i class="bi bi-mortarboard"></i> Student Status by Program</h4>
+    </div>
+    {% for program in programs_data %}
+    <div class="col-md-4 mb-3">
+        <div class="card h-100">
+            <div class="card-header bg-primary text-white">
+                <h6 class="card-title mb-0">{{ program.course.name }}</h6>
+                <small>{{ program.course.code }}</small>
+            </div>
+            <div class="card-body">
+                <div class="chart-container" style="position: relative; height:180px;">
+                    <canvas id="programChart{{ forloop.counter }}"></canvas>
+                </div>
+                <div class="mt-3">
+                    <div class="d-flex justify-content-between">
+                        <span><i class="bi bi-circle-fill text-primary"></i> Looking</span>
+                        <span>{{ program.looking }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span><i class="bi bi-circle-fill text-warning"></i> Waiting</span>
+                        <span>{{ program.waiting }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span><i class="bi bi-circle-fill text-info"></i> Ongoing</span>
+                        <span>{{ program.ongoing }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span><i class="bi bi-circle-fill text-success"></i> Completed</span>
+                        <span>{{ program.completed }}</span>
+                    </div>
+                    <hr>
+                    <div class="d-flex justify-content-between fw-bold">
+                        <span>Total Students</span>
+                        <span>{{ program.total }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="alert alert-info">No programs found.</div>
+    </div>
+    {% endfor %}
+</div>
+
 <div class="row mb-4">
     <div class="col-md-4">
         <div class="card h-100">
             <div class="card-header bg-primary text-white">
-                <h5 class="card-title mb-0">Student Status</h5>
+                <h5 class="card-title mb-0">Overall Student Status</h5>
             </div>
             <div class="card-body">
                 <div class="chart-container" style="position: relative; height:200px;">
@@ -305,7 +354,53 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 document.addEventListener("DOMContentLoaded", function() {
-    // Student Status Chart
+    // Program Charts
+    {% for program in programs_data %}
+    const programCtx{{ forloop.counter }} = document.getElementById('programChart{{ forloop.counter }}').getContext('2d');
+    new Chart(programCtx{{ forloop.counter }}, {
+        type: 'pie',
+        data: {
+            labels: ['Looking', 'Waiting', 'Ongoing', 'Completed'],
+            datasets: [{
+                data: [
+                    {{ program.looking }}, 
+                    {{ program.waiting }}, 
+                    {{ program.ongoing }}, 
+                    {{ program.completed }}
+                ],
+                backgroundColor: [
+                    '#0d6efd',
+                    '#ffc107',
+                    '#17a2b8',
+                    '#198754'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            let label = context.label || '';
+                            if (label) {
+                                label += ': ';
+                            }
+                            label += context.parsed + ' students';
+                            return label;
+                        }
+                    }
+                }
+            }
+        }
+    });
+    {% endfor %}
+    
+    // Overall Student Status Chart
     const studentCtx = document.getElementById('studentChart').getContext('2d');
     const studentChart = new Chart(studentCtx, {
         type: 'pie',

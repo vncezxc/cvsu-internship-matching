@@ -431,6 +431,24 @@ def coordinator_dashboard(request):
     # Get approved advisers
     approved_advisers = User.objects.filter(user_type=User.UserType.ADVISER, is_approved=True, is_active=True).order_by('-date_joined')
     
+    # Get student counts by course/program
+    from accounts.models import Course
+    from django.db.models import Count, Q
+    
+    programs_data = []
+    courses = Course.objects.all()
+    for course in courses:
+        students = StudentProfile.objects.filter(course=course)
+        program_stats = {
+            'course': course,
+            'total': students.count(),
+            'looking': students.filter(ojt_status=StudentProfile.OJTStatus.LOOKING).count(),
+            'waiting': students.filter(ojt_status=StudentProfile.OJTStatus.WAITING).count(),
+            'ongoing': students.filter(ojt_status=StudentProfile.OJTStatus.ONGOING).count(),
+            'completed': students.filter(ojt_status=StudentProfile.OJTStatus.COMPLETED).count(),
+        }
+        programs_data.append(program_stats)
+    
     context = {
         'profile': profile,
         'stats': stats,
@@ -438,6 +456,7 @@ def coordinator_dashboard(request):
         'recent_internships': recent_internships,
         'recent_applications': recent_applications,
         'approved_advisers': approved_advisers,
+        'programs_data': programs_data,
     }
     return render(request, 'dashboard/coordinator_dashboard.html', context)
 
