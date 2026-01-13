@@ -3,7 +3,7 @@ from django.contrib.auth.admin import UserAdmin
 from .models import (
     User, Course, Skill, StudentProfile, 
     RequiredDocument, StudentDocument, 
-    AdviserProfile, CoordinatorProfile
+    AdviserProfile, CoordinatorProfile, DeactivationRequest
 )
 
 class CustomUserAdmin(UserAdmin):
@@ -58,6 +58,13 @@ class CoordinatorProfileAdmin(admin.ModelAdmin):
     list_display = ('user', 'department')
     search_fields = ('user__username', 'user__first_name', 'user__last_name', 'department')
 
+class DeactivationRequestAdmin(admin.ModelAdmin):
+    """Admin for DeactivationRequest model."""
+    list_display = ('student', 'status', 'requested_at', 'processed_by', 'processed_at')
+    list_filter = ('status', 'requested_at')
+    search_fields = ('student__username', 'student__first_name', 'student__last_name')
+    readonly_fields = ('requested_at', 'processed_at')
+
 # Register models
 admin.site.register(User, CustomUserAdmin)
 admin.site.register(Course)
@@ -67,3 +74,4 @@ admin.site.register(RequiredDocument)
 admin.site.register(StudentDocument, StudentDocumentAdmin)
 admin.site.register(AdviserProfile, AdviserProfileAdmin)
 admin.site.register(CoordinatorProfile, CoordinatorProfileAdmin)
+admin.site.register(DeactivationRequest, DeactivationRequestAdmin)

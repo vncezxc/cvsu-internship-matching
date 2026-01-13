@@ -59,6 +59,12 @@ urlpatterns = [
     # Coordinator resignation
     path('coordinator/resign/', views.coordinator_resign, name='coordinator_resign'),
     
+    # Account deactivation
+    path('deactivation/request/', views.request_deactivation, name='request_deactivation'),
+    path('deactivation/requests/', views.coordinator_deactivation_requests, name='coordinator_deactivation_requests'),
+    path('deactivation/approve/<int:request_id>/', views.approve_deactivation, name='approve_deactivation'),
+    path('deactivation/reject/<int:request_id>/', views.reject_deactivation, name='reject_deactivation'),
+    
     # OJT status update
     path('update-ojt-status/', views.update_ojt_status, name='update_ojt_status'),
     

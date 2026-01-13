@@ -5,7 +5,7 @@ from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.forms import PasswordChangeForm
 from django.http import JsonResponse
 from django.conf import settings
-from .models import User, StudentProfile, Skill, RequiredDocument, StudentDocument, AdviserProfile, Course, CoordinatorProfile, EmailVerificationCode
+from .models import User, StudentProfile, Skill, RequiredDocument, StudentDocument, AdviserProfile, Course, CoordinatorProfile, EmailVerificationCode, DeactivationRequest
 from .forms import StudentProfileForm, AdviserProfileForm, CoordinatorProfileForm, StudentDocumentUploadForm, StudentCVUploadForm, AddSkillForm, UpdateLocationForm, CourseChoices, CourseForm, SkillForm, StudentRegisterForm, AdviserRegisterForm, CoordinatorRegisterForm
 from django.contrib.auth import login
 from .models import DTR
@@ -1161,4 +1161,104 @@ def coordinator_register_with_token(request, token):
         'invitation_token': token,
         'invited_email': invitation.email
     })
-        
+
+# Student Account Deactivation Views
+@login_required
+def request_deactivation(request):
+    """Student requests account deactivation."""
+    if not request.user.is_student:
+        messages.error(request, 'Only students can request account deactivation.')
+        return redirect('dashboard:home')
+    
+    profile = request.user.student_profile
+    
+    # Check if OJT status is COMPLETED
+    if profile.ojt_status != StudentProfile.OJTStatus.COMPLETED:
+        messages.error(request, 'You can only request deactivation after completing your OJT.')
+        return redirect('accounts:profile')
+    
+    # Check if there's already a pending request
+    existing_request = DeactivationRequest.objects.filter(
+        student=request.user,
+        status=DeactivationRequest.Status.PENDING
+    ).first()
+    
+    if existing_request:
+        messages.warning(request, 'You already have a pending deactivation request.')
+        return redirect('accounts:profile')
+    
+    if request.method == 'POST':
+        reason = request.POST.get('reason', '')
+        DeactivationRequest.objects.create(
+            student=request.user,
+            reason=reason
+        )
+        messages.success(request, 'Deactivation request submitted. The coordinator will review it.')
+        return redirect('accounts:profile')
+    
+    return render(request, 'accounts/request_deactivation.html')
+
+
+@login_required
+def coordinator_deactivation_requests(request):
+    """Coordinator views pending deactivation requests."""
+    if request.user.user_type != User.UserType.COORDINATOR:
+        messages.error(request, 'Only coordinators can view deactivation requests.')
+        return redirect('dashboard:home')
+    
+    pending_requests = DeactivationRequest.objects.filter(status=DeactivationRequest.Status.PENDING)
+    processed_requests = DeactivationRequest.objects.filter(status__in=[DeactivationRequest.Status.APPROVED, DeactivationRequest.Status.REJECTED])[:20]
+    
+    context = {
+        'pending_requests': pending_requests,
+        'processed_requests': processed_requests,
+    }
+    return render(request, 'accounts/coordinator_deactivation_requests.html', context)
+
+
+@login_required
+@require_POST
+def approve_deactivation(request, request_id):
+    """Coordinator approves a deactivation request."""
+    if request.user.user_type != User.UserType.COORDINATOR:
+        messages.error(request, 'Only coordinators can approve deactivation requests.')
+        return redirect('dashboard:home')
+    
+    deactivation_request = get_object_or_404(DeactivationRequest, id=request_id, status=DeactivationRequest.Status.PENDING)
+    
+    # Deactivate the student account
+    student_user = deactivation_request.student
+    student_user.is_active = False
+    student_user.save()
+    
+    # Update the request
+    deactivation_request.status = DeactivationRequest.Status.APPROVED
+    deactivation_request.processed_by = request.user
+    deactivation_request.processed_at = timezone.now()
+    deactivation_request.save()
+    
+    messages.success(request, f'Account for {student_user.get_full_name()} has been deactivated.')
+    return redirect('accounts:coordinator_deactivation_requests')
+
+
+@login_required
+@require_POST
+def reject_deactivation(request, request_id):
+    """Coordinator rejects a deactivation request."""
+    if request.user.user_type != User.UserType.COORDINATOR:
+        messages.error(request, 'Only coordinators can reject deactivation requests.')
+        return redirect('dashboard:home')
+    
+    deactivation_request = get_object_or_404(DeactivationRequest, id=request_id, status=DeactivationRequest.Status.PENDING)
+    
+    rejection_reason = request.POST.get('rejection_reason', '')
+    
+    # Update the request
+    deactivation_request.status = DeactivationRequest.Status.REJECTED
+    deactivation_request.processed_by = request.user
+    deactivation_request.processed_at = timezone.now()
+    deactivation_request.rejection_reason = rejection_reason
+    deactivation_request.save()
+    
+    messages.success(request, f'Deactivation request for {deactivation_request.student.get_full_name()} has been rejected.')
+    return redirect('accounts:coordinator_deactivation_requests')        

@@ -94,6 +94,9 @@
                             <a class="nav-link {% if request.resolver_match.url_name == 'pending_adviser_approvals' %}active{% endif %}" href="{% url 'accounts:pending_adviser_approvals' %}"><i class="bi bi-person-check"></i> Pending Adviser Approvals</a>
                         </li>
                         <li class="nav-item">
+                            <a class="nav-link {% if request.resolver_match.url_name == 'coordinator_deactivation_requests' %}active{% endif %}" href="{% url 'accounts:coordinator_deactivation_requests' %}"><i class="bi bi-person-x"></i> Account Deactivation Requests</a>
+                        </li>
+                        <li class="nav-item">
                             <a class="nav-link {% if request.resolver_match.url_name == 'reports' %}active{% endif %}" href="{% url 'dashboard:reports' %}"><i class="bi bi-file-earmark-bar-graph"></i> Student Status Report</a>
                         </li>
                         <li class="nav-item">

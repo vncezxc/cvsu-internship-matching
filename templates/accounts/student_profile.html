@@ -32,6 +32,11 @@
                         <a href="{% url 'accounts:change_password' %}" class="btn btn-outline-secondary">
                             <i class="fas fa-key me-2"></i>Change Password
                         </a>
+                        {% if profile.ojt_status == 'completed' %}
+                            <a href="{% url 'accounts:request_deactivation' %}" class="btn btn-outline-warning">
+                                <i class="bi bi-person-x me-2"></i>Request Account Deactivation
+                            </a>
+                        {% endif %}
                     </div>
                 </div>
             </div>
