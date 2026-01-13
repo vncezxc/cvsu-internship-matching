@@ -69,9 +69,21 @@
     {% endif %}
   </div>
   {% if request.user.is_coordinator or request.user.is_student %}
-    <!-- OnlyOffice Editor Embed -->
-    <div id="onlyoffice-editor"></div>
-    <div class="moa-editor-actions">
+    <!-- File Verification Step -->
+    <div id="file-verification" class="alert alert-info">
+      <h5>Step 1: Verify Document Access</h5>
+      <p>Click the link below to verify the document is accessible before editing:</p>
+      <a href="{{ document_url }}" target="_blank" class="btn btn-primary" id="verify-file-btn">
+        <i class="bi bi-file-earmark-check"></i> Click to Verify File
+      </a>
+      <button class="btn btn-success ms-3" id="start-editor-btn" style="display:none;">
+        <i class="bi bi-pencil-square"></i> Start Editing
+      </button>
+    </div>
+
+    <!-- OnlyOffice Editor Embed (hidden initially) -->
+    <div id="onlyoffice-editor" style="display:none;"></div>
+    <div class="moa-editor-actions" id="editor-actions" style="display:none;">
       <button class="btn btn-success" onclick="docEditor.save(); return false;">Save Changes</button>
       {% if request.user.is_coordinator %}
         <a href="{% url 'dashboard:required_documents_list' %}" class="btn btn-secondary">Cancel</a>
@@ -82,22 +94,47 @@
     <script src="{{ onlyoffice_url }}/web-apps/apps/api/documents/api.js"></script>
     <script>
   document.addEventListener("DOMContentLoaded", function() {
-    try {
-      const editorMode = "{{ editor_mode }}";
-      const isCoordinator = "{{ request.user.is_coordinator }}" === "True";
-      
-      // Coordinators get full edit, students get edit too (not just fillForms)
-      const permissions = {
-        edit: true,  // Allow editing for both
-        download: true,
-        print: true,
-        review: true,
-        comment: true,
-        fillForms: true,
-        modifyFilter: isCoordinator,
-        modifyContentControl: true,
-        review: true
-      };
+    const verifyBtn = document.getElementById('verify-file-btn');
+    const startEditorBtn = document.getElementById('start-editor-btn');
+    const fileVerification = document.getElementById('file-verification');
+    const editorContainer = document.getElementById('onlyoffice-editor');
+    const editorActions = document.getElementById('editor-actions');
+
+    // When user clicks verify file, show start editor button
+    verifyBtn.addEventListener('click', function() {
+      setTimeout(() => {
+        startEditorBtn.style.display = 'inline-block';
+        verifyBtn.classList.remove('btn-primary');
+        verifyBtn.classList.add('btn-success');
+        verifyBtn.innerHTML = '<i class="bi bi-check-circle"></i> File Verified!';
+      }, 1000);
+    });
+
+    // When user clicks start editing, load OnlyOffice
+    startEditorBtn.addEventListener('click', function() {
+      fileVerification.style.display = 'none';
+      editorContainer.style.display = 'block';
+      editorActions.style.display = 'flex';
+      initializeOnlyOffice();
+    });
+
+    function initializeOnlyOffice() {
+      try {
+        const editorMode = "{{ editor_mode }}";
+        const isCoordinator = "{{ request.user.is_coordinator }}" === "True";
+        
+        // Coordinators get full edit, students get edit too (not just fillForms)
+        const permissions = {
+          edit: true,  // Allow editing for both
+          download: true,
+          print: true,
+          review: true,
+          comment: true,
+          fillForms: true,
+          modifyFilter: isCoordinator,
+          modifyContentControl: true,
+          review: true
+        };
 
       const config = {
         document: {
@@ -137,6 +174,7 @@
       console.error("OnlyOffice editor initialization failed:", err);
       alert("Failed to load editor: " + err.message);
     }
+  }
   });
 </script>
   {% else %}
