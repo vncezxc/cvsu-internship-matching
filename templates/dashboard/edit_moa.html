@@ -72,13 +72,14 @@
     <!-- File Verification Step -->
     <div id="file-verification" class="alert alert-info">
       <h5>Step 1: Verify Document Access</h5>
-      <p>Click the link below to verify the document is accessible before editing:</p>
-      <a href="{{ document_url }}" target="_blank" class="btn btn-primary" id="verify-file-btn">
-        <i class="bi bi-file-earmark-check"></i> Click to Verify File
-      </a>
+      <p>Click the button below to verify the document is accessible before editing:</p>
+      <button class="btn btn-primary" id="verify-file-btn">
+        <i class="bi bi-file-earmark-check"></i> Verify File Access
+      </button>
       <button class="btn btn-success ms-3" id="start-editor-btn" style="display:none;">
         <i class="bi bi-pencil-square"></i> Start Editing
       </button>
+      <div id="verification-status" class="mt-2"></div>
     </div>
 
     <!-- OnlyOffice Editor Embed (hidden initially) -->
@@ -99,15 +100,32 @@
     const fileVerification = document.getElementById('file-verification');
     const editorContainer = document.getElementById('onlyoffice-editor');
     const editorActions = document.getElementById('editor-actions');
+    const verificationStatus = document.getElementById('verification-status');
 
-    // When user clicks verify file, show start editor button
-    verifyBtn.addEventListener('click', function() {
-      setTimeout(() => {
-        startEditorBtn.style.display = 'inline-block';
+    // When user clicks verify file, ping the URL without downloading
+    verifyBtn.addEventListener('click', async function() {
+      verifyBtn.disabled = true;
+      verifyBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Verifying...';
+      verificationStatus.innerHTML = '<small class="text-muted">Checking file accessibility...</small>';
+
+      try {
+        const response = await fetch("{{ document_url }}", { method: 'HEAD' });
+        if (response.ok) {
+          startEditorBtn.style.display = 'inline-block';
+          verifyBtn.classList.remove('btn-primary');
+          verifyBtn.classList.add('btn-success');
+          verifyBtn.innerHTML = '<i class="bi bi-check-circle"></i> File Verified!';
+          verificationStatus.innerHTML = '<small class="text-success">✓ Document is accessible and ready to edit</small>';
+        } else {
+          throw new Error('File not accessible');
+        }
+      } catch (error) {
         verifyBtn.classList.remove('btn-primary');
-        verifyBtn.classList.add('btn-success');
-        verifyBtn.innerHTML = '<i class="bi bi-check-circle"></i> File Verified!';
-      }, 1000);
+        verifyBtn.classList.add('btn-danger');
+        verifyBtn.innerHTML = '<i class="bi bi-x-circle"></i> Verification Failed';
+        verifyBtn.disabled = false;
+        verificationStatus.innerHTML = '<small class="text-danger">✗ Could not access file. <a href="{{ document_url }}" target="_blank">Click here to try opening it manually</a></small>';
+      }
     });
 
     // When user clicks start editing, load OnlyOffice
