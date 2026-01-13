@@ -227,6 +227,28 @@ footer a:hover {
     }
 }
 
+/* Skill checkbox fix - make labels visible when checked */
+.skill-checkbox {
+    margin-right: 8px;
+}
+
+.form-check-input.skill-checkbox:checked + label,
+.form-check-input.skill-checkbox:checked ~ label,
+.form-check label {
+    color: #212529 !important;
+}
+
+.form-check-input:checked + label,
+.form-check-input:checked ~ label {
+    color: #212529 !important;
+}
+
+/* Fix for all checkbox labels */
+input[type="checkbox"] + label,
+input[type="checkbox"] ~ label {
+    color: #212529 !important;
+}
+
 /* Print styles for reports */
 @media print {
     .no-print {
