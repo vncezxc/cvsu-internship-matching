@@ -1,10 +1,10 @@
-{% extends 'base.html' %}
+{% extends 'dashboard/base_dashboard.html' %}
 {% load static %}
 
-{% block title %}Application History{% endblock %}
+{% block dashboard_title %}Application History{% endblock %}
 
-{% block content %}
-<div class="container mt-4">
+{% block dashboard_content %}
+<div class="container-fluid">
     <div class="row mb-4">
         <div class="col">
             <h2><i class="fas fa-history me-2"></i>Application History</h2>
@@ -138,4 +138,4 @@
         </div>
     {% endif %}
 </div>
-{% endblock %} 
+{% endblock dashboard_content %} 

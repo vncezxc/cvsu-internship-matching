@@ -32,6 +32,11 @@
                             </a>
                         </li>
                         <li class="nav-item">
+                            <a class="nav-link {% if request.resolver_match.url_name == 'student_dtr_list' %}active{% endif %}" href="{% url 'dashboard:student_dtr_list' %}">
+                                <i class="bi bi-list-check"></i> My DTR Submissions
+                            </a>
+                        </li>
+                        <li class="nav-item">
                             <a class="nav-link" href="{% url 'accounts:profile' %}">
                                 <i class="bi bi-person"></i> My Profile
                             </a>

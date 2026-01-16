@@ -1,10 +1,10 @@
-{% extends 'base.html' %}
+{% extends 'dashboard/base_dashboard.html' %}
 {% load static %}
 
-{% block title %}Student Profile{% endblock %}
+{% block dashboard_title %}Student Profile{% endblock %}
 
-{% block content %}
-<div class="container mt-4">
+{% block dashboard_content %}
+<div class="container-fluid">
     <div class="row">
         <div class="col-lg-4">
             <!-- Profile Card -->
@@ -198,4 +198,4 @@
         </div>
     </div>
 </div>
-{% endblock %}
+{% endblock dashboard_content %}
