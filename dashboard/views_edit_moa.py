@@ -16,6 +16,7 @@ from django.views.decorators.http import require_http_methods
 from django.utils.text import slugify
 import requests
 from django.http import JsonResponse, HttpResponse
+from cvsu_internship.settings import get_absolute_media_url
 
 logger = logging.getLogger(__name__)
 
@@ -171,8 +172,8 @@ def onlyoffice_file_proxy(request):
         if path.startswith(('http://', 'https://')):
             source_url = path
         else:
-            # settings.get_absolute_media_url handles AWS_LOCATION/CDN
-            source_url = settings.get_absolute_media_url(path)
+            # Use project helper to build absolute URL (CDN/Spaces aware)
+            source_url = get_absolute_media_url(path)
 
         upstream = requests.request(request.method, source_url, stream=True, verify=False, timeout=30)
         if upstream.status_code != 200:
