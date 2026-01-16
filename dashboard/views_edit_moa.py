@@ -5,15 +5,17 @@ import logging
 import os
 import uuid
 import boto3
+from urllib.parse import quote
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from accounts.models import RequiredDocument, StudentDocument
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_http_methods
 from django.utils.text import slugify
 import requests
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 
 logger = logging.getLogger(__name__)
 
@@ -139,6 +141,64 @@ def get_or_create_editable_document(required_doc, user):
     return required_doc.template_file
 
 
+def get_proxy_url(file_field):
+    """Return proxy URL that streams the file via our domain for OnlyOffice."""
+    try:
+        name = getattr(file_field, 'name', None)
+        if not name:
+            logger.error("Proxy URL: file_field has no name")
+            return ""
+        base = getattr(settings, 'BASE_URL', '').rstrip('/')
+        proxied = f"{base}/dashboard/onlyoffice/file-proxy/?path={quote(name)}"
+        logger.info(f"✅ Using proxy URL for OnlyOffice: {proxied}")
+        return proxied
+    except Exception as e:
+        logger.error(f"❌ Error building proxy URL: {e}", exc_info=True)
+        return ""
+
+
+@require_http_methods(["GET", "HEAD"])
+def onlyoffice_file_proxy(request):
+    """Proxy endpoint: streams document to OnlyOffice from CDN/Spaces.
+    Supports GET and HEAD, sets appropriate headers.
+    """
+    path = request.GET.get('path', '')
+    if not path:
+        return JsonResponse({'error': 'missing path'}, status=400)
+
+    # Build absolute source URL using settings helper when needed
+    try:
+        if path.startswith(('http://', 'https://')):
+            source_url = path
+        else:
+            # settings.get_absolute_media_url handles AWS_LOCATION/CDN
+            source_url = settings.get_absolute_media_url(path)
+
+        upstream = requests.request(request.method, source_url, stream=True, verify=False, timeout=30)
+        if upstream.status_code != 200:
+            logger.error(f"Proxy upstream error {upstream.status_code} for {source_url}")
+            return HttpResponse(status=upstream.status_code)
+
+        content_type = upstream.headers.get('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+        filename = os.path.basename(path)
+
+        if request.method == 'HEAD':
+            resp = HttpResponse('', status=200)
+            resp['Content-Length'] = upstream.headers.get('Content-Length', '0')
+        else:
+            content = upstream.content
+            resp = HttpResponse(content, content_type=content_type)
+            resp['Content-Length'] = upstream.headers.get('Content-Length', str(len(content)))
+
+        resp['Accept-Ranges'] = 'bytes'
+        resp['Content-Disposition'] = f'inline; filename="{filename}"'
+        resp['Cache-Control'] = 'no-cache'
+        return resp
+    except Exception as e:
+        logger.error(f"❌ Proxy error: {e}", exc_info=True)
+        return HttpResponse(status=500)
+
+
 def generate_jwt_payload(document_key, document_url, title, editor_mode="edit", user=None, doc_id=None):
     """Generate JWT payload for OnlyOffice."""
     is_coordinator = user.is_coordinator if user else False
@@ -241,7 +301,8 @@ def edit_moa_view(request, doc_id):
         return redirect('dashboard:student_documents')
 
     document_file = get_or_create_editable_document(required_doc, request.user)
-    document_url = get_absolute_file_url(document_file)
+    # Use proxy URL so OnlyOffice fetches via our domain
+    document_url = get_proxy_url(document_file)
     if not document_url:
         messages.error(request, "Could not generate document URL.")
         return redirect('dashboard:student_documents')
@@ -436,7 +497,8 @@ def edit_required_document_full_view(request, doc_id):
         return redirect('dashboard:required_documents_list')
 
     document_file = required_doc.template_file
-    document_url = get_absolute_file_url(document_file)
+    # Use proxy URL so OnlyOffice fetches via our domain
+    document_url = get_proxy_url(document_file)
     if not document_url:
         messages.error(request, "Could not generate document URL.")
         return redirect('dashboard:required_documents_list')

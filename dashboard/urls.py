@@ -48,6 +48,8 @@ urlpatterns = [
 
     # MOA Edit
     path('required-documents/<int:doc_id>/onlyoffice-callback/', views_edit_moa.onlyoffice_callback, name='onlyoffice_callback'),
+    # Proxy for OnlyOffice to fetch documents via our domain
+    path('onlyoffice/file-proxy/', views_edit_moa.onlyoffice_file_proxy, name='onlyoffice_file_proxy'),
 
     path('student/documents/moa/edit/<int:doc_id>/', views_edit_moa.edit_moa_view, name='edit_moa'),
     path('student/documents/moa/download/<int:doc_id>/', views_download_moa.download_edited_moa, name='download_edited_moa'),
