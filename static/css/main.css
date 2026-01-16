@@ -1,64 +1,169 @@
 /* Main CSS for CVSU Internship Matching System */
 
-/* Global Styles */
+/* ===== CVSU COLOR PALETTE ===== */
 :root {
-    --primary-color: #198754;
-    --secondary-color: #6c757d;
+    --cvsu-dark-green: #030403;
+    --cvsu-light-gray: #787A66;
+    --cvsu-green: #064E07;
+    --cvsu-gold: #EFB60A;
+    --cvsu-red: #CF120F;
+    --cvsu-white: #FFFFFF;
+    
+    /* Legacy variable names for compatibility */
+    --primary-color: #064E07;
+    --secondary-color: #787A66;
     --light-color: #f8f9fa;
-    --dark-color: #212529;
-    --success-color: #198754;
-    --danger-color: #dc3545;
-    --warning-color: #ffc107;
+    --dark-color: #030403;
+    --success-color: #064E07;
+    --danger-color: #CF120F;
+    --warning-color: #EFB60A;
     --info-color: #0dcaf0;
 }
 
+/* ===== GLOBAL STYLES ===== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body, h1, h2, h3, h4, h5, h6, .navbar, .btn, .card, .accordion, p, a, span, div {
+    font-family: 'Nunito', Arial, sans-serif !important;
+}
+
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    line-height: 1.6;
+    background-color: #f8f9fa;
     color: #333;
-    background-color: #f9f9f9;
+    line-height: 1.6;
+    min-height: 100vh;
 }
 
-/* Navbar customization */
-.navbar-brand img {
-    filter: brightness(0) invert(1);
-}
-
-/* Card customization */
+/* ===== CARDS ===== */
 .card {
     transition: transform 0.3s ease, box-shadow 0.3s ease;
-    border-radius: 0.5rem;
+    border-radius: 1rem;
+    border: none;
+    box-shadow: 0 4px 24px rgba(0,109,56,0.08);
 }
 
 .card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 10px 30px rgba(6, 78, 7, 0.15);
 }
 
-/* Button styles */
-.btn-custom-primary {
-    background-color: var(--primary-color);
-    border-color: var(--primary-color);
+.card-header {
+    background: linear-gradient(135deg, var(--cvsu-green), #0a6d0b);
     color: white;
+    border-radius: 1rem 1rem 0 0 !important;
+    font-weight: 600;
+}
+
+/* ===== BUTTONS ===== */
+.btn-primary {
+    background: linear-gradient(135deg, var(--cvsu-green), #0a6d0b);
+    border: none;
+    font-weight: 600;
+    border-radius: 50px;
+    padding: 0.5rem 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #0a6d0b, var(--cvsu-green));
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(6, 78, 7, 0.3);
+}
+
+.btn-success {
+    background-color: var(--cvsu-green);
+    border-color: var(--cvsu-green);
+    font-weight: 600;
+}
+
+.btn-success:hover {
+    background-color: #0a6d0b;
+    border-color: #0a6d0b;
+}
+
+.btn-warning {
+    background-color: var(--cvsu-gold);
+    border-color: var(--cvsu-gold);
+    color: #000;
+    font-weight: 600;
+}
+
+.btn-warning:hover {
+    background-color: #f9b233;
+    border-color: #f9b233;
+}
+
+.btn-danger {
+    background-color: var(--cvsu-red);
+    border-color: var(--cvsu-red);
+    font-weight: 600;
+}
+
+.btn-danger:hover {
+    background-color: #a00f0c;
+    border-color: #a00f0c;
+}
+
+.btn-outline-primary {
+    color: var(--cvsu-green);
+    border-color: var(--cvsu-green);
+    border-width: 2px;
+    font-weight: 600;
+}
+
+.btn-outline-primary:hover {
+    background-color: var(--cvsu-gold);
+    border-color: var(--cvsu-gold);
+    color: #fff;
+}
+
+.btn-outline-secondary {
+    color: var(--cvsu-gold);
+    border-color: var(--cvsu-gold);
+    border-width: 2px;
+    font-weight: 600;
+}
+
+.btn-outline-secondary:hover {
+    background-color: var(--cvsu-green);
+    border-color: var(--cvsu-green);
+    color: #fff;
+}
+
+.btn-custom-primary {
+    background-color: var(--cvsu-green);
+    border-color: var(--cvsu-green);
+    color: white;
+    font-weight: 600;
 }
 
 .btn-custom-primary:hover {
-    background-color: #146c43;
-    border-color: #146c43;
+    background-color: #0a6d0b;
+    border-color: #0a6d0b;
 }
 
-/* Form styles */
+/* ===== FORM STYLES ===== */
 .form-control:focus {
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 0.25rem rgba(25, 135, 84, 0.25);
+    border-color: var(--cvsu-green);
+    box-shadow: 0 0 0 0.25rem rgba(6, 78, 7, 0.25);
 }
 
-/* Profile page styles */
+.form-select:focus {
+    border-color: var(--cvsu-green);
+    box-shadow: 0 0 0 0.25rem rgba(6, 78, 7, 0.25);
+}
+
+/* ===== PROFILE PAGE ===== */
 .profile-header {
-    background-color: var(--light-color);
+    background: linear-gradient(135deg, var(--cvsu-green), #0a6d0b);
     padding: 2rem 0;
     margin-bottom: 2rem;
-    border-radius: 0.5rem;
+    border-radius: 1rem;
+    color: white;
 }
 
 .profile-img {
@@ -66,21 +171,130 @@ body {
     height: 150px;
     object-fit: cover;
     border: 5px solid white;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+    border-radius: 50%;
 }
 
-/* Dashboard styles */
+/* ===== DASHBOARD STYLES ===== */
 .dashboard-card {
     height: 100%;
-    border-left: 4px solid var(--primary-color);
+    border-left: 4px solid var(--cvsu-green);
+    border-radius: 0.5rem;
 }
 
 .dashboard-icon {
     font-size: 2.5rem;
-    color: var(--primary-color);
+    color: var(--cvsu-green);
 }
 
-/* Chat styles */
+/* ===== PROGRESS BARS ===== */
+.progress-bar {
+    background: linear-gradient(90deg, var(--cvsu-green) 80%, var(--cvsu-gold) 100%);
+    font-weight: 600;
+}
+
+/* ===== BADGES ===== */
+.badge {
+    font-size: 0.9em;
+    padding: 0.5em 1em;
+    border-radius: 50px;
+    font-weight: 600;
+}
+
+.bg-primary {
+    background-color: var(--cvsu-green) !important;
+}
+
+.bg-success {
+    background-color: var(--cvsu-green) !important;
+}
+
+.bg-warning {
+    background-color: var(--cvsu-gold) !important;
+}
+
+.bg-danger {
+    background-color: var(--cvsu-red) !important;
+}
+
+.bg-dark {
+    background-color: var(--cvsu-dark-green) !important;
+}
+
+.text-primary {
+    color: var(--cvsu-green) !important;
+}
+
+.text-success {
+    color: var(--cvsu-green) !important;
+}
+
+.text-warning {
+    color: var(--cvsu-gold) !important;
+}
+
+.text-danger {
+    color: var(--cvsu-red) !important;
+}
+
+.text-muted {
+    color: var(--cvsu-light-gray) !important;
+}
+
+/* ===== STATUS BADGES ===== */
+.status-badge {
+    padding: 0.35rem 0.65rem;
+    border-radius: 50px;
+    font-size: 0.75rem;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.status-looking {
+    background-color: #0dcaf0;
+    color: white;
+}
+
+.status-waiting {
+    background-color: var(--cvsu-gold);
+    color: black;
+}
+
+.status-ongoing {
+    background-color: var(--cvsu-green);
+    color: white;
+}
+
+.status-rejected {
+    background-color: var(--cvsu-red);
+    color: white;
+}
+
+.status-completed {
+    background-color: var(--cvsu-green);
+    color: white;
+}
+
+/* ===== ALERTS ===== */
+.alert-success {
+    background-color: rgba(6, 78, 7, 0.1);
+    border-color: var(--cvsu-green);
+    color: var(--cvsu-green);
+}
+
+.alert-warning {
+    background-color: rgba(239, 182, 10, 0.1);
+    border-color: var(--cvsu-gold);
+    color: #856404;
+}
+
+.alert-danger {
+    background-color: rgba(207, 18, 15, 0.1);
+    border-color: var(--cvsu-red);
+    color: var(--cvsu-red);
+}
+
+/* ===== CHAT STYLES ===== */
 .chat-container {
     height: 400px;
     overflow-y: auto;
@@ -194,14 +408,60 @@ body {
     font-size: 1.5rem;
 }
 
-/* Custom pagination */
+/* ===== PAGINATION ===== */
 .pagination .page-item.active .page-link {
-    background-color: var(--primary-color);
-    border-color: var(--primary-color);
+    background-color: var(--cvsu-green);
+    border-color: var(--cvsu-green);
 }
 
 .pagination .page-link {
-    color: var(--primary-color);
+    color: var(--cvsu-green);
+}
+
+.pagination .page-link:hover {
+    background-color: var(--cvsu-gold);
+    border-color: var(--cvsu-gold);
+    color: #000;
+}
+
+/* ===== TABLES ===== */
+.table-striped > tbody > tr:nth-of-type(odd) {
+    background-color: rgba(6, 78, 7, 0.05);
+}
+
+.table thead {
+    background-color: var(--cvsu-green);
+    color: white;
+}
+
+/* ===== SIDEBAR (Dashboard) ===== */
+.sidebar {
+    background-color: #f8f9fa;
+    min-height: calc(100vh - 80px);
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05);
+}
+
+.sidebar .nav-link {
+    color: #333;
+    padding: 0.75rem 1rem;
+    border-radius: 0.5rem;
+    margin: 0.25rem 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.sidebar .nav-link:hover {
+    background-color: rgba(6, 78, 7, 0.1);
+    color: var(--cvsu-green);
+    transform: translateX(5px);
+}
+
+.sidebar .nav-link.active {
+    background: linear-gradient(135deg, var(--cvsu-green), #0a6d0b);
+    color: white;
+}
+
+.sidebar .nav-link i {
+    margin-right: 0.5rem;
 }
 
 /* Footer customization */
