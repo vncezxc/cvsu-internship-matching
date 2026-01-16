@@ -36,19 +36,33 @@ def get_absolute_file_url(file_field):
             logger.info(f"✅ Using absolute URL: {url}")
             return url
 
-        # For production, use the full path as-is
+        # For production, use the CDN domain
         if not settings.DEBUG:
-            region = settings.AWS_S3_REGION_NAME
-            bucket = settings.AWS_STORAGE_BUCKET_NAME
-
-            # Remove duplicate bucket prefix if present
-            file_path = file_field.name.strip().lstrip('/')
-            if file_path.startswith(f"{bucket}/"):
-                file_path = file_path[len(f"{bucket}/"):]
-
-            full_url = f"https://{bucket}.{region}.digitaloceanspaces.com/{file_path}"
-            logger.info(f"✅ Constructed Spaces URL: {full_url}")
-            return full_url
+            cdn_domain = getattr(settings, 'AWS_S3_CUSTOM_DOMAIN', None)
+            
+            if cdn_domain:
+                # Remove duplicate bucket prefix if present
+                file_path = file_field.name.strip().lstrip('/')
+                bucket = settings.AWS_STORAGE_BUCKET_NAME
+                
+                if file_path.startswith(f"{bucket}/"):
+                    file_path = file_path[len(f"{bucket}/"):]
+                
+                full_url = f"https://{cdn_domain}/{file_path}"
+                logger.info(f"✅ Constructed CDN URL: {full_url}")
+                return full_url
+            else:
+                # Fallback to direct Spaces URL
+                region = settings.AWS_S3_REGION_NAME
+                bucket = settings.AWS_STORAGE_BUCKET_NAME
+                file_path = file_field.name.strip().lstrip('/')
+                
+                if file_path.startswith(f"{bucket}/"):
+                    file_path = file_path[len(f"{bucket}/"):]
+                
+                full_url = f"https://{bucket}.{region}.digitaloceanspaces.com/{file_path}"
+                logger.info(f"✅ Constructed Spaces URL: {full_url}")
+                return full_url
 
         # Local development
         local_url = f"http://localhost:8000{url if url.startswith('/') else '/' + url}"
