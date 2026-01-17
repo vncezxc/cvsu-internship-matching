@@ -257,6 +257,9 @@
         border-radius: var(--radius-sm);
         border: 2px solid var(--gray-200);
         margin-bottom: 1rem;
+        min-height: 350px;
+        width: 100%;
+        z-index: 1;
     }
 
     .map-instructions {
@@ -620,6 +623,53 @@ var COURSE_SKILLS_MAP = {{ course_skill_map|safe }};
 var INITIAL_SELECTED_SKILLS = [
   {% for skill in profile.skills.all %}{ id: {{ skill.id }}, name: "{{ skill.name|escapejs }}" },{% endfor %}
 ];
+
+// Initialize the map for location pinning
+document.addEventListener('DOMContentLoaded', function() {
+    var latInput = document.getElementById('id_latitude');
+    var lngInput = document.getElementById('id_longitude');
+    
+    // Default location (CvSU Indang, Cavite)
+    var defaultLat = 14.1953;
+    var defaultLng = 120.8796;
+    
+    // Use existing coordinates if available
+    var lat = parseFloat(latInput && latInput.value) || defaultLat;
+    var lng = parseFloat(lngInput && lngInput.value) || defaultLng;
+    
+    // Initialize map
+    var map = L.map('student-map').setView([lat, lng], 15);
+    
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '© OpenStreetMap'
+    }).addTo(map);
+    
+    // Create draggable marker
+    var marker = L.marker([lat, lng], {draggable: true}).addTo(map);
+    
+    // Update hidden inputs when marker is moved
+    function updateInputs(latlng) {
+        if (latInput) latInput.value = latlng.lat.toFixed(6);
+        if (lngInput) lngInput.value = latlng.lng.toFixed(6);
+    }
+    
+    // Handle marker drag
+    marker.on('dragend', function(e) {
+        updateInputs(e.target.getLatLng());
+    });
+    
+    // Handle map click to move marker
+    map.on('click', function(e) {
+        marker.setLatLng(e.latlng);
+        updateInputs(e.latlng);
+    });
+    
+    // Force map to resize properly after load
+    setTimeout(function() {
+        map.invalidateSize();
+    }, 100);
+});
 </script>
 {% endif %}
 {% endblock %}
