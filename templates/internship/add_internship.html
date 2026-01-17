@@ -103,6 +103,44 @@
         min-height: 60px;
     }
 
+    .skill-chips-container .skill-chip,
+    #selected-skills .skill-chip {
+        background: linear-gradient(135deg, var(--cvsu-gold), var(--cvsu-gold-light));
+        color: var(--cvsu-dark-green);
+        padding: 0.5rem 1rem;
+        border-radius: 25px;
+        font-size: 0.875rem;
+        font-weight: var(--font-weight-medium);
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border: 2px solid var(--cvsu-gold);
+    }
+
+    .skill-chips-container .skill-chip:hover,
+    #selected-skills .skill-chip:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-sm);
+    }
+
+    .skill-chips-container .skill-chip.selected {
+        background: linear-gradient(135deg, var(--cvsu-green), var(--cvsu-green-light));
+        color: var(--cvsu-white);
+        border-color: var(--cvsu-green);
+    }
+
+    .skill-chip .remove-skill {
+        cursor: pointer;
+        margin-left: 0.25rem;
+        font-weight: bold;
+    }
+
+    .skill-chip .remove-skill:hover {
+        color: var(--cvsu-red);
+    }
+
     .input-group .btn-outline-primary {
         border-color: var(--cvsu-green);
         color: var(--cvsu-green);

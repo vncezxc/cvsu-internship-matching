@@ -227,8 +227,8 @@
     }
 
     .profile-card .card-header {
-        background: linear-gradient(135deg, var(--cvsu-gold), var(--cvsu-gold-light));
-        color: var(--cvsu-dark-green);
+        background: linear-gradient(135deg, var(--cvsu-green), var(--cvsu-green-light));
+        color: var(--cvsu-white);
         padding: 1.25rem;
         border: none;
     }
@@ -237,6 +237,7 @@
         font-family: var(--font-family);
         font-weight: var(--font-weight-bold);
         margin: 0;
+        color: var(--cvsu-white) !important;
     }
 
     .profile-card .card-body {
@@ -360,6 +361,7 @@
                         {% endif %}
 
                         {% if internship.company.latitude and internship.company.longitude and profile.latitude and profile.longitude %}
+                        <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
                         <div class="info-section">
                             <strong><i class="fas fa-map me-2"></i>Location</strong>
                             <div class="map-container mt-2">
@@ -371,9 +373,11 @@
                             <span class="text-muted ms-2 small">(Line shows route from your location to the company)</span>
                         </div>
                         <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-                        <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
                         <script>
                           document.addEventListener('DOMContentLoaded', function() {
+                            var mapContainer = document.getElementById('map-apply');
+                            if (!mapContainer) return;
+                            
                             var map = L.map('map-apply').setView([
                               {{ internship.company.latitude }},
                               {{ internship.company.longitude }}
@@ -396,6 +400,11 @@
                             ];
                             var polyline = L.polyline(latlngs, {color: '#064E07', weight: 3, dashArray: '6, 8'}).addTo(map);
                             map.fitBounds(polyline.getBounds(), {padding: [30, 30]});
+                            
+                            // Force map to resize properly
+                            setTimeout(function() {
+                              map.invalidateSize();
+                            }, 100);
                           });
                         </script>
                         {% endif %}
