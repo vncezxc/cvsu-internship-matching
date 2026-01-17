@@ -42,6 +42,11 @@
         box-shadow: var(--shadow-lg);
         min-height: 100vh;
         padding-top: 1rem;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 220px;
+        z-index: 1050;
     }
 
     .sidebar .nav-link {
@@ -95,6 +100,7 @@
         background: var(--gray-50);
         min-height: 100vh;
         padding: 2rem;
+        margin-left: 220px;
     }
 
     .dashboard-header {
@@ -150,14 +156,15 @@
     /* Responsive Sidebar */
     @media (max-width: 767.98px) {
         .sidebar {
-            position: fixed;
+            position: fixed !important;
             top: 0;
             left: -280px;
-            width: 280px;
+            width: 280px !important;
             height: 100vh;
             z-index: 1050;
             transition: left 0.3s ease;
             padding-top: 60px;
+            display: block !important;
         }
         
         .sidebar.show {
@@ -237,6 +244,10 @@
         .sidebar-backdrop,
         .sidebar-close-btn {
             display: none !important;
+        }
+        
+        .sidebar {
+            left: 0 !important;
         }
     }
 
@@ -395,7 +406,7 @@
         <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="toggleSidebar()"></div>
         
         <!-- Sidebar -->
-        <div class="col-md-3 col-lg-2 d-md-block sidebar" id="sidebarMenu">
+        <div class="sidebar" id="sidebarMenu">
             <button class="sidebar-close-btn" onclick="toggleSidebar()" aria-label="Close menu">
                 <i class="bi bi-x-lg"></i>
             </button>
@@ -471,6 +482,11 @@
                         <li class="nav-item">
                             <a class="nav-link {% if request.resolver_match.url_name == 'adviser_documents_review' %}active{% endif %}" href="{% url 'dashboard:adviser_documents_review' %}">
                                 <i class="bi bi-clipboard-check"></i> Review OJT Documents
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.resolver_match.url_name == 'manage_courses' %}active{% endif %}" href="{% url 'accounts:manage_courses' %}">
+                                <i class="bi bi-book"></i> Manage Courses
                             </a>
                         </li>
                     {% elif user.is_coordinator %}

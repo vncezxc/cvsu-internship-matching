@@ -366,18 +366,30 @@
                 </div>
                 
                 <!-- Current Internship Company Section -->
-                {% if profile.current_internship %}
+                {% if profile.current_internship and profile.current_internship.internship and profile.current_internship.internship.company %}
                 <div class="mt-4 p-3 rounded shadow-sm" style="background: linear-gradient(135deg, #e8f5e9, #f1f8e9); border-left: 4px solid var(--cvsu-green);">
                     <h6 class="mb-2 text-success"><i class="bi bi-building me-2"></i>Current Internship Placement</h6>
                     <div class="row">
                         <div class="col-md-6">
-                            <p class="mb-1"><strong>Company:</strong> <span class="text-success fw-bold">{{ profile.current_internship.internship.company.name }}</span></p>
-                            <p class="mb-1"><strong>Position:</strong> {{ profile.current_internship.internship.title }}</p>
+                            <p class="mb-1"><strong>Company:</strong> <span class="text-success fw-bold">{{ profile.current_internship.internship.company.name|default:"-" }}</span></p>
+                            <p class="mb-1"><strong>Position:</strong> {{ profile.current_internship.internship.title|default:"-" }}</p>
                             <p class="mb-1"><strong>Location:</strong> {{ profile.current_internship.internship.company.address|default:"-" }}</p>
                         </div>
                         <div class="col-md-6">
-                            <p class="mb-1"><strong>Company Email:</strong> <a href="mailto:{{ profile.current_internship.internship.company.email }}">{{ profile.current_internship.internship.company.email|default:"-" }}</a></p>
-                            <p class="mb-1"><strong>HR Email:</strong> <a href="mailto:{{ profile.current_internship.internship.company.hr_email }}">{{ profile.current_internship.internship.company.hr_email|default:"-" }}</a></p>
+                            <p class="mb-1"><strong>Company Email:</strong> 
+                                {% if profile.current_internship.internship.company.email %}
+                                    <a href="mailto:{{ profile.current_internship.internship.company.email }}">{{ profile.current_internship.internship.company.email }}</a>
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </p>
+                            <p class="mb-1"><strong>HR Email:</strong> 
+                                {% if profile.current_internship.internship.company.hr_email %}
+                                    <a href="mailto:{{ profile.current_internship.internship.company.hr_email }}">{{ profile.current_internship.internship.company.hr_email }}</a>
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </p>
                             <p class="mb-0"><strong>Accepted On:</strong> <span class="badge bg-success">{{ profile.current_internship.updated_at|date:"M d, Y" }}</span></p>
                         </div>
                     </div>
@@ -394,7 +406,7 @@
                 <div class="mt-4 p-3 rounded shadow-sm bg-light" style="border-left: 4px solid #6c757d;">
                     <h6 class="mb-2 text-muted"><i class="bi bi-building me-2"></i>Current Internship Placement</h6>
                     <p class="mb-2 text-muted">You haven't been accepted to any internship yet.</p>
-                    <a href="{% url 'internship:internship_list' %}" class="btn btn-sm btn-success">
+                    <a href="{% url 'internship:internships' %}" class="btn btn-sm btn-success">
                         <i class="bi bi-search me-1"></i>Browse Internships
                     </a>
                 </div>

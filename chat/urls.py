@@ -23,6 +23,10 @@ urlpatterns = [
     path('list/', views.chat_list, name='chat_list'),
     # Generic chat room by room id
     path('room/<int:room_id>/', views.chat_room, name='room'),
+    # Delete conversation
+    path('room/<int:room_id>/delete/', views.delete_conversation, name='delete_conversation'),
+    # Send message with attachment
+    path('room/<int:room_id>/send/', views.send_message_with_attachment, name='send_message'),
     # API endpoints for AJAX
     path('api/messages/<str:room_name>/', views.api_get_messages, name='api_get_messages'),
     path('api/mark-read/<int:message_id>/', views.api_mark_message_read, name='api_mark_message_read'),

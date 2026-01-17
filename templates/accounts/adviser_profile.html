@@ -155,8 +155,10 @@
         display: flex;
         align-items: center;
         gap: 1.5rem;
-        padding-bottom: 1.5rem;
-        border-bottom: 2px solid var(--gray-100);
+        padding: 1.5rem 2.5rem;
+        margin: -2rem -2rem 1.5rem -2rem;
+        background: linear-gradient(135deg, var(--cvsu-green), var(--cvsu-green-light));
+        border-radius: 0;
     }
 
     .profile-image-container {
@@ -185,9 +187,14 @@
     }
 
     .profile-info h3 {
-        color: var(--cvsu-dark-green);
+        color: var(--cvsu-white);
         font-family: var(--font-family);
         font-weight: 700;
+    }
+
+    .profile-info p,
+    .profile-info .text-muted {
+        color: rgba(255, 255, 255, 0.9) !important;
     }
 
     .info-section {

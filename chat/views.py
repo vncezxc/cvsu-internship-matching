@@ -427,3 +427,87 @@ def new_chat(request):
         return redirect('chat:room', room_id=room.id)
     else:
         return redirect('chat:chat_list')
+
+
+@login_required
+def delete_conversation(request, room_id):
+    """Delete a chat conversation."""
+    if request.method == 'POST':
+        room = get_object_or_404(ChatRoom, id=room_id)
+        
+        # Check if user has access to this room
+        if request.user not in room.participants.all():
+            messages.error(request, 'You do not have access to this chat room.')
+            return redirect('chat:chat_list')
+        
+        # Delete all messages in the room
+        Message.objects.filter(room=room).delete()
+        
+        # Delete the room
+        room.delete()
+        
+        messages.success(request, 'Conversation deleted successfully.')
+        return redirect('chat:chat_list')
+    else:
+        return redirect('chat:chat_list')
+
+
+@login_required
+def send_message_with_attachment(request, room_id):
+    """Send a message with an optional image attachment."""
+    if request.method == 'POST':
+        room = get_object_or_404(ChatRoom, id=room_id)
+        
+        # Check if user has access to this room
+        if request.user not in room.participants.all():
+            return JsonResponse({'error': 'Unauthorized'}, status=403)
+        
+        content = request.POST.get('content', '')
+        attachment = request.FILES.get('attachment')
+        
+        if not content and not attachment:
+            return JsonResponse({'error': 'No message or attachment provided'}, status=400)
+        
+        # Create the message
+        message = Message.objects.create(
+            room=room,
+            sender=request.user,
+            content=content
+        )
+        
+        # Handle attachment if provided
+        if attachment:
+            # Save attachment to media folder
+            import os
+            from django.conf import settings
+            
+            # Create chat_attachments folder if it doesn't exist
+            attachments_dir = os.path.join(settings.MEDIA_ROOT, 'chat_attachments')
+            os.makedirs(attachments_dir, exist_ok=True)
+            
+            # Generate unique filename
+            filename = f"chat_{room_id}_{message.id}_{attachment.name}"
+            filepath = os.path.join(attachments_dir, filename)
+            
+            # Save the file
+            with open(filepath, 'wb+') as destination:
+                for chunk in attachment.chunks():
+                    destination.write(chunk)
+            
+            # Update message content to include image
+            attachment_url = f"{settings.MEDIA_URL}chat_attachments/{filename}"
+            if content:
+                message.content = f'{content}<br><img src="{attachment_url}" class="chat-attachment-img" style="max-width: 200px; border-radius: 8px; margin-top: 0.5rem;">'
+            else:
+                message.content = f'<img src="{attachment_url}" class="chat-attachment-img" style="max-width: 200px; border-radius: 8px;">'
+            message.save()
+        
+        return JsonResponse({
+            'success': True,
+            'message_id': message.id,
+            'content': message.content,
+            'timestamp': message.timestamp.strftime('%I:%M %p')
+        })
+    
+    return JsonResponse({'error': 'Invalid request'}, status=400)
+

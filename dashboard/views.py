@@ -366,6 +366,32 @@ def adviser_dashboard(request):
     ongoing_count = students.filter(ojt_status=StudentProfile.OJTStatus.ONGOING).count()
     completed_count = students.filter(ojt_status=StudentProfile.OJTStatus.COMPLETED).count()
     
+    # Get stats per course
+    course_stats = []
+    for course in profile.courses.all():
+        course_students = students.filter(course=course)
+        course_stats.append({
+            'course': course,
+            'total': course_students.count(),
+            'looking': course_students.filter(ojt_status=StudentProfile.OJTStatus.LOOKING).count(),
+            'waiting': course_students.filter(ojt_status=StudentProfile.OJTStatus.WAITING).count(),
+            'ongoing': course_students.filter(ojt_status=StudentProfile.OJTStatus.ONGOING).count(),
+            'completed': course_students.filter(ojt_status=StudentProfile.OJTStatus.COMPLETED).count(),
+        })
+    
+    # Get stats per section
+    section_stats = []
+    for section in profile.get_sections_list():
+        section_students = students.filter(section=section)
+        section_stats.append({
+            'section': section,
+            'total': section_students.count(),
+            'looking': section_students.filter(ojt_status=StudentProfile.OJTStatus.LOOKING).count(),
+            'waiting': section_students.filter(ojt_status=StudentProfile.OJTStatus.WAITING).count(),
+            'ongoing': section_students.filter(ojt_status=StudentProfile.OJTStatus.ONGOING).count(),
+            'completed': section_students.filter(ojt_status=StudentProfile.OJTStatus.COMPLETED).count(),
+        })
+    
     # Get recent students
     recent_students = students.order_by('-user__date_joined')[:5]
     
@@ -399,6 +425,8 @@ def adviser_dashboard(request):
         'waiting_count': waiting_count,
         'ongoing_count': ongoing_count,
         'completed_count': completed_count,
+        'course_stats': course_stats,
+        'section_stats': section_stats,
         'recent_students': recent_students,
         'students_with_docs': students_with_docs,
         'required_documents': required_documents,
@@ -1137,10 +1165,13 @@ def generate_student_list_pdf(request):
     buffer = BytesIO()
     p = canvas.Canvas(buffer, pagesize=landscape(A4))
     data = [['Student ID', 'Name', 'Email', 'Course', 'Section', 'Year Level', 'OJT Status', 'OJT Hours', 'Company', 'Company Email', 'HR Email', 'Internship Title']]
+    # Store OJT status for color coding
+    student_statuses = []
     for s in students:
         application = s.applications.filter(status='ACCEPTED').order_by('-applied_at').first()
         company = application.internship.company if application and application.internship else None
         internship = application.internship if application else None
+        student_statuses.append(s.ojt_status)
         data.append([
             s.student_id or '',
             s.get_full_name(),
@@ -1157,33 +1188,73 @@ def generate_student_list_pdf(request):
         ])
     # Adjusted column widths for better fit
     # Adjusted columns and font for A4 fit
-    col_widths = [45, 80, 90, 55, 35, 45, 83, 35, 65, 80, 80, 70]
-    table = Table(data, repeatRows=1, colWidths=col_widths)
+    col_widths = [55, 75, 95, 40, 35, 40, 75, 35, 70, 85, 85, 75]
+    
+    # Wrap long text in Paragraph style for better readability
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.platypus import Paragraph
+    
+    styles = getSampleStyleSheet()
+    cell_style = ParagraphStyle(
+        'CellStyle',
+        parent=styles['Normal'],
+        fontSize=6,
+        leading=7,
+        wordWrap='CJK',
+    )
+    header_style = ParagraphStyle(
+        'HeaderStyle',
+        parent=styles['Normal'],
+        fontSize=7,
+        leading=8,
+        textColor=colors.white,
+        alignment=1,  # Center
+    )
+    
+    # Wrap data in Paragraphs for word wrapping
+    wrapped_data = []
+    for i, row in enumerate(data):
+        if i == 0:
+            # Header row
+            wrapped_row = [Paragraph(str(cell), header_style) for cell in row]
+        else:
+            # Data rows
+            wrapped_row = [Paragraph(str(cell) if cell else '-', cell_style) for cell in row]
+        wrapped_data.append(wrapped_row)
+    
+    table = Table(wrapped_data, repeatRows=1, colWidths=col_widths)
     style = TableStyle([
-        ('BACKGROUND', (0,0), (-1,0), colors.HexColor('#003366')),
+        ('BACKGROUND', (0,0), (-1,0), colors.HexColor('#064E07')),  # CVSU Green
         ('TEXTCOLOR', (0,0), (-1,0), colors.whitesmoke),
         ('ALIGN', (0,0), (-1,0), 'CENTER'),
         ('ALIGN', (0,1), (-1,-1), 'LEFT'),
         ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
-        ('FONTSIZE', (0,0), (-1,0), 8),
-        ('FONTSIZE', (0,1), (-1,-1), 7),
-        ('BOTTOMPADDING', (0,0), (-1,0), 4),
-        ('TOPPADDING', (0,1), (-1,-1), 2),
-        ('BOTTOMPADDING', (0,1), (-1,-1), 2),
-        ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
+        ('FONTSIZE', (0,0), (-1,0), 7),
+        ('FONTSIZE', (0,1), (-1,-1), 6),
+        ('BOTTOMPADDING', (0,0), (-1,0), 6),
+        ('TOPPADDING', (0,0), (-1,0), 6),
+        ('TOPPADDING', (0,1), (-1,-1), 3),
+        ('BOTTOMPADDING', (0,1), (-1,-1), 3),
+        ('LEFTPADDING', (0,0), (-1,-1), 3),
+        ('RIGHTPADDING', (0,0), (-1,-1), 3),
+        ('VALIGN', (0,0), (-1,-1), 'TOP'),
         ('GRID', (0,0), (-1,-1), 0.5, colors.grey),
     ])
-    # Alternating row background for readability
+    
+    # Color-coded row backgrounds based on OJT status
+    status_colors = {
+        'LOOKING': colors.HexColor('#E9ECEF'),      # Light gray
+        'WAITING': colors.HexColor('#FFF3CD'),      # Light yellow
+        'ONGOING': colors.HexColor('#D1ECF1'),      # Light blue
+        'COMPLETED': colors.HexColor('#D4EDDA'),    # Light green
+    }
     for i in range(1, len(data)):
-        if i % 2 == 0:
-            style.add('BACKGROUND', (0,i), (-1,i), colors.whitesmoke)
-        else:
-            style.add('BACKGROUND', (0,i), (-1,i), colors.beige)
-    # Enable word wrap for all columns
-    for col in range(len(data[0])):
-        style.add('WORDWRAP', (col, 0), (col, -1), True)
+        status = student_statuses[i-1] if i-1 < len(student_statuses) else None
+        bg_color = status_colors.get(status, colors.whitesmoke)
+        style.add('BACKGROUND', (0,i), (-1,i), bg_color)
+    
     table.setStyle(style)
-    # Center table on A3 page
+    # Center table on A4 page
     table_width, table_height = table.wrapOn(p, 0, 0)
     page_width, page_height = landscape(A4)
     x = (page_width - table_width) / 2

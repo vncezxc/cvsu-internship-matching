@@ -204,46 +204,186 @@
         margin-bottom: 0.5rem;
         display: block;
     }
+
+    .course-badge, .section-badge {
+        cursor: pointer;
+        transition: all 0.3s ease;
+        position: relative;
+    }
+
+    .course-badge:hover, .section-badge:hover {
+        transform: scale(1.05);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+
+    .stats-popup {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        background: white;
+        border-radius: var(--radius-sm);
+        box-shadow: var(--shadow-lg);
+        padding: 1rem;
+        z-index: 100;
+        min-width: 220px;
+        margin-top: 0.5rem;
+        border: 2px solid var(--cvsu-green);
+    }
+
+    .stats-popup.show {
+        display: block;
+        animation: fadeIn 0.3s ease;
+    }
+
+    .stats-popup h6 {
+        color: var(--cvsu-green);
+        font-weight: var(--font-weight-bold);
+        margin-bottom: 0.75rem;
+        border-bottom: 2px solid var(--cvsu-gold);
+        padding-bottom: 0.5rem;
+    }
+
+    .stats-popup .stat-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.25rem 0;
+        border-bottom: 1px solid var(--gray-100);
+    }
+
+    .stats-popup .stat-row:last-child {
+        border-bottom: none;
+    }
+
+    .stats-popup .stat-label {
+        color: var(--cvsu-light-gray);
+        font-size: 0.85rem;
+    }
+
+    .stats-popup .stat-value {
+        font-weight: var(--font-weight-bold);
+        color: var(--cvsu-dark-green);
+    }
+
+    .badge-container {
+        position: relative;
+        display: inline-block;
+    }
+
+    .close-popup {
+        position: absolute;
+        top: 0.25rem;
+        right: 0.25rem;
+        background: none;
+        border: none;
+        color: var(--cvsu-light-gray);
+        cursor: pointer;
+        font-size: 1rem;
+    }
+
+    .close-popup:hover {
+        color: var(--cvsu-red);
+    }
 </style>
 {% endblock %}
 
 {% block dashboard_content %}
 <div class="container mt-4">
     <h3>Welcome, {{ user.get_full_name }}</h3>
-    <div class="mb-3">
-        <a href="{% url 'accounts:manage_courses' %}" class="btn btn-primary me-2 hover-lift">Manage My Courses</a>
-    </div>
 </div>
 
 <div class="row mb-4">
     <div class="col-md-6">
         <div class="card h-100 hover-lift">
-            <div class="card-header">
+            <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="card-title mb-0"><i class="bi bi-mortarboard me-2"></i>Courses & Sections</h5>
+                <a href="{% url 'accounts:manage_courses' %}" class="btn btn-sm btn-outline-primary">
+                    <i class="bi bi-gear me-1"></i>Manage
+                </a>
             </div>
             <div class="card-body">
                 <div class="mb-4">
-                    <h6 class="text-muted mb-3"><i class="bi bi-book me-2"></i>Courses Managed:</h6>
+                    <h6 class="text-muted mb-3"><i class="bi bi-book me-2"></i>Courses <small class="text-info">(Click for stats)</small></h6>
                     <div class="d-flex flex-wrap gap-2">
-                        {% for course in profile.courses.all %}
-                            <span class="badge bg-success px-3 py-2">{{ course.name }} ({{ course.code }})</span>
+                        {% for stat in course_stats %}
+                            <div class="badge-container">
+                                <span class="badge bg-success px-3 py-2 course-badge" onclick="togglePopup('course-{{ forloop.counter }}')">
+                                    {{ stat.course.name }} ({{ stat.course.code }})
+                                    <i class="bi bi-chevron-down ms-1"></i>
+                                </span>
+                                <div class="stats-popup" id="course-{{ forloop.counter }}">
+                                    <button class="close-popup" onclick="closePopup('course-{{ forloop.counter }}')">&times;</button>
+                                    <h6>{{ stat.course.code }} Students</h6>
+                                    <div class="stat-row">
+                                        <span class="stat-label">Total Students</span>
+                                        <span class="stat-value">{{ stat.total }}</span>
+                                    </div>
+                                    <div class="stat-row">
+                                        <span class="stat-label"><i class="bi bi-search text-info"></i> Looking</span>
+                                        <span class="stat-value text-info">{{ stat.looking }}</span>
+                                    </div>
+                                    <div class="stat-row">
+                                        <span class="stat-label"><i class="bi bi-hourglass-split text-warning"></i> Waiting</span>
+                                        <span class="stat-value text-warning">{{ stat.waiting }}</span>
+                                    </div>
+                                    <div class="stat-row">
+                                        <span class="stat-label"><i class="bi bi-play-circle text-primary"></i> Ongoing</span>
+                                        <span class="stat-value text-primary">{{ stat.ongoing }}</span>
+                                    </div>
+                                    <div class="stat-row">
+                                        <span class="stat-label"><i class="bi bi-check-circle text-success"></i> Completed</span>
+                                        <span class="stat-value text-success">{{ stat.completed }}</span>
+                                    </div>
+                                </div>
+                            </div>
                         {% empty %}
                             <span class="text-muted">No courses assigned yet</span>
                         {% endfor %}
                     </div>
                 </div>
                 <div class="mb-3">
-                    <h6 class="text-muted mb-2"><i class="bi bi-people me-2"></i>Sections:</h6>
-                    <p class="mb-0">{{ profile.sections|default:"No sections assigned yet" }}</p>
+                    <h6 class="text-muted mb-3"><i class="bi bi-people me-2"></i>Sections <small class="text-info">(Click for stats)</small></h6>
+                    <div class="d-flex flex-wrap gap-2">
+                        {% for stat in section_stats %}
+                            <div class="badge-container">
+                                <span class="badge bg-primary px-3 py-2 section-badge" onclick="togglePopup('section-{{ forloop.counter }}')">
+                                    {{ stat.section }}
+                                    <i class="bi bi-chevron-down ms-1"></i>
+                                </span>
+                                <div class="stats-popup" id="section-{{ forloop.counter }}">
+                                    <button class="close-popup" onclick="closePopup('section-{{ forloop.counter }}')">&times;</button>
+                                    <h6>{{ stat.section }} Students</h6>
+                                    <div class="stat-row">
+                                        <span class="stat-label">Total Students</span>
+                                        <span class="stat-value">{{ stat.total }}</span>
+                                    </div>
+                                    <div class="stat-row">
+                                        <span class="stat-label"><i class="bi bi-search text-info"></i> Looking</span>
+                                        <span class="stat-value text-info">{{ stat.looking }}</span>
+                                    </div>
+                                    <div class="stat-row">
+                                        <span class="stat-label"><i class="bi bi-hourglass-split text-warning"></i> Waiting</span>
+                                        <span class="stat-value text-warning">{{ stat.waiting }}</span>
+                                    </div>
+                                    <div class="stat-row">
+                                        <span class="stat-label"><i class="bi bi-play-circle text-primary"></i> Ongoing</span>
+                                        <span class="stat-value text-primary">{{ stat.ongoing }}</span>
+                                    </div>
+                                    <div class="stat-row">
+                                        <span class="stat-label"><i class="bi bi-check-circle text-success"></i> Completed</span>
+                                        <span class="stat-value text-success">{{ stat.completed }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        {% empty %}
+                            <span class="text-muted">No sections assigned yet</span>
+                        {% endfor %}
+                    </div>
                 </div>
                 <div class="mb-3">
                     <h6 class="text-muted mb-2"><i class="bi bi-calendar-check me-2"></i>Year Levels Handled:</h6>
                     <p class="mb-0">{{ profile.get_year_levels_display|default:"Not specified" }}</p>
-                </div>
-                <div class="mt-4">
-                    <a href="{% url 'accounts:manage_courses' %}" class="btn btn-outline-primary btn-sm">
-                        <i class="bi bi-gear me-1"></i>Manage Courses
-                    </a>
                 </div>
             </div>
         </div>
@@ -251,39 +391,49 @@
     
     <div class="col-md-6">
         <div class="card h-100 hover-lift">
-            <div class="card-header">
-                <h5 class="card-title mb-0">Students Summary</h5>
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0"><i class="bi bi-people-fill me-2"></i>Students Summary</h5>
+                <a href="{% url 'dashboard:student_list' %}" class="btn btn-sm btn-outline-primary">
+                    <i class="bi bi-list me-1"></i>View All
+                </a>
             </div>
             <div class="card-body">
-                <div class="row text-center">
-                    <div class="col">
-                        <h3 class="stat-number">{{ total_students }}</h3>
-                        <p>Total Students</p>
+                <div class="text-center mb-4">
+                    <h2 class="stat-number mb-0">{{ total_students }}</h2>
+                    <p class="text-muted mb-0">Total Students</p>
+                </div>
+                
+                <div class="row text-center g-3">
+                    <div class="col-6 col-md-3">
+                        <div class="p-2 rounded" style="background: rgba(var(--bs-info-rgb), 0.1);">
+                            <h4 class="mb-0 text-info">{{ looking_count }}</h4>
+                            <small class="text-muted">Looking</small>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="p-2 rounded" style="background: rgba(var(--bs-warning-rgb), 0.1);">
+                            <h4 class="mb-0 text-warning">{{ waiting_count }}</h4>
+                            <small class="text-muted">Waiting</small>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="p-2 rounded" style="background: rgba(var(--bs-primary-rgb), 0.1);">
+                            <h4 class="mb-0 text-primary">{{ ongoing_count }}</h4>
+                            <small class="text-muted">Ongoing</small>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="p-2 rounded" style="background: rgba(var(--bs-success-rgb), 0.1);">
+                            <h4 class="mb-0 text-success">{{ completed_count }}</h4>
+                            <small class="text-muted">Completed</small>
+                        </div>
                     </div>
                 </div>
                 
-                <div class="row text-center mt-3">
-                    <div class="col">
-                        <h4>{{ looking_count }}</h4>
-                        <p>Looking</p>
-                    </div>
-                    <div class="col">
-                        <h4>{{ waiting_count }}</h4>
-                        <p>Waiting</p>
-                    </div>
-                    <div class="col">
-                        <h4>{{ ongoing_count }}</h4>
-                        <p>Ongoing</p>
-                    </div>
-                    <div class="col">
-                        <h4>{{ completed_count }}</h4>
-                        <p>Completed</p>
-                    </div>
-                </div>
-                
-                <div class="mt-4 d-grid gap-2">
-                    <a href="{% url 'dashboard:adviser_dtr_list' %}" class="btn btn-outline-success">Review DTR Submissions</a>
-                    <a href="{% url 'dashboard:student_list' %}" class="btn btn-outline-primary">Manage Students</a>
+                <div class="mt-4">
+                    <a href="{% url 'dashboard:adviser_dtr_list' %}" class="btn btn-outline-success w-100">
+                        <i class="bi bi-clock-history me-2"></i>Review DTR Submissions
+                    </a>
                 </div>
             </div>
         </div>
@@ -427,3 +577,42 @@
     </div>
 </div>
 {% endblock dashboard_content %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+    // Track currently open popup
+    let currentOpenPopup = null;
+
+    function togglePopup(popupId) {
+        const popup = document.getElementById(popupId);
+        
+        // Close any other open popup
+        if (currentOpenPopup && currentOpenPopup !== popup) {
+            currentOpenPopup.classList.remove('show');
+        }
+        
+        // Toggle the clicked popup
+        popup.classList.toggle('show');
+        currentOpenPopup = popup.classList.contains('show') ? popup : null;
+    }
+
+    function closePopup(popupId) {
+        const popup = document.getElementById(popupId);
+        popup.classList.remove('show');
+        if (currentOpenPopup === popup) {
+            currentOpenPopup = null;
+        }
+    }
+
+    // Close popup when clicking outside
+    document.addEventListener('click', function(event) {
+        if (currentOpenPopup && 
+            !event.target.closest('.badge-container') && 
+            !event.target.closest('.stats-popup')) {
+            currentOpenPopup.classList.remove('show');
+            currentOpenPopup = null;
+        }
+    });
+</script>
+{% endblock extra_js %}

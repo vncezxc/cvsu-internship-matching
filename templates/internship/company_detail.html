@@ -318,6 +318,9 @@
     #company-map {
         border-radius: var(--radius-sm);
         border: 2px solid var(--gray-200);
+        width: 100% !important;
+        min-width: 100%;
+        height: 280px !important;
     }
 
     @keyframes fadeIn {
@@ -385,7 +388,7 @@
                         </div>
                         <div class="company-info-location">
                             <h5>Location</h5>
-                            <div id="company-map" style="height: 220px; border-radius: 8px; margin-bottom: 0.5rem;"></div>
+                            <div id="company-map" style="height: 280px; width: 100%; border-radius: 8px; margin-bottom: 0.5rem;"></div>
                             <div class="d-grid gap-1 mb-2">
                                 <a href="https://www.openstreetmap.org/?mlat={{ company.latitude }}&mlon={{ company.longitude }}#map=18/{{ company.latitude }}/{{ company.longitude }}" target="_blank" class="btn btn-outline-primary btn-sm">
                                     <i class="fas fa-map-marker-alt me-1"></i> OpenStreetMap
@@ -612,6 +615,11 @@
         attribution: '© OpenStreetMap'
       }).addTo(map);
       L.marker([lat, lng]).addTo(map);
+      
+      // Fix for map not rendering at full width
+      setTimeout(function() {
+        map.invalidateSize();
+      }, 100);
     } else if (mapDiv) {
       mapDiv.innerHTML = '<div class="text-center text-muted pt-5">No location set</div>';
     }

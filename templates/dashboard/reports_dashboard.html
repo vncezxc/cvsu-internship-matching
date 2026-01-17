@@ -450,16 +450,16 @@
                                     </span>
                                 </td>
                                 <td>{{ student.ojt_hours_completed }}</td>
-                                <td title="{% if student.current_internship %}{{ student.current_internship.internship.company.name }}{% endif %}">
-                                    {% if student.current_internship %}
-                                        <span class="cell-truncate text-success fw-bold">{{ student.current_internship.internship.company.name }}</span>
+                                <td title="{% if student.current_internship and student.current_internship.internship and student.current_internship.internship.company %}{{ student.current_internship.internship.company.name }}{% endif %}">
+                                    {% if student.current_internship and student.current_internship.internship and student.current_internship.internship.company %}
+                                        <span class="cell-truncate text-success fw-bold">{{ student.current_internship.internship.company.name|default:"-" }}</span>
                                     {% else %}
                                         <span class="text-muted">-</span>
                                     {% endif %}
                                 </td>
-                                <td title="{% if student.current_internship %}{{ student.current_internship.internship.title }}{% endif %}">
-                                    {% if student.current_internship %}
-                                        <span class="cell-truncate">{{ student.current_internship.internship.title }}</span>
+                                <td title="{% if student.current_internship and student.current_internship.internship %}{{ student.current_internship.internship.title }}{% endif %}">
+                                    {% if student.current_internship and student.current_internship.internship %}
+                                        <span class="cell-truncate">{{ student.current_internship.internship.title|default:"-" }}</span>
                                     {% else %}
                                         <span class="text-muted">-</span>
                                     {% endif %}
