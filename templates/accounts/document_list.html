@@ -1,25 +1,363 @@
 {% extends 'base.html' %}
-{% block content %}
-<div class="container mt-4">
-  <h2>My Documents</h2>
-  <ul class="list-group mb-3">
-    {% for doc in documents %}
-    <li class="list-group-item d-flex justify-content-between align-items-center">
-      {{ doc.document_type.name }}
-      <a href="{{ doc.file.url }}" class="btn btn-sm btn-outline-secondary" target="_blank">View</a>
-    </li>
-    {% empty %}
-    <li class="list-group-item">No documents uploaded.</li>
-    {% endfor %}
-  </ul>
-  <a href="{% url 'accounts:upload_document' %}" class="btn btn-success">Upload Document</a>
-  <a href="javascript:history.back()" class="btn btn-secondary ms-2">Back</a>
-</div>
+{% block title %}My Documents - CVSU Internship Matching{% endblock %}
+{% block extra_css %}
+<style>
+    :root {
+        --cvsu-dark-green: #030403;
+        --cvsu-light-gray: #787A66;
+        --cvsu-green: #064E07;
+        --cvsu-gold: #EFB60A;
+        --cvsu-red: #CF120F;
+        --cvsu-white: #FFFFFF;
+        --cvsu-green-light: #0a6d0b;
+        --cvsu-gold-light: #f9b233;
+        --gray-50: #f8f9fa;
+        --gray-100: #e9ecef;
+        --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
+        --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+        --radius-md: 1rem;
+        --radius-sm: 0.5rem;
+        --font-family: 'Nunito', Arial, sans-serif;
+        --font-weight-medium: 600;
+        --font-weight-bold: 700;
+    }
+
+    .documents-container {
+        min-height: 60vh;
+        padding: 2rem 0;
+    }
+
+    .page-header {
+        margin-bottom: 2rem;
+        text-align: center;
+    }
+
+    .page-header h2 {
+        color: var(--cvsu-dark-green);
+        font-family: var(--font-family);
+        font-weight: var(--font-weight-bold);
+        margin-bottom: 0.5rem;
+    }
+
+    .page-header .subtitle {
+        color: var(--cvsu-light-gray);
+        font-size: 1.1rem;
+    }
+
+    .documents-card {
+        background: var(--cvsu-white);
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-md);
+        border: none;
+        overflow: hidden;
+        animation: fadeIn 0.7s ease-out;
+    }
+
+    .documents-card .card-body {
+        padding: 2rem;
+    }
+
+    .document-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .document-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1.25rem;
+        margin-bottom: 0.75rem;
+        background: var(--gray-50);
+        border-radius: var(--radius-sm);
+        border: 2px solid transparent;
+        transition: all 0.3s ease;
+    }
+
+    .document-item:hover {
+        background: var(--cvsu-white);
+        border-color: var(--cvsu-gold);
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-sm);
+    }
+
+    .document-item:last-child {
+        margin-bottom: 0;
+    }
+
+    .document-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .document-icon {
+        width: 50px;
+        height: 50px;
+        background: linear-gradient(135deg, var(--cvsu-green), var(--cvsu-green-light));
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--cvsu-white);
+        font-size: 1.25rem;
+        flex-shrink: 0;
+    }
+
+    .document-details h5 {
+        color: var(--cvsu-dark-green);
+        font-family: var(--font-family);
+        font-weight: var(--font-weight-medium);
+        margin: 0 0 0.25rem 0;
+        font-size: 1.1rem;
+    }
+
+    .document-details .upload-date {
+        color: var(--cvsu-light-gray);
+        font-size: 0.875rem;
+    }
+
+    .document-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .btn {
+        border-radius: var(--radius-sm);
+        font-family: var(--font-family);
+        font-weight: var(--font-weight-medium);
+        padding: 0.5rem 1rem;
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .btn-outline-secondary {
+        color: var(--cvsu-light-gray) !important;
+        border-color: var(--gray-200) !important;
+        background: transparent;
+    }
+
+    .btn-outline-secondary:hover {
+        background: var(--gray-100);
+        border-color: var(--cvsu-light-gray) !important;
+        color: var(--cvsu-dark-green) !important;
+        transform: translateY(-1px);
+    }
+
+    .btn-success {
+        background: linear-gradient(135deg, #198754, #28a745);
+        border-color: #198754;
+        color: var(--cvsu-white) !important;
+    }
+
+    .btn-success:hover {
+        background: linear-gradient(135deg, #28a745, #218838);
+        border-color: #28a745;
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-sm);
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, var(--cvsu-green), var(--cvsu-green-light));
+        border-color: var(--cvsu-green);
+        color: var(--cvsu-white) !important;
+    }
+
+    .btn-primary:hover {
+        background: linear-gradient(135deg, var(--cvsu-gold), var(--cvsu-gold-light));
+        border-color: var(--cvsu-gold);
+        color: var(--cvsu-dark-green) !important;
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-sm);
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 3rem 2rem;
+        color: var(--cvsu-light-gray);
+    }
+
+    .empty-state i {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+
+    .empty-state h5 {
+        color: var(--cvsu-dark-green);
+        font-family: var(--font-family);
+        font-weight: var(--font-weight-medium);
+        margin-bottom: 0.5rem;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        margin-top: 2rem;
+        flex-wrap: wrap;
+    }
+
+    .document-preview {
+        max-width: 100px;
+        max-height: 60px;
+        object-fit: cover;
+        border-radius: var(--radius-sm);
+        border: 1px solid var(--gray-200);
+    }
+
+    .pdf-preview {
+        background: var(--gray-100);
+        padding: 0.5rem;
+        border-radius: var(--radius-sm);
+        text-align: center;
+        min-width: 80px;
+    }
+
+    .pdf-preview i {
+        font-size: 1.5rem;
+        color: var(--cvsu-red);
+    }
+
+    .pdf-preview small {
+        display: block;
+        margin-top: 0.25rem;
+        font-size: 0.75rem;
+        color: var(--cvsu-light-gray);
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .documents-container {
+            padding: 1rem 0;
+        }
+        
+        .documents-card .card-body {
+            padding: 1.5rem;
+        }
+        
+        .document-item {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+        
+        .document-info {
+            width: 100%;
+        }
+        
+        .document-actions {
+            width: 100%;
+            justify-content: flex-end;
+        }
+        
+        .action-buttons {
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .btn {
+            width: 100%;
+            max-width: 200px;
+            justify-content: center;
+        }
+    }
+</style>
 {% endblock %}
+
+{% block dashboard_content %}
+<div class="documents-container">
+    <div class="container">
+        <div class="page-header">
+            <h2><i class="fas fa-folder-open me-2"></i>My Documents</h2>
+            <p class="subtitle">Manage and view your uploaded documents</p>
+        </div>
+
+        <div class="documents-card">
+            <div class="card-body">
+                {% if documents %}
+                    <ul class="document-list">
+                        {% for doc in documents %}
+                            <li class="document-item">
+                                <div class="document-info">
+                                    <div class="document-icon">
+                                        {% if doc.file.url|file_ext:'.jpg' or doc.file.url|file_ext:'.jpeg' or doc.file.url|file_ext:'.png' %}
+                                            <i class="fas fa-image"></i>
+                                        {% elif doc.file.url|file_ext:'.pdf' %}
+                                            <i class="fas fa-file-pdf"></i>
+                                        {% elif doc.file.url|file_ext:'.doc' or doc.file.url|file_ext:'.docx' %}
+                                            <i class="fas fa-file-word"></i>
+                                        {% elif doc.file.url|file_ext:'.xls' or doc.file.url|file_ext:'.xlsx' %}
+                                            <i class="fas fa-file-excel"></i>
+                                        {% else %}
+                                            <i class="fas fa-file"></i>
+                                        {% endif %}
+                                    </div>
+                                    <div class="document-details">
+                                        <h5>{{ doc.document_type.name }}</h5>
+                                        <div class="upload-date">
+                                            <i class="fas fa-calendar-alt me-1"></i>
+                                            Uploaded on {{ doc.uploaded_at|date:"F d, Y" }}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="document-actions">
+                                    <a href="{{ doc.file.url }}" class="btn btn-outline-secondary" target="_blank">
+                                        <i class="fas fa-eye me-1"></i>View
+                                    </a>
+                                    {% if doc.file.url|file_ext:'.jpg' or doc.file.url|file_ext:'.jpeg' or doc.file.url|file_ext:'.png' %}
+                                        <img src="{{ doc.file.url }}" alt="Preview" class="document-preview">
+                                    {% elif doc.file.url|file_ext:'.pdf' %}
+                                        <div class="pdf-preview">
+                                            <i class="fas fa-file-pdf"></i>
+                                            <small>PDF</small>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <div class="empty-state">
+                        <i class="fas fa-folder-open"></i>
+                        <h5>No documents uploaded yet</h5>
+                        <p>Start by uploading your required OJT documents.</p>
+                    </div>
+                {% endif %}
+
+                <div class="action-buttons">
+                    <a href="{% url 'accounts:upload_document' %}" class="btn btn-success">
+                        <i class="fas fa-upload me-2"></i>Upload Document
+                    </a>
+                    <a href="javascript:history.back()" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Back
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock dashboard_content%}
 
 {% block extra_js %}
 <script>
-// Sticky footer fix
+// Sticky footer fix for short pages
 (function() {
   function adjustFooter() {
     var body = document.body,

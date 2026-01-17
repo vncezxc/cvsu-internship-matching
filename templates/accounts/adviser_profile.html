@@ -1,44 +1,316 @@
 {% extends 'base.html' %}
-{% block title %}Adviser Profile{% endblock %}
+{% block title %}Adviser Profile - CVSU Internship Matching{% endblock %}
 {% block content %}
-<div class="container mt-4">
+<div class="container mt-4 mb-5">
     <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card shadow-sm mb-4">
-                <div class="card-header bg-primary text-white">
-                    <h4 class="mb-0">Adviser Profile</h4>
+        <div class="col-lg-10">
+            <div class="profile-card mb-4">
+                <div class="card-header">
+                    <h4 class="mb-0"><i class="fas fa-user-tie me-2"></i>Adviser Profile</h4>
                 </div>
                 <div class="card-body">
-                    <div class="d-flex align-items-center mb-3">
-                        {% if profile.profile_image %}
-                            <img src="{{ profile.profile_image.url }}" class="rounded-circle me-3" width="80" height="80" alt="Profile Image">
-                        {% else %}
-                            <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center me-3" style="width:80px;height:80px;">
-                                <i class="fas fa-user fa-2x"></i>
-                            </div>
-                        {% endif %}
-                        <div>
-                            <h5 class="mb-0">{{ profile.user.get_full_name }}</h5>
-                            <div class="text-muted">OJT Adviser</div>
+                    <div class="profile-header mb-4">
+                        <div class="profile-image-container">
+                            {% if profile.profile_image %}
+                                <img src="{{ profile.profile_image.url }}" class="rounded-circle" alt="Profile Image">
+                            {% else %}
+                                <div class="profile-image-placeholder">
+                                    <i class="fas fa-user-tie fa-3x"></i>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="profile-info">
+                            <h3 class="mb-1">{{ profile.user.get_full_name }}</h3>
+                            <p class="text-muted mb-0">
+                                <i class="fas fa-chalkboard-teacher me-2"></i>OJT Adviser
+                            </p>
                         </div>
                     </div>
-                    <hr>
-                    <p><strong>First Name:</strong> {{ profile.user.first_name }}</p>
-                    <p><strong>Last Name:</strong> {{ profile.user.last_name }}</p>
-                    <p><strong>Email:</strong> {{ profile.user.email }}</p>
-                    <p><strong>Phone:</strong> {{ profile.phone_number }}</p>
-                    <p><strong>Department:</strong> {{ profile.department }}</p>
-                    <p><strong>Office:</strong> {{ profile.office }}</p>
-                    <p><strong>Year Levels Handled:</strong> {{ profile.get_year_levels_display }}</p>
-                    <p><strong>Courses:</strong> {% for course in profile.courses.all %}{{ course.name }}{% if not forloop.last %}, {% endif %}{% endfor %}</p>
-                    <p><strong>Sections:</strong> {{ profile.sections }}</p>
-                    <p><strong>Students Handled:</strong> {{ student_count }}</p>
-                    <div class="mt-3">
-                        <a href="{% url 'accounts:edit_profile' %}" class="btn btn-outline-primary">Edit Profile</a>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="info-section">
+                                <h5 class="section-title">Personal Information</h5>
+                                <div class="info-item">
+                                    <strong>First Name:</strong>
+                                    <span>{{ profile.user.first_name }}</span>
+                                </div>
+                                <div class="info-item">
+                                    <strong>Last Name:</strong>
+                                    <span>{{ profile.user.last_name }}</span>
+                                </div>
+                                <div class="info-item">
+                                    <strong>Email:</strong>
+                                    <span>{{ profile.user.email }}</span>
+                                </div>
+                                <div class="info-item">
+                                    <strong>Phone:</strong>
+                                    <span>{{ profile.phone_number|default:"Not provided" }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-section">
+                                <h5 class="section-title">Professional Details</h5>
+                                <div class="info-item">
+                                    <strong>Department:</strong>
+                                    <span>{{ profile.department|default:"Not assigned" }}</span>
+                                </div>
+                                <div class="info-item">
+                                    <strong>Office:</strong>
+                                    <span>{{ profile.office|default:"Not assigned" }}</span>
+                                </div>
+                                <div class="info-item">
+                                    <strong>Year Levels:</strong>
+                                    <span>{{ profile.get_year_levels_display|default:"Not assigned" }}</span>
+                                </div>
+                                <div class="info-item">
+                                    <strong>Students Handled:</strong>
+                                    <span class="badge bg-success">{{ student_count }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="info-section mt-4">
+                        <h5 class="section-title">Courses Managed</h5>
+                        {% if profile.courses.all %}
+                            <div class="course-tags">
+                                {% for course in profile.courses.all %}
+                                    <span class="course-tag">
+                                        <i class="fas fa-book me-1"></i>{{ course.name }}
+                                    </span>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <p class="text-muted">No courses assigned yet</p>
+                        {% endif %}
+                    </div>
+
+                    <div class="info-section mt-4">
+                        <h5 class="section-title">Sections</h5>
+                        <p class="text-content">{{ profile.sections|default:"No sections assigned yet" }}</p>
+                    </div>
+
+                    <div class="action-buttons mt-4">
+                        <a href="{% url 'accounts:edit_profile' %}" class="btn btn-primary">
+                            <i class="fas fa-edit me-2"></i>Edit Profile
+                        </a>
+                        <a href="{% url 'dashboard:adviser_dashboard' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-tachometer-alt me-2"></i>Go to Dashboard
+                        </a>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<style>
+    :root {
+        --cvsu-dark-green: #030403;
+        --cvsu-light-gray: #787A66;
+        --cvsu-green: #064E07;
+        --cvsu-gold: #EFB60A;
+        --cvsu-red: #CF120F;
+        --cvsu-white: #FFFFFF;
+        --cvsu-green-light: #0a6d0b;
+        --cvsu-gold-light: #f9b233;
+        --gray-50: #f8f9fa;
+        --gray-100: #e9ecef;
+        --gray-200: #dee2e6;
+        --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
+        --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+        --radius-md: 1rem;
+        --font-family: 'Nunito', Arial, sans-serif;
+    }
+
+    .profile-card {
+        background: var(--cvsu-white);
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-md);
+        border: none;
+        overflow: hidden;
+        animation: fadeIn 0.7s ease-out;
+    }
+
+    .profile-card .card-header {
+        background: linear-gradient(135deg, var(--cvsu-green), var(--cvsu-green-light)) !important;
+        color: var(--cvsu-white) !important;
+        padding: 1.5rem;
+        border: none;
+    }
+
+    .profile-card .card-header h4 {
+        font-family: var(--font-family);
+        font-weight: 700;
+        margin: 0;
+    }
+
+    .profile-card .card-body {
+        padding: 2rem;
+    }
+
+    .profile-header {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        padding-bottom: 1.5rem;
+        border-bottom: 2px solid var(--gray-100);
+    }
+
+    .profile-image-container {
+        flex-shrink: 0;
+    }
+
+    .profile-image-container img {
+        width: 80px;
+        height: 80px;
+        object-fit: cover;
+        border: 3px solid var(--cvsu-gold);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .profile-image-placeholder {
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(135deg, var(--cvsu-gold), var(--cvsu-gold-light));
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--cvsu-dark-green);
+        border: 3px solid var(--cvsu-gold);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .profile-info h3 {
+        color: var(--cvsu-dark-green);
+        font-family: var(--font-family);
+        font-weight: 700;
+    }
+
+    .info-section {
+        margin-bottom: 1.5rem;
+    }
+
+    .section-title {
+        color: var(--cvsu-green);
+        font-family: var(--font-family);
+        font-weight: 700;
+        font-size: 1.1rem;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid var(--cvsu-gold);
+    }
+
+    .info-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid var(--gray-100);
+    }
+
+    .info-item:last-child {
+        border-bottom: none;
+    }
+
+    .info-item strong {
+        color: var(--cvsu-dark-green);
+        font-weight: 600;
+    }
+
+    .course-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .course-tag {
+        background: linear-gradient(135deg, var(--cvsu-gold), var(--cvsu-gold-light));
+        color: var(--cvsu-dark-green);
+        padding: 0.5rem 1rem;
+        border-radius: 25px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .text-content {
+        color: var(--cvsu-light-gray);
+        font-style: italic;
+    }
+
+    .btn {
+        border-radius: 0.5rem;
+        font-family: var(--font-family);
+        font-weight: 600;
+        padding: 0.5rem 1.5rem;
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, var(--cvsu-green), var(--cvsu-green-light));
+        border-color: var(--cvsu-green);
+        color: var(--cvsu-white) !important;
+    }
+
+    .btn-primary:hover {
+        background: linear-gradient(135deg, var(--cvsu-gold), var(--cvsu-gold-light));
+        border-color: var(--cvsu-gold);
+        color: var(--cvsu-dark-green) !important;
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+    }
+
+    .btn-outline-primary {
+        color: var(--cvsu-green) !important;
+        border-color: var(--cvsu-green) !important;
+        background: transparent;
+    }
+
+    .btn-outline-primary:hover {
+        background: linear-gradient(135deg, var(--cvsu-green), var(--cvsu-green-light));
+        border-color: var(--cvsu-green);
+        color: var(--cvsu-white) !important;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @media (max-width: 768px) {
+        .profile-header {
+            flex-direction: column;
+            text-align: center;
+        }
+        
+        .info-item {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.25rem;
+        }
+        
+        .action-buttons {
+            justify-content: center;
+        }
+    }
+</style>
 {% endblock %}

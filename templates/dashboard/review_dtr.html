@@ -2,31 +2,309 @@
 
 {% block dashboard_title %}Review DTR{% endblock %}
 
+{% block extra_css %}
+<style>
+    :root {
+        --cvsu-dark-green: #030403;
+        --cvsu-light-gray: #787A66;
+        --cvsu-green: #064E07;
+        --cvsu-gold: #EFB60A;
+        --cvsu-red: #CF120F;
+        --cvsu-white: #FFFFFF;
+        --cvsu-green-light: #0a6d0b;
+        --cvsu-gold-light: #f9b233;
+        --cvsu-gold-dark: #d4a007;
+        --gray-50: #f8f9fa;
+        --gray-100: #e9ecef;
+        --gray-200: #dee2e6;
+        --success: #198754;
+        --warning: #ffc107;
+        --danger: #dc3545;
+        --info: #17a2b8;
+        --primary: #0d6efd;
+        --secondary: #6c757d;
+        --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
+        --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+        --shadow-lg: 0 10px 30px rgba(0,0,0,0.15);
+        --radius-sm: 0.5rem;
+        --radius-md: 1rem;
+        --radius-lg: 1.5rem;
+        --font-family: 'Nunito', Arial, sans-serif;
+        --font-weight-normal: 400;
+        --font-weight-medium: 600;
+        --font-weight-bold: 700;
+    }
+
+    .card {
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-md);
+        border: none;
+        font-family: var(--font-family);
+        animation: fadeIn 0.7s ease-out;
+        overflow: hidden;
+    }
+
+    .card-header {
+        background: linear-gradient(135deg, var(--cvsu-green), var(--cvsu-green-light)) !important;
+        color: var(--cvsu-white) !important;
+        border-radius: var(--radius-lg) var(--radius-lg) 0 0 !important;
+        padding: 1.5rem;
+        border: none;
+    }
+
+    .card-header .card-title {
+        font-weight: var(--font-weight-bold);
+        margin: 0;
+        font-size: 1.25rem;
+    }
+
+    .btn {
+        border-radius: var(--radius-sm);
+        font-family: var(--font-family);
+        font-weight: var(--font-weight-medium);
+        padding: 0.75rem 1.5rem;
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+    }
+
+    .btn-success {
+        background: linear-gradient(135deg, var(--success), #28a745);
+        border-color: var(--success);
+        color: var(--cvsu-white) !important;
+    }
+
+    .btn-success:hover {
+        background: linear-gradient(135deg, var(--cvsu-gold), var(--cvsu-gold-light));
+        border-color: var(--cvsu-gold);
+        color: var(--cvsu-dark-green) !important;
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+    }
+
+    .btn-danger {
+        background: linear-gradient(135deg, var(--danger), #c82333);
+        border-color: var(--danger);
+        color: var(--cvsu-white) !important;
+    }
+
+    .btn-danger:hover {
+        background: linear-gradient(135deg, var(--cvsu-red), #b71c1c);
+        border-color: var(--cvsu-red);
+    }
+
+    .btn-secondary {
+        background: linear-gradient(135deg, var(--secondary), #5a6268);
+        border-color: var(--secondary);
+        color: var(--cvsu-white) !important;
+    }
+
+    .btn-secondary:hover {
+        background: linear-gradient(135deg, var(--cvsu-light-gray), #6c757d);
+        border-color: var(--cvsu-light-gray);
+    }
+
+    .form-label {
+        font-weight: var(--font-weight-medium);
+        color: var(--cvsu-dark-green);
+        margin-bottom: 0.5rem;
+    }
+
+    .form-control {
+        border-radius: var(--radius-sm);
+        border: 1.5px solid var(--gray-200);
+        padding: 0.75rem 1rem;
+        font-family: var(--font-family);
+        transition: all 0.3s ease;
+    }
+
+    .form-control:focus {
+        border-color: var(--cvsu-green);
+        box-shadow: 0 0 0 0.25rem rgba(6, 78, 7, 0.25);
+    }
+
+    .dtr-review-card {
+        box-shadow: 0 2px 16px rgba(44,62,80,0.08);
+        border-radius: var(--radius-lg);
+    }
+
+    .dtr-info {
+        background: var(--gray-50);
+        border-radius: var(--radius-sm);
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .dtr-info strong {
+        color: var(--cvsu-dark-green);
+    }
+
+    .dtr-file-link {
+        background: linear-gradient(135deg, var(--primary), #0b5ed7);
+        color: var(--cvsu-white);
+        padding: 0.5rem 1rem;
+        border-radius: var(--radius-sm);
+        text-decoration: none;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .dtr-file-link:hover {
+        background: linear-gradient(135deg, var(--cvsu-green), var(--cvsu-green-light));
+        color: var(--cvsu-white);
+        transform: translateY(-1px);
+    }
+
+    .remarks-textarea {
+        border-radius: var(--radius-sm);
+        border: 1.5px solid var(--gray-200);
+        padding: 1rem;
+        font-family: var(--font-family);
+        resize: vertical;
+        min-height: 120px;
+    }
+
+    .remarks-textarea:focus {
+        border-color: var(--cvsu-green);
+        box-shadow: 0 0 0 0.25rem rgba(6, 78, 7, 0.25);
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 1rem;
+        justify-content: flex-end;
+        margin-top: 2rem;
+    }
+
+    @media (max-width: 576px) {
+        .action-buttons {
+            flex-direction: column;
+        }
+        
+        .btn {
+            width: 100%;
+        }
+        
+        .card-body {
+            padding: 1.5rem;
+        }
+        
+        .card-header {
+            padding: 1rem 1.5rem;
+        }
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .hover-lift {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .hover-lift:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-lg);
+    }
+</style>
+{% endblock %}
+
 {% block dashboard_content %}
+<div class="row mb-4">
+    <div class="col-12 d-flex justify-content-between align-items-center">
+        <a href="{% url 'dashboard:adviser_dtr_list' %}" class="btn btn-outline-primary">
+            <i class="bi bi-arrow-left"></i> Back to DTR List
+        </a>
+    </div>
+</div>
+
 <div class="row justify-content-center">
     <div class="col-md-8">
-        <div class="card">
-            <div class="card-header bg-primary text-white">
-                <h5 class="card-title mb-0">Review DTR for {{ dtr.student.user.get_full_name }}</h5>
+        <div class="card hover-lift dtr-review-card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-clipboard-check me-2"></i>Review DTR for {{ dtr.student.user.get_full_name }}
+                </h5>
             </div>
             <div class="card-body">
-                <p><strong>Week:</strong> {{ dtr.week_start }} - {{ dtr.week_end }}</p>
-                <p><strong>Hours Rendered:</strong> {{ dtr.hours_rendered }}</p>
-                <p><strong>File:</strong> <a href="{{ dtr.file.url }}" target="_blank">Download/View</a></p>
+                <div class="dtr-info">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Week Period:</strong></p>
+                            <h6>{{ dtr.week_start|date:"F d, Y" }} - {{ dtr.week_end|date:"F d, Y" }}</h6>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Hours Rendered:</strong></p>
+                            <h6><span class="badge bg-primary fs-6">{{ dtr.hours_rendered }} hours</span></h6>
+                        </div>
+                    </div>
+                    
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <p><strong>Submitted Date:</strong></p>
+                            <p>{{ dtr.submitted_at|date:"F d, Y h:i A" }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>DTR File:</strong></p>
+                            {% if dtr.file %}
+                                <a href="{{ dtr.file.url }}" target="_blank" class="dtr-file-link">
+                                    <i class="bi bi-file-earmark-pdf"></i> View/Download DTR File
+                                </a>
+                            {% else %}
+                                <span class="text-muted">No file uploaded</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    {% if dtr.remarks %}
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <p><strong>Previous Remarks:</strong></p>
+                            <div class="alert alert-light border">
+                                {{ dtr.remarks }}
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+
                 <form method="post">
                     {% csrf_token %}
                     <div class="mb-3">
-                        <label for="remarks" class="form-label">Remarks</label>
-                        <textarea name="remarks" id="remarks" class="form-control" rows="3">{{ dtr.remarks }}</textarea>
+                        <label for="remarks" class="form-label">
+                            <i class="bi bi-chat-dots me-1"></i> Review Remarks
+                        </label>
+                        <textarea 
+                            name="remarks" 
+                            id="remarks" 
+                            class="form-control remarks-textarea" 
+                            rows="4" 
+                            placeholder="Enter your review remarks here...">{{ dtr.remarks }}</textarea>
+                        <div class="form-text">Provide feedback or comments about this DTR submission.</div>
                     </div>
-                    <div class="d-flex justify-content-end">
-                        <button type="submit" name="action" value="approve" class="btn btn-success me-2">Approve</button>
-                        <button type="submit" name="action" value="reject" class="btn btn-danger">Reject</button>
-                        <a href="{% url 'dashboard:adviser_dtr_list' %}" class="btn btn-secondary ms-2">Back</a>
+                    
+                    <div class="action-buttons">
+                        <button type="submit" name="action" value="approve" class="btn btn-success">
+                            <i class="bi bi-check-circle"></i> Approve DTR
+                        </button>
+                        <button type="submit" name="action" value="reject" class="btn btn-danger">
+                            <i class="bi bi-x-circle"></i> Reject DTR
+                        </button>
+                        <a href="{% url 'dashboard:adviser_dtr_list' %}" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left"></i> Back to List
+                        </a>
                     </div>
                 </form>
             </div>
         </div>
     </div>
 </div>
-{% endblock %}
+{% endblock dashboard_content %}

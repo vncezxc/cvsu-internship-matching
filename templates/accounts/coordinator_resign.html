@@ -1,56 +1,296 @@
 {% extends 'base.html' %}
 {% load crispy_forms_tags %}
 
-{% block title %}Resign as Coordinator{% endblock %}
+{% block title %}Transfer Coordinator Role - CVSU Internship Matching{% endblock %}
 
-{% block content %}
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card shadow-sm">
-                <div class="card-header bg-warning text-dark">
-                    <h4 class="mb-0"><i class="bi bi-exclamation-triangle me-2"></i>Transfer Coordinator Role</h4>
-                </div>
-                <div class="card-body">
-                    <div class="alert alert-info">
-                        <h5 class="alert-heading"><i class="bi bi-info-circle me-2"></i>Important Information</h5>
-                        <p>By submitting this form, you will:</p>
-                        <ul>
-                            <li>Invite a new person to become the OJT Coordinator</li>
-                            <li>Send them a secure registration link via email</li>
-                            <li>Your coordinator account will be <strong>deactivated</strong> once they complete registration</li>
-                            <li>This action cannot be undone</li>
-                        </ul>
-                    </div>
+{% block extra_css %}
+<style>
+    :root {
+        --cvsu-dark-green: #030403;
+        --cvsu-light-gray: #787A66;
+        --cvsu-green: #064E07;
+        --cvsu-gold: #EFB60A;
+        --cvsu-red: #CF120F;
+        --cvsu-white: #FFFFFF;
+        --cvsu-green-light: #0a6d0b;
+        --cvsu-gold-light: #f9b233;
+        --warning: #ffc107;
+        --info: #17a2b8;
+        --gray-50: #f8f9fa;
+        --gray-100: #e9ecef;
+        --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+        --shadow-lg: 0 10px 30px rgba(0,0,0,0.15);
+        --radius-md: 1rem;
+        --radius-sm: 0.5rem;
+        --font-family: 'Nunito', Arial, sans-serif;
+        --font-weight-medium: 600;
+        --font-weight-bold: 700;
+    }
 
-                    <form method="post">
-                        {% csrf_token %}
-                        
-                        <div class="mb-4">
-                            <h5>Enter New Coordinator Details</h5>
-                            {{ form.new_coordinator_email|as_crispy_field }}
-                            <small class="text-muted">
-                                <i class="bi bi-shield-check me-1"></i>
-                                Must be a valid @cvsu.edu.ph email address
-                            </small>
-                        </div>
+    .role-transfer-container {
+        min-height: 80vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem 0;
+    }
 
-                        <div class="alert alert-warning">
-                            <strong>Note:</strong> The invitation link will be valid for 7 days. The new coordinator must register within this period.
-                        </div>
+    .transfer-card {
+        background: var(--cvsu-white);
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-lg);
+        border: none;
+        overflow: hidden;
+        animation: fadeIn 0.7s ease-out;
+        max-width: 800px;
+        width: 100%;
+    }
 
-                        <div class="d-flex justify-content-between align-items-center mt-4">
-                            <a href="{% url 'dashboard:coordinator_dashboard' %}" class="btn btn-secondary">
-                                <i class="bi bi-arrow-left me-1"></i>Cancel
-                            </a>
-                            <button type="submit" class="btn btn-warning" onclick="return confirm('Are you sure you want to transfer the coordinator role? Your account will be deactivated once the new coordinator registers.');">
-                                <i class="bi bi-send me-1"></i>Send Invitation
-                            </button>
-                        </div>
-                    </form>
-                </div>
+    .transfer-card .card-header {
+        background: linear-gradient(135deg, var(--warning), #e0a800) !important;
+        color: var(--cvsu-dark-green) !important;
+        padding: 1.5rem;
+        border: none;
+        text-align: center;
+    }
+
+    .transfer-card .card-header h4 {
+        font-family: var(--font-family);
+        font-weight: var(--font-weight-bold);
+        margin: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.75rem;
+    }
+
+    .transfer-card .card-body {
+        padding: 2rem;
+    }
+
+    .warning-alert {
+        background: linear-gradient(135deg, rgba(255, 193, 7, 0.1), rgba(224, 168, 0, 0.1));
+        border: 1px solid var(--warning);
+        border-radius: var(--radius-sm);
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .warning-alert h5 {
+        color: var(--cvsu-dark-green);
+        font-family: var(--font-family);
+        font-weight: var(--font-weight-bold);
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .warning-alert ul {
+        margin: 0;
+        padding-left: 1.5rem;
+    }
+
+    .warning-alert li {
+        color: var(--cvsu-dark-green);
+        margin-bottom: 0.5rem;
+        font-size: 0.95rem;
+    }
+
+    .warning-alert li strong {
+        color: var(--cvsu-red);
+    }
+
+    .info-alert {
+        background: linear-gradient(135deg, rgba(23, 162, 184, 0.1), rgba(23, 162, 184, 0.05));
+        border: 1px solid var(--info);
+        border-radius: var(--radius-sm);
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .info-alert h6 {
+        color: var(--info);
+        font-family: var(--font-family);
+        font-weight: var(--font-weight-bold);
+        margin-bottom: 0.5rem;
+    }
+
+    .form-label {
+        color: var(--cvsu-dark-green);
+        font-family: var(--font-family);
+        font-weight: var(--font-weight-medium);
+        margin-bottom: 0.5rem;
+    }
+
+    .form-control {
+        border-radius: var(--radius-sm);
+        border: 2px solid var(--gray-100);
+        font-family: var(--font-family);
+        transition: all 0.3s ease;
+        padding: 0.75rem 1rem;
+    }
+
+    .form-control:focus {
+        border-color: var(--cvsu-gold);
+        box-shadow: 0 0 0 0.25rem rgba(239, 182, 10, 0.25);
+    }
+
+    .email-requirement {
+        color: var(--cvsu-light-gray);
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+    }
+
+    .email-requirement i {
+        color: var(--cvsu-green);
+    }
+
+    .btn {
+        border-radius: var(--radius-sm);
+        font-family: var(--font-family);
+        font-weight: var(--font-weight-medium);
+        padding: 0.75rem 1.5rem;
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+    }
+
+    .btn-secondary {
+        background: var(--gray-50);
+        border-color: var(--gray-100);
+        color: var(--cvsu-light-gray) !important;
+    }
+
+    .btn-secondary:hover {
+        background: var(--gray-100);
+        border-color: var(--cvsu-light-gray);
+        color: var(--cvsu-dark-green) !important;
+        transform: translateY(-2px);
+    }
+
+    .btn-warning {
+        background: linear-gradient(135deg, var(--warning), #e0a800);
+        border-color: var(--warning);
+        color: var(--cvsu-dark-green) !important;
+    }
+
+    .btn-warning:hover {
+        background: linear-gradient(135deg, #e0a800, #d4a007);
+        border-color: #e0a800;
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+    }
+
+    .form-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 2rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--gray-100);
+    }
+
+    .cvsu-email-note {
+        background: rgba(6, 78, 7, 0.05);
+        border-left: 4px solid var(--cvsu-green);
+        padding: 0.75rem 1rem;
+        border-radius: 0.25rem;
+        margin-top: 0.5rem;
+        font-size: 0.875rem;
+        color: var(--cvsu-dark-green);
+    }
+
+    .cvsu-email-note i {
+        color: var(--cvsu-green);
+        margin-right: 0.5rem;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .role-transfer-container {
+            padding: 1rem 0;
+        }
+        
+        .transfer-card .card-body {
+            padding: 1.5rem;
+        }
+        
+        .form-actions {
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .btn {
+            width: 100%;
+            max-width: 300px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="role-transfer-container">
+    <div class="transfer-card">
+        <div class="card-header">
+            <h4><i class="bi bi-exclamation-triangle me-2"></i>Transfer Coordinator Role</h4>
+        </div>
+        <div class="card-body">
+            <div class="warning-alert">
+                <h5><i class="bi bi-info-circle me-2"></i>Important Information</h5>
+                <p>By submitting this form, you will:</p>
+                <ul>
+                    <li>Invite a new person to become the OJT Coordinator</li>
+                    <li>Send them a secure registration link via email</li>
+                    <li>Your coordinator account will be <strong>deactivated</strong> once they complete registration</li>
+                    <li>This action cannot be undone</li>
+                </ul>
             </div>
+
+            <form method="post">
+                {% csrf_token %}
+                
+                <div class="mb-4">
+                    <h5>Enter New Coordinator Details</h5>
+                    <div class="mb-3">
+                        {{ form.new_coordinator_email|as_crispy_field }}
+                        <div class="email-requirement">
+                            <i class="bi bi-shield-check me-1"></i>
+                            Must be a valid @cvsu.edu.ph email address
+                        </div>
+                        <div class="cvsu-email-note">
+                            <i class="fas fa-university me-1"></i>
+                            Only CVSU faculty and staff members can be assigned as coordinators.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="info-alert">
+                    <h6><i class="bi bi-clock me-1"></i>Important Note</h6>
+                    <p class="mb-0">The invitation link will be valid for 7 days. The new coordinator must register within this period.</p>
+                </div>
+
+                <div class="form-actions">
+                    <a href="{% url 'dashboard:coordinator_dashboard' %}" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left me-1"></i>Cancel
+                    </a>
+                    <button type="submit" class="btn btn-warning" 
+                            onclick="return confirm('Are you sure you want to transfer the coordinator role? Your account will be deactivated once the new coordinator registers.')">
+                        <i class="bi bi-send me-1"></i>Send Invitation
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
-{% endblock %}
+{% endblock dashboard_content %}

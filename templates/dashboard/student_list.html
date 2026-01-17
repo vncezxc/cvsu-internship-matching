@@ -2,11 +2,294 @@
 
 {% block dashboard_title %}Manage Students{% endblock %}
 
+{% block extra_css %}
+<style>
+    :root {
+        --cvsu-dark-green: #030403;
+        --cvsu-light-gray: #787A66;
+        --cvsu-green: #064E07;
+        --cvsu-gold: #EFB60A;
+        --cvsu-red: #CF120F;
+        --cvsu-white: #FFFFFF;
+        --cvsu-green-light: #0a6d0b;
+        --cvsu-gold-light: #f9b233;
+        --cvsu-gold-dark: #d4a007;
+        --gray-50: #f8f9fa;
+        --gray-100: #e9ecef;
+        --gray-200: #dee2e6;
+        --success: #198754;
+        --warning: #ffc107;
+        --danger: #dc3545;
+        --info: #17a2b8;
+        --primary: #0d6efd;
+        --secondary: #6c757d;
+        --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
+        --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+        --shadow-lg: 0 10px 30px rgba(0,0,0,0.15);
+        --radius-sm: 0.5rem;
+        --radius-md: 1rem;
+        --radius-lg: 1.5rem;
+        --font-family: 'Nunito', Arial, sans-serif;
+        --font-weight-normal: 400;
+        --font-weight-medium: 600;
+        --font-weight-bold: 700;
+    }
+
+    .card {
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-md);
+        border: none;
+        font-family: var(--font-family);
+        animation: fadeIn 0.7s ease-out;
+        overflow: hidden;
+    }
+
+    .card-header {
+        background: linear-gradient(135deg, var(--cvsu-green), var(--cvsu-green-light)) !important;
+        color: var(--cvsu-white) !important;
+        border-radius: var(--radius-md) var(--radius-md) 0 0 !important;
+        padding: 1.25rem 1.5rem;
+        border: none;
+    }
+
+    .card-header .card-title {
+        font-weight: var(--font-weight-bold);
+        margin: 0;
+        font-size: 1.1rem;
+    }
+
+    .btn {
+        border-radius: var(--radius-sm);
+        font-family: var(--font-family);
+        font-weight: var(--font-weight-medium);
+        padding: 0.5rem 1rem;
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, var(--cvsu-green), var(--cvsu-green-light));
+        border-color: var(--cvsu-green);
+        color: var(--cvsu-white) !important;
+    }
+
+    .btn-primary:hover {
+        background: linear-gradient(135deg, var(--cvsu-gold), var(--cvsu-gold-light));
+        border-color: var(--cvsu-gold);
+        color: var(--cvsu-dark-green) !important;
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+    }
+
+    .btn-light {
+        background: linear-gradient(135deg, var(--cvsu-white), var(--gray-50));
+        border-color: var(--gray-200);
+        color: var(--cvsu-dark-green) !important;
+    }
+
+    .btn-light:hover {
+        background: linear-gradient(135deg, var(--cvsu-gold), var(--cvsu-gold-light));
+        border-color: var(--cvsu-gold);
+        color: var(--cvsu-dark-green) !important;
+    }
+
+    .btn-sm {
+        padding: 0.375rem 0.75rem;
+        font-size: 0.875rem;
+        border-radius: var(--radius-sm);
+    }
+
+    .btn-outline-primary {
+        color: var(--cvsu-green) !important;
+        border-color: var(--cvsu-green) !important;
+        background: transparent;
+    }
+
+    .btn-outline-primary:hover {
+        background: linear-gradient(135deg, var(--cvsu-green), var(--cvsu-green-light));
+        border-color: var(--cvsu-green);
+        color: var(--cvsu-white) !important;
+    }
+
+    .btn-outline-secondary {
+        color: var(--cvsu-light-gray) !important;
+        border-color: var(--cvsu-light-gray) !important;
+        background: transparent;
+    }
+
+    .btn-outline-secondary:hover {
+        background: linear-gradient(135deg, var(--cvsu-light-gray), #6c757d);
+        border-color: var(--cvsu-light-gray);
+        color: var(--cvsu-white) !important;
+    }
+
+    .btn-outline-info {
+        color: var(--info) !important;
+        border-color: var(--info) !important;
+        background: transparent;
+    }
+
+    .btn-outline-info:hover {
+        background: linear-gradient(135deg, var(--info), #138496);
+        border-color: var(--info);
+        color: var(--cvsu-white) !important;
+    }
+
+    .form-select, .form-control {
+        border-radius: var(--radius-sm);
+        border: 1.5px solid var(--gray-200);
+        padding: 0.75rem 1rem;
+        font-family: var(--font-family);
+        transition: all 0.3s ease;
+    }
+
+    .form-select:focus, .form-control:focus {
+        border-color: var(--cvsu-green);
+        box-shadow: 0 0 0 0.25rem rgba(6, 78, 7, 0.25);
+    }
+
+    .table {
+        border-radius: var(--radius-md);
+        overflow: hidden;
+        box-shadow: var(--shadow-sm);
+        margin-bottom: 0;
+    }
+
+    .table thead th {
+        background: linear-gradient(135deg, var(--cvsu-green), var(--cvsu-green-light));
+        color: var(--cvsu-white);
+        font-weight: var(--font-weight-medium);
+        border: none;
+        padding: 1rem 0.75rem;
+    }
+
+    .table-striped tbody tr:nth-of-type(odd) {
+        background-color: var(--gray-50);
+    }
+
+    .table-hover tbody tr:hover {
+        background-color: rgba(6, 78, 7, 0.05);
+        transition: background-color 0.3s ease;
+    }
+
+    .badge {
+        border-radius: var(--radius-sm);
+        font-weight: var(--font-weight-medium);
+        padding: 0.5em 0.75em;
+        font-size: 0.875em;
+    }
+
+    .bg-primary {
+        background: linear-gradient(135deg, var(--cvsu-green), var(--cvsu-green-light)) !important;
+    }
+
+    .bg-success {
+        background: linear-gradient(135deg, var(--success), #28a745) !important;
+    }
+
+    .bg-warning {
+        background: linear-gradient(135deg, var(--warning), #e0a800) !important;
+        color: var(--cvsu-dark-green) !important;
+    }
+
+    .bg-danger {
+        background: linear-gradient(135deg, var(--danger), #c82333) !important;
+    }
+
+    .bg-info {
+        background: linear-gradient(135deg, var(--info), #138496) !important;
+    }
+
+    .bg-secondary {
+        background: linear-gradient(135deg, var(--secondary), #5a6268) !important;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .hover-lift {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .hover-lift:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .status-looking {
+        background: linear-gradient(135deg, var(--primary), #0b5ed7) !important;
+        color: var(--cvsu-white) !important;
+    }
+
+    .status-waiting {
+        background: linear-gradient(135deg, var(--warning), #e0a800) !important;
+        color: var(--cvsu-dark-green) !important;
+    }
+
+    .status-ongoing {
+        background: linear-gradient(135deg, var(--info), #138496) !important;
+        color: var(--cvsu-white) !important;
+    }
+
+    .status-completed {
+        background: linear-gradient(135deg, var(--success), #28a745) !important;
+        color: var(--cvsu-white) !important;
+    }
+
+    .filter-bar {
+        background: var(--cvsu-white);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-sm);
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        align-items: flex-end;
+    }
+
+    .filter-bar .form-group {
+        flex: 1;
+        min-width: 200px;
+        margin: 0;
+    }
+
+    .filter-bar .btn {
+        height: fit-content;
+        padding: 0.75rem 1.5rem;
+    }
+
+    .data-table {
+        background: var(--cvsu-white);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-md);
+        overflow: hidden;
+    }
+
+    .data-table .table-header {
+        background: linear-gradient(135deg, var(--cvsu-green), var(--cvsu-green-light));
+        color: var(--cvsu-white);
+        padding: 1.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+</style>
+{% endblock %}
+
 {% block dashboard_content %}
 <div class="row mb-4">
     <div class="col-12">
-        <div class="card">
-            <div class="card-header bg-primary text-white">
+        <div class="card hover-lift">
+            <div class="card-header">
                 <h5 class="card-title mb-0">Filter Students</h5>
             </div>
             <div class="card-body">
@@ -55,8 +338,8 @@
 
 <div class="row">
     <div class="col-12">
-        <div class="card">
-            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+        <div class="card hover-lift">
+            <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="card-title mb-0">Student List</h5>
                 <div>
                     <a href="{% url 'dashboard:reports' %}" class="btn btn-light btn-sm">
@@ -88,7 +371,7 @@
                                     <td>{{ student.course.name }}</td>
                                     <td>{{ student.section }}</td>
                                     <td>
-                                        <span class="badge bg-{{ student.get_ojt_status_color }} text-white">
+                                        <span class="badge status-{{ student.ojt_status|lower }}">
                                             {{ student.get_ojt_status_display }}
                                         </span>
                                     </td>
@@ -105,21 +388,22 @@
                                     </td>
                                     <td>{{ student.ojt_hours_completed }} / {{ student.ojt_hours_required }}</td>
                                     <td>
-                                        <a href="{% url 'dashboard:student_detail' student.id %}" class="btn btn-sm btn-primary">
-                                            <i class="bi bi-eye"></i> View
-                                        </a>
-                                        <a href="{% url 'dashboard:update_student_status' student.id %}" class="btn btn-sm btn-outline-secondary">
-                                            <i class="bi bi-pencil"></i> Status
-                                        </a>
-                                        {# Only advisers can update OJT hours. #}
-                                        {% if request.user.is_adviser %}
-                                        <a href="{% url 'dashboard:update_ojt_hours' student.id %}" class="btn btn-sm btn-outline-secondary">
-                                            <i class="bi bi-clock"></i> Hours
-                                        </a>
-                                        {% endif %}
-                                        <a href="{% url 'chat:adviser_student_chat' student.user.id %}" class="btn btn-sm btn-outline-info">
-                                            <i class="bi bi-chat"></i> Chat
-                                        </a>
+                                        <div class="btn-group" role="group">
+                                            <a href="{% url 'dashboard:student_detail' student.id %}" class="btn btn-sm btn-primary">
+                                                <i class="bi bi-eye"></i> View
+                                            </a>
+                                            <a href="{% url 'dashboard:update_student_status' student.id %}" class="btn btn-sm btn-outline-secondary">
+                                                <i class="bi bi-pencil"></i> Status
+                                            </a>
+                                            {% if request.user.is_adviser %}
+                                            <a href="{% url 'dashboard:update_ojt_hours' student.id %}" class="btn btn-sm btn-outline-secondary">
+                                                <i class="bi bi-clock"></i> Hours
+                                            </a>
+                                            {% endif %}
+                                            <a href="{% url 'chat:adviser_student_chat' student.user.id %}" class="btn btn-sm btn-outline-info">
+                                                <i class="bi bi-chat"></i> Chat
+                                            </a>
+                                        </div>
                                     </td>
                                 </tr>
                                 {% endfor %}
@@ -133,4 +417,4 @@
         </div>
     </div>
 </div>
-{% endblock %}
+{% endblock dashboard_content %}

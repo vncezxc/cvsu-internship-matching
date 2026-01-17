@@ -1,13 +1,402 @@
 {% extends 'dashboard/base_dashboard.html' %}
 {% block dashboard_title %}{{ form_title }}{% endblock %}
+{% block extra_css %}
+<style>
+    :root {
+        --cvsu-dark-green: #030403;
+        --cvsu-light-gray: #787A66;
+        --cvsu-green: #064E07;
+        --cvsu-gold: #EFB60A;
+        --cvsu-red: #CF120F;
+        --cvsu-white: #FFFFFF;
+        --cvsu-green-light: #0a6d0b;
+        --cvsu-gold-light: #f9b233;
+        --gray-50: #f8f9fa;
+        --gray-100: #e9ecef;
+        --gray-200: #dee2e6;
+        --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+        --shadow-lg: 0 10px 30px rgba(0,0,0,0.15);
+        --radius-md: 1rem;
+        --radius-sm: 0.5rem;
+        --font-family: 'Nunito', Arial, sans-serif;
+        --font-weight-medium: 600;
+        --font-weight-bold: 700;
+    }
+
+    .skill-form-container {
+        min-height: 70vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem 0;
+    }
+
+    .skill-form-card {
+        background: var(--cvsu-white);
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-lg);
+        border: none;
+        overflow: hidden;
+        animation: fadeIn 0.7s ease-out;
+        max-width: 600px;
+        width: 100%;
+    }
+
+    .skill-form-card .card-header {
+        background: linear-gradient(135deg, var(--cvsu-green), var(--cvsu-green-light)) !important;
+        color: var(--cvsu-white) !important;
+        padding: 1.5rem;
+        border: none;
+    }
+
+    .skill-form-card .card-header h3 {
+        font-family: var(--font-family);
+        font-weight: var(--font-weight-bold);
+        margin: 0;
+        font-size: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .skill-form-card .card-body {
+        padding: 2rem;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+        color: var(--cvsu-dark-green);
+        font-family: var(--font-family);
+        font-weight: var(--font-weight-bold);
+        margin-bottom: 0.75rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .form-control, .form-select, .form-textarea {
+        border-radius: var(--radius-sm);
+        border: 2px solid var(--gray-200);
+        font-family: var(--font-family);
+        transition: all 0.3s ease;
+        padding: 0.75rem 1rem;
+        width: 100%;
+    }
+
+    .form-control:focus, .form-select:focus, .form-textarea:focus {
+        border-color: var(--cvsu-gold);
+        box-shadow: 0 0 0 0.25rem rgba(239, 182, 10, 0.25);
+    }
+
+    .form-text {
+        color: var(--cvsu-light-gray);
+        font-size: 0.875rem;
+        margin-top: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .form-text i {
+        color: var(--cvsu-gold);
+    }
+
+    .btn {
+        border-radius: var(--radius-sm);
+        font-family: var(--font-family);
+        font-weight: var(--font-weight-medium);
+        padding: 0.75rem 1.5rem;
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+        margin: 0 0.5rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, var(--cvsu-green), var(--cvsu-green-light));
+        border-color: var(--cvsu-green);
+        color: var(--cvsu-white) !important;
+    }
+
+    .btn-primary:hover {
+        background: linear-gradient(135deg, var(--cvsu-gold), var(--cvsu-gold-light));
+        border-color: var(--cvsu-gold);
+        color: var(--cvsu-dark-green) !important;
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+    }
+
+    .btn-secondary {
+        background: var(--gray-50);
+        border-color: var(--gray-200);
+        color: var(--cvsu-light-gray) !important;
+    }
+
+    .btn-secondary:hover {
+        background: var(--gray-100);
+        border-color: var(--cvsu-light-gray);
+        color: var(--cvsu-dark-green) !important;
+        transform: translateY(-2px);
+    }
+
+    .action-buttons {
+        display: flex;
+        justify-content: flex-end;
+        gap: 1rem;
+        margin-top: 2rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--gray-200);
+    }
+
+    .required-indicator {
+        color: var(--cvsu-red);
+        margin-left: 0.25rem;
+    }
+
+    .skill-preview {
+        background: var(--gray-50);
+        border-radius: var(--radius-sm);
+        padding: 1.5rem;
+        margin-top: 1.5rem;
+        border: 2px solid var(--gray-100);
+    }
+
+    .skill-preview h5 {
+        color: var(--cvsu-green);
+        font-family: var(--font-family);
+        font-weight: var(--font-weight-bold);
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .preview-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid var(--gray-100);
+    }
+
+    .preview-item:last-child {
+        border-bottom: none;
+    }
+
+    .preview-item strong {
+        color: var(--cvsu-dark-green);
+        font-weight: var(--font-weight-medium);
+    }
+
+    .preview-item span {
+        color: var(--cvsu-light-gray);
+    }
+
+    .invalid-feedback {
+        color: var(--cvsu-red);
+        font-family: var(--font-family);
+        font-weight: 500;
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+    }
+
+    .is-invalid {
+        border-color: var(--cvsu-red) !important;
+    }
+
+    .is-valid {
+        border-color: var(--cvsu-green) !important;
+    }
+
+    .character-count {
+        text-align: right;
+        color: var(--cvsu-light-gray);
+        font-size: 0.875rem;
+        margin-top: 0.5rem;
+    }
+
+    .character-count.warning {
+        color: var(--cvsu-gold);
+    }
+
+    .character-count.danger {
+        color: var(--cvsu-red);
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .skill-form-container {
+            padding: 1rem 0;
+        }
+        
+        .skill-form-card .card-body {
+            padding: 1.5rem;
+        }
+        
+        .action-buttons {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        
+        .btn {
+            width: 100%;
+            margin: 0.25rem 0;
+            justify-content: center;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block dashboard_content %}
-<div class="container mt-4">
-    <h3>{{ form_title }}</h3>
-    <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit" class="btn btn-primary">Save</button>
-        <a href="{% url 'accounts:manage_skills' course.id %}" class="btn btn-secondary">Cancel</a>
-    </form>
+<div class="skill-form-container">
+    <div class="container">
+        <div class="skill-form-card">
+            <div class="card-header">
+                <h3><i class="fas fa-cog me-2"></i>{{ form_title }}</h3>
+            </div>
+            <div class="card-body">
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            {{ form.non_field_errors }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endif %}
+
+                    {% for field in form %}
+                        <div class="form-group">
+                            <label for="{{ field.id_for_label }}" class="form-label">
+                                {{ field.label }}
+                                {% if field.field.required %}<span class="required-indicator">*</span>{% endif %}
+                            </label>
+                            
+                            {% if field.errors %}
+                                {{ field|add_class:"form-control is-invalid" }}
+                                <div class="invalid-feedback">
+                                    {{ field.errors|striptags }}
+                                </div>
+                            {% else %}
+                                {{ field|add_class:"form-control" }}
+                            {% endif %}
+                            
+                            {% if field.help_text %}
+                                <small class="form-text">
+                                    <i class="fas fa-info-circle me-1"></i>{{ field.help_text }}
+                                </small>
+                            {% endif %}
+                            
+                            {% if field.name == 'name' or field.name == 'description' %}
+                                <div class="character-count" id="charCount_{{ field.name }}">0 / {{ field.field.max_length|default:200 }} characters</div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+
+                    {% if form.instance.pk %}
+                    <div class="skill-preview">
+                        <h5><i class="fas fa-eye me-2"></i>Skill Preview</h5>
+                        <div class="preview-item">
+                            <strong>Skill Name:</strong>
+                            <span>{{ form.instance.name|default:"Not set" }}</span>
+                        </div>
+                        <div class="preview-item">
+                            <strong>Description:</strong>
+                            <span>{{ form.instance.description|default:"No description" }}</span>
+                        </div>
+                        <div class="preview-item">
+                            <strong>Course:</strong>
+                            <span>{{ course.name|default:"Not specified" }}</span>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <div class="action-buttons">
+                        <a href="{% url 'accounts:manage_skills' course.id %}" class="btn btn-secondary">
+                            <i class="fas fa-times me-2"></i>Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>Save Skill
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 </div>
+{% endblock dashboard_content %}
+
+{% block extra_js %}
+<script>
+// Character counter for text fields
+document.addEventListener('DOMContentLoaded', function() {
+    const textFields = ['name', 'description'];
+    
+    textFields.forEach(fieldName => {
+        const field = document.querySelector(`[name="${fieldName}"]`);
+        const charCount = document.getElementById(`charCount_${fieldName}`);
+        
+        if (field && charCount) {
+            const maxLength = field.maxLength || 200;
+            
+            function updateCharCount() {
+                const currentLength = field.value.length;
+                charCount.textContent = `${currentLength} / ${maxLength} characters`;
+                
+                if (currentLength > maxLength * 0.9) {
+                    charCount.classList.add('warning');
+                } else {
+                    charCount.classList.remove('warning');
+                }
+                
+                if (currentLength >= maxLength) {
+                    charCount.classList.add('danger');
+                } else {
+                    charCount.classList.remove('danger');
+                }
+            }
+            
+            field.addEventListener('input', updateCharCount);
+            updateCharCount(); // Initialize
+        }
+    });
+});
+
+// Form validation
+document.querySelector('form').addEventListener('submit', function(e) {
+    const requiredFields = this.querySelectorAll('[required]');
+    let isValid = true;
+    
+    requiredFields.forEach(field => {
+        if (!field.value.trim()) {
+            field.classList.add('is-invalid');
+            isValid = false;
+        } else {
+            field.classList.remove('is-invalid');
+        }
+    });
+    
+    if (!isValid) {
+        e.preventDefault();
+        alert('Please fill in all required fields.');
+    }
+});
+</script>
 {% endblock %}

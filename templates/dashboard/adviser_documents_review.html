@@ -1,78 +1,357 @@
 {% extends 'dashboard/base_dashboard.html' %}
 {% load dashboard_extras %}
 {% block dashboard_title %}Student Documents Review{% endblock %}
+{% block extra_css %}
+<style>
+    :root {
+        --cvsu-dark-green: #030403;
+        --cvsu-light-gray: #787A66;
+        --cvsu-green: #064E07;
+        --cvsu-gold: #EFB60A;
+        --cvsu-red: #CF120F;
+        --cvsu-white: #FFFFFF;
+        --cvsu-green-light: #0a6d0b;
+        --cvsu-gold-light: #f9b233;
+        --cvsu-gold-dark: #d4a007;
+        --gray-50: #f8f9fa;
+        --gray-100: #e9ecef;
+        --gray-200: #dee2e6;
+        --success: #198754;
+        --warning: #ffc107;
+        --danger: #dc3545;
+        --info: #17a2b8;
+        --primary: #0d6efd;
+        --secondary: #6c757d;
+        --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
+        --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+        --shadow-lg: 0 10px 30px rgba(0,0,0,0.15);
+        --radius-sm: 0.5rem;
+        --radius-md: 1rem;
+        --radius-lg: 1.5rem;
+        --font-family: 'Nunito', Arial, sans-serif;
+        --font-weight-normal: 400;
+        --font-weight-medium: 600;
+        --font-weight-bold: 700;
+    }
+
+    .card {
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-md);
+        border: none;
+        font-family: var(--font-family);
+        animation: fadeIn 0.7s ease-out;
+        overflow: hidden;
+    }
+
+    .card-header {
+        background: linear-gradient(135deg, var(--cvsu-green), var(--cvsu-green-light)) !important;
+        color: var(--cvsu-white) !important;
+        border-radius: var(--radius-md) var(--radius-md) 0 0 !important;
+        padding: 1.25rem 1.5rem;
+        border: none;
+    }
+
+    .card-header .card-title {
+        font-weight: var(--font-weight-bold);
+        margin: 0;
+        font-size: 1.1rem;
+    }
+
+    .btn {
+        border-radius: var(--radius-sm);
+        font-family: var(--font-family);
+        font-weight: var(--font-weight-medium);
+        padding: 0.5rem 1rem;
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+    }
+
+    .btn-success {
+        background: linear-gradient(135deg, var(--success), #28a745);
+        border-color: var(--success);
+        color: var(--cvsu-white) !important;
+    }
+
+    .btn-success:hover {
+        background: linear-gradient(135deg, var(--cvsu-gold), var(--cvsu-gold-light));
+        border-color: var(--cvsu-gold);
+        color: var(--cvsu-dark-green) !important;
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+    }
+
+    .btn-outline-primary {
+        color: var(--cvsu-green) !important;
+        border-color: var(--cvsu-green) !important;
+        background: transparent;
+    }
+
+    .btn-outline-primary:hover {
+        background: linear-gradient(135deg, var(--cvsu-green), var(--cvsu-green-light));
+        border-color: var(--cvsu-green);
+        color: var(--cvsu-white) !important;
+    }
+
+    .btn-outline-success {
+        color: var(--success) !important;
+        border-color: var(--success) !important;
+        background: transparent;
+    }
+
+    .btn-outline-success:hover {
+        background: linear-gradient(135deg, var(--success), #28a745);
+        border-color: var(--success);
+        color: var(--cvsu-white) !important;
+    }
+
+    .table {
+        border-radius: var(--radius-md);
+        overflow: hidden;
+        box-shadow: var(--shadow-sm);
+        margin-bottom: 0;
+    }
+
+    .table thead th {
+        background: linear-gradient(135deg, var(--cvsu-green), var(--cvsu-green-light));
+        color: var(--cvsu-white);
+        font-weight: var(--font-weight-medium);
+        border: none;
+        padding: 1rem 0.75rem;
+    }
+
+    .table-striped tbody tr:nth-of-type(odd) {
+        background-color: var(--gray-50);
+    }
+
+    .badge {
+        border-radius: var(--radius-sm);
+        font-weight: var(--font-weight-medium);
+        padding: 0.5em 0.75em;
+        font-size: 0.875em;
+    }
+
+    .bg-success {
+        background: linear-gradient(135deg, var(--success), #28a745) !important;
+    }
+
+    .bg-warning {
+        background: linear-gradient(135deg, var(--warning), #e0a800) !important;
+        color: var(--cvsu-dark-green) !important;
+    }
+
+    .bg-secondary {
+        background: linear-gradient(135deg, var(--secondary), #5a6268) !important;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .hover-lift {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .hover-lift:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .document-review-card {
+        background: var(--cvsu-white);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-md);
+        overflow: hidden;
+    }
+
+    .document-review-card .card-header {
+        background: linear-gradient(135deg, var(--cvsu-green), var(--cvsu-green-light)) !important;
+    }
+
+    .student-name-row {
+        background: rgba(6, 78, 7, 0.05);
+        font-weight: var(--font-weight-bold);
+        color: var(--cvsu-dark-green);
+    }
+
+    .document-link {
+        transition: all 0.3s ease;
+    }
+
+    .document-link:hover {
+        transform: scale(1.05);
+    }
+
+    .status-badge {
+        font-size: 0.9rem;
+        padding: 0.4rem 0.8rem;
+        border-radius: var(--radius-sm);
+    }
+
+    @media (max-width: 768px) {
+        .table-responsive {
+            font-size: 0.875rem;
+        }
+        
+        .btn-sm {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.8rem;
+        }
+        
+        .badge {
+            font-size: 0.8rem;
+            padding: 0.4rem 0.6rem;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block dashboard_content %}
 <div class="container py-4">
-  <h3 class="mb-4">Student Documents Review</h3>
-  <div class="table-responsive">
-    <table class="table table-bordered align-middle">
-      <thead class="table-light">
-        <tr>
-          <th>Student</th>
-          <th>Document</th>
-          <th>Template</th>
-          <th>Student Upload</th>
-          <th>Status</th>
-          <th>Action</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for student in advisees %}
-          {% for doc in required_docs %}
-            <tr>
-              {% if forloop.first %}
-                <td rowspan="{{ required_docs|length }}">{{ student.get_full_name }}</td>
-              {% endif %}
-              <td>{{ doc.name }}</td>
-              <td>
-                {% if doc.template_file %}
-                  <a href="{{ doc.template_file.url }}" target="_blank" class="btn btn-sm btn-outline-primary">Download</a>
-                {% else %}
-                  <span class="text-muted">No template</span>
-                {% endif %}
-              </td>
-              <td>
-                {% with stu_doc=doc_map|get_item:student.id|get_item:doc.id %}
-                  {% if stu_doc %}
-                    <a href="{{ stu_doc.file.url }}" target="_blank" class="btn btn-sm btn-outline-success">View</a>
-                  {% else %}
-                    <span class="text-muted">Not uploaded</span>
-                  {% endif %}
-                {% endwith %}
-              </td>
-              <td>
-                {% with stu_doc=doc_map|get_item:student.id|get_item:doc.id %}
-                  {% if stu_doc %}
-                    {% if stu_doc.approved %}
-                      <span class="badge bg-success">Approved</span>
-                    {% else %}
-                      <span class="badge bg-warning text-dark">Pending</span>
-                    {% endif %}
-                  {% else %}
-                    <span class="badge bg-secondary">N/A</span>
-                  {% endif %}
-                {% endwith %}
-              </td>
-              <td>
-                {% with stu_doc=doc_map|get_item:student.id|get_item:doc.id %}
-                  {% if stu_doc and not stu_doc.approved %}
-                    <form method="post" style="display:inline;">
-                      {% csrf_token %}
-                      <input type="hidden" name="doc_id" value="{{ stu_doc.id }}">
-                      <button type="submit" class="btn btn-sm btn-success">Accept</button>
-                    </form>
-                  {% else %}
-                    <span class="text-muted">-</span>
-                  {% endif %}
-                {% endwith %}
-              </td>
-            </tr>
-          {% endfor %}
-        {% empty %}
-          <tr><td colspan="6" class="text-center">No students or documents found.</td></tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
+    <div class="card hover-lift document-review-card">
+        <div class="card-header">
+            <h3 class="mb-0">Student Documents Review</h3>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Student</th>
+                            <th>Document</th>
+                            <th>Template</th>
+                            <th>Student Upload</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for student in advisees %}
+                            {% for doc in required_docs %}
+                                <tr {% if forloop.first %}class="student-name-row"{% endif %}>
+                                    {% if forloop.first %}
+                                        <td rowspan="{{ required_docs|length }}">
+                                            <strong>{{ student.get_full_name }}</strong>
+                                            <br><small class="text-muted">{{ student.course.name }} - {{ student.section }}</small>
+                                        </td>
+                                    {% endif %}
+                                    <td>
+                                        <strong>{{ doc.name }}</strong>
+                                        {% if doc.description %}
+                                            <br><small class="text-muted">{{ doc.description }}</small>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if doc.template_file %}
+                                            <a href="{{ doc.template_file.url }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                                <i class="bi bi-download"></i> Download
+                                            </a>
+                                        {% else %}
+                                            <span class="text-muted">No template</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% with stu_doc=doc_map|get_item:student.id|get_item:doc.id %}
+                                            {% if stu_doc %}
+                                                <a href="{{ stu_doc.file.url }}" target="_blank" class="btn btn-sm btn-outline-success document-link">
+                                                    <i class="bi bi-eye"></i> View Document
+                                                </a>
+                                                <br><small class="text-muted">Uploaded: {{ stu_doc.created_at|date:"M d, Y" }}</small>
+                                            {% else %}
+                                                <span class="badge bg-secondary">Not uploaded</span>
+                                            {% endif %}
+                                        {% endwith %}
+                                    </td>
+                                    <td>
+                                        {% with stu_doc=doc_map|get_item:student.id|get_item:doc.id %}
+                                            {% if stu_doc %}
+                                                {% if stu_doc.approved %}
+                                                    <span class="badge bg-success status-badge">
+                                                        <i class="bi bi-check-circle"></i> Approved
+                                                    </span>
+                                                {% else %}
+                                                    <span class="badge bg-warning text-dark status-badge">
+                                                        <i class="bi bi-hourglass-split"></i> Pending Review
+                                                    </span>
+                                                {% endif %}
+                                            {% else %}
+                                                <span class="badge bg-secondary status-badge">N/A</span>
+                                            {% endif %}
+                                        {% endwith %}
+                                    </td>
+                                    <td>
+                                        {% with stu_doc=doc_map|get_item:student.id|get_item:doc.id %}
+                                            {% if stu_doc and not stu_doc.approved %}
+                                                <form method="post" style="display:inline;">
+                                                    {% csrf_token %}
+                                                    <input type="hidden" name="doc_id" value="{{ stu_doc.id }}">
+                                                    <button type="submit" class="btn btn-sm btn-success">
+                                                        <i class="bi bi-check"></i> Approve
+                                                    </button>
+                                                </form>
+                                                <button class="btn btn-sm btn-danger ms-1" onclick="rejectDocument({{ stu_doc.id }})">
+                                                    <i class="bi bi-x"></i> Reject
+                                                </button>
+                                            {% else %}
+                                                <span class="text-muted">-</span>
+                                            {% endif %}
+                                        {% endwith %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center">
+                                <div class="alert alert-info mb-0">
+                                    <i class="bi bi-info-circle"></i> No students or documents found.
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 </div>
-{% endblock %}
+
+<script>
+function rejectDocument(docId) {
+    if (confirm('Are you sure you want to reject this document? The student will need to re-upload.')) {
+        // Create a form to submit the rejection
+        const form = document.createElement('form');
+        form.method = 'post';
+        form.style.display = 'none';
+        
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        const csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = 'csrfmiddlewaretoken';
+        csrfInput.value = csrfToken;
+        
+        const docInput = document.createElement('input');
+        docInput.type = 'hidden';
+        docInput.name = 'doc_id';
+        docInput.value = docId;
+        
+        const rejectInput = document.createElement('input');
+        rejectInput.type = 'hidden';
+        rejectInput.name = 'action';
+        rejectInput.value = 'reject';
+        
+        form.appendChild(csrfInput);
+        form.appendChild(docInput);
+        form.appendChild(rejectInput);
+        
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+</script>
+{% endblock dashboard_content %}

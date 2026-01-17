@@ -1,9 +1,276 @@
 {% extends 'dashboard/base_dashboard.html' %}
+{% block dashboard_title %}Edit Coordinator Profile{% endblock %}
+{% block extra_css %}
+<style>
+    :root {
+        --cvsu-dark-green: #030403;
+        --cvsu-light-gray: #787A66;
+        --cvsu-green: #064E07;
+        --cvsu-gold: #EFB60A;
+        --cvsu-red: #CF120F;
+        --cvsu-white: #FFFFFF;
+        --cvsu-green-light: #0a6d0b;
+        --cvsu-gold-light: #f9b233;
+        --cvsu-gold-dark: #d4a007;
+        --gray-50: #f8f9fa;
+        --gray-100: #e9ecef;
+        --gray-200: #dee2e6;
+        --success: #198754;
+        --warning: #ffc107;
+        --danger: #dc3545;
+        --info: #17a2b8;
+        --primary: #0d6efd;
+        --secondary: #6c757d;
+        --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
+        --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+        --shadow-lg: 0 10px 30px rgba(0,0,0,0.15);
+        --radius-sm: 0.5rem;
+        --radius-md: 1rem;
+        --radius-lg: 1.5rem;
+        --font-family: 'Nunito', Arial, sans-serif;
+        --font-weight-normal: 400;
+        --font-weight-medium: 600;
+        --font-weight-bold: 700;
+    }
+
+    .profile-card {
+        background: var(--cvsu-white);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-lg);
+        border: none;
+        font-family: var(--font-family);
+        animation: fadeIn 0.7s ease-out;
+        overflow: hidden;
+    }
+
+    .profile-header {
+        background: linear-gradient(90deg, var(--cvsu-green) 0%, var(--cvsu-green-light) 100%) !important;
+        color: var(--cvsu-white) !important;
+        padding: 2rem;
+        border: none;
+        border-radius: var(--radius-lg) var(--radius-lg) 0 0 !important;
+        text-align: center;
+    }
+
+    .profile-header h2 {
+        font-weight: var(--font-weight-bold);
+        margin: 0;
+        font-size: 1.75rem;
+    }
+
+    .profile-header i {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        color: var(--cvsu-gold);
+    }
+
+    .profile-body {
+        padding: 2.5rem;
+    }
+
+    .form-label {
+        font-weight: var(--font-weight-medium);
+        color: var(--cvsu-dark-green);
+        margin-bottom: 0.5rem;
+    }
+
+    .form-control, .form-select {
+        border-radius: var(--radius-sm);
+        border: 1.5px solid var(--gray-200);
+        padding: 0.75rem 1rem;
+        font-family: var(--font-family);
+        transition: all 0.3s ease;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: var(--cvsu-green);
+        box-shadow: 0 0 0 0.25rem rgba(6, 78, 7, 0.25);
+    }
+
+    .btn {
+        border-radius: var(--radius-sm);
+        font-family: var(--font-family);
+        font-weight: var(--font-weight-medium);
+        padding: 0.75rem 1.5rem;
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, var(--cvsu-green), var(--cvsu-green-light));
+        border-color: var(--cvsu-green);
+        color: var(--cvsu-white) !important;
+    }
+
+    .btn-primary:hover {
+        background: linear-gradient(135deg, var(--cvsu-gold), var(--cvsu-gold-light));
+        border-color: var(--cvsu-gold);
+        color: var(--cvsu-dark-green) !important;
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+    }
+
+    .btn-secondary {
+        background: linear-gradient(135deg, var(--secondary), #5a6268);
+        border-color: var(--secondary);
+        color: var(--cvsu-white) !important;
+    }
+
+    .btn-secondary:hover {
+        background: linear-gradient(135deg, var(--cvsu-light-gray), #6c757d);
+        border-color: var(--cvsu-light-gray);
+    }
+
+    .btn-group-form {
+        display: flex;
+        gap: 1rem;
+        justify-content: flex-end;
+        margin-top: 2rem;
+    }
+
+    .section-divider {
+        border: none;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, var(--cvsu-gold), transparent);
+        margin: 2rem 0;
+    }
+
+    .help-text {
+        font-size: 0.875rem;
+        color: var(--cvsu-light-gray);
+        margin-top: 0.25rem;
+    }
+
+    .required-indicator {
+        color: var(--danger);
+        font-weight: var(--font-weight-bold);
+    }
+
+    @media (max-width: 576px) {
+        .profile-body {
+            padding: 1.5rem;
+        }
+        
+        .profile-header {
+            padding: 1.5rem;
+        }
+        
+        .profile-header i {
+            font-size: 2.5rem;
+        }
+        
+        .btn-group-form {
+            flex-direction: column;
+        }
+        
+        .btn {
+            width: 100%;
+        }
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .hover-lift {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .hover-lift:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .form-section {
+        background: var(--gray-50);
+        border-radius: var(--radius-md);
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .form-section h5 {
+        color: var(--cvsu-dark-green);
+        font-weight: var(--font-weight-bold);
+        margin-bottom: 1rem;
+        border-bottom: 2px solid var(--cvsu-gold);
+        padding-bottom: 0.5rem;
+    }
+</style>
+{% endblock %}
+
 {% block dashboard_content %}
-<h2>Edit Coordinator Profile</h2>
-<form method="post" enctype="multipart/form-data">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit" class="btn btn-primary">Save Changes</button>
-</form>
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card hover-lift profile-card">
+            <div class="profile-header">
+                <i class="bi bi-gear-fill"></i>
+                <h2>Edit Coordinator Profile</h2>
+            </div>
+            <div class="profile-body">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <div class="form-section">
+                        <h5><i class="bi bi-person me-2"></i>Personal Information</h5>
+                        
+                        <div class="mb-3">
+                            <label for="id_profile_image" class="form-label">Profile Image</label>
+                            {{ form.profile_image|as_crispy_field }}
+                            <div class="help-text">Upload a professional photo (JPG, PNG, max 5MB)</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="id_phone_number" class="form-label">Phone Number <span class="required-indicator">*</span></label>
+                            {{ form.phone_number|as_crispy_field }}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="id_office" class="form-label">Office <span class="required-indicator">*</span></label>
+                            {{ form.office|as_crispy_field }}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="id_department" class="form-label">Department <span class="required-indicator">*</span></label>
+                            {{ form.department|as_crispy_field }}
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h5><i class="bi bi-building me-2"></i>Coordinator Information</h5>
+                        
+                        <div class="mb-3">
+                            <label for="id_position" class="form-label">Position/Title <span class="required-indicator">*</span></label>
+                            {{ form.position|as_crispy_field }}
+                            <div class="help-text">Your official position (e.g., "OJT Coordinator", "Internship Head")</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="id_responsibilities" class="form-label">Responsibilities</label>
+                            {{ form.responsibilities|as_crispy_field }}
+                            <div class="help-text">Brief description of your coordination responsibilities</div>
+                        </div>
+                    </div>
+
+                    <hr class="section-divider">
+
+                    <div class="btn-group-form">
+                        <a href="{% url 'accounts:coordinator_profile' %}" class="btn btn-secondary">
+                            <i class="bi bi-x-circle me-1"></i> Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-save me-1"></i> Save Changes
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}

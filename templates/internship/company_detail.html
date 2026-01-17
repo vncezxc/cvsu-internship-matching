@@ -1,10 +1,31 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}{{ company.name }} | Company Details{% endblock %}
+{% block title %}{{ company.name }} | Company Details - CVSU{% endblock %}
 
 {% block extra_css %}
 <style>
+    :root {
+        --cvsu-dark-green: #030403;
+        --cvsu-light-gray: #787A66;
+        --cvsu-green: #064E07;
+        --cvsu-gold: #EFB60A;
+        --cvsu-red: #CF120F;
+        --cvsu-white: #FFFFFF;
+        --cvsu-green-light: #0a6d0b;
+        --cvsu-gold-light: #f9b233;
+        --gray-50: #f8f9fa;
+        --gray-100: #e9ecef;
+        --gray-200: #dee2e6;
+        --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+        --shadow-lg: 0 10px 30px rgba(0,0,0,0.15);
+        --radius-md: 1rem;
+        --radius-sm: 0.5rem;
+        --font-family: 'Nunito', Arial, sans-serif;
+        --font-weight-medium: 600;
+        --font-weight-bold: 700;
+    }
+
     /* Company Info Section */
     .company-info-row {
         display: flex;
@@ -18,25 +39,28 @@
     }
     .company-info-main h2 {
         font-size: 2.1rem;
-        font-weight: 800;
-        color: #0a58ca;
+        font-weight: var(--font-weight-bold);
+        color: var(--cvsu-green);
         margin-bottom: 0.2em;
+        font-family: var(--font-family);
     }
     .company-info-main .company-address {
         font-size: 1.08em;
-        color: #6c757d;
+        color: var(--cvsu-light-gray);
         margin-bottom: 0.7em;
     }
     .company-info-main h5 {
         font-size: 1.15em;
-        font-weight: 700;
+        font-weight: var(--font-weight-bold);
         margin-top: 1.2em;
         margin-bottom: 0.5em;
-        color: #006d38;
+        color: var(--cvsu-green);
+        font-family: var(--font-family);
     }
     .company-info-main p {
         font-size: 1.05em;
         margin-bottom: 0.7em;
+        color: var(--cvsu-dark-green);
     }
     .company-contact-list {
         list-style: none;
@@ -50,14 +74,17 @@
         align-items: center;
         gap: 0.5em;
     }
+    .company-contact-list li i {
+        color: var(--cvsu-green);
+    }
     .company-contact-list a {
-        color: #0a58ca;
+        color: var(--cvsu-green);
         text-decoration: none;
-        font-weight: 600;
+        font-weight: var(--font-weight-medium);
         transition: color 0.2s;
     }
     .company-contact-list a:hover {
-        color: #f9b233;
+        color: var(--cvsu-gold);
         text-decoration: underline;
     }
     .company-info-location {
@@ -67,13 +94,14 @@
     }
     .company-info-location h5 {
         font-size: 1.1em;
-        font-weight: 700;
-        color: #006d38;
+        font-weight: var(--font-weight-bold);
+        color: var(--cvsu-green);
         margin-bottom: 0.7em;
+        font-family: var(--font-family);
     }
     .company-info-location .small {
         font-size: 0.98em;
-        color: #6c757d;
+        color: var(--cvsu-light-gray);
     }
     @media (max-width: 991px) {
         .company-info-row {
@@ -86,102 +114,159 @@
     }
 
     /* General Styles */
-    body {
-        background: linear-gradient(120deg, #f9f9f9 0%, #e6f4ea 100%);
-        font-family: 'Nunito', Arial, sans-serif;
+    .company-detail-container {
+        min-height: 80vh;
+        padding: 2rem 0;
     }
-    .card, .progress, .btn, .table, .alert, .badge {
-        border-radius: 1.25rem;
-        font-family: inherit;
-    }
+
     .card {
-        box-shadow: 0 6px 32px rgba(0,109,56,0.10);
+        border-radius: var(--radius-md);
+        font-family: var(--font-family);
+        box-shadow: var(--shadow-lg);
         animation: fadeIn 0.7s;
         border: none;
+        overflow: hidden;
     }
+
     .card-header {
-        background: linear-gradient(90deg, #0d6efd 0%, #0a58ca 100%);
-        color: #fff;
-        border-top-left-radius: 1.25rem;
-        border-top-right-radius: 1.25rem;
-        font-weight: 700;
+        background: linear-gradient(135deg, var(--cvsu-green), var(--cvsu-green-light)) !important;
+        color: var(--cvsu-white) !important;
+        border-top-left-radius: var(--radius-md);
+        border-top-right-radius: var(--radius-md);
+        font-weight: var(--font-weight-bold);
         letter-spacing: 0.5px;
+        padding: 1rem 1.25rem;
     }
-    .btn-outline-primary, .btn-outline-secondary, .btn-primary {
+
+    .card-header.bg-white {
+        background: linear-gradient(135deg, var(--cvsu-gold), var(--cvsu-gold-light)) !important;
+        color: var(--cvsu-dark-green) !important;
+    }
+
+    .card-header h5, .card-header .card-title {
+        color: inherit !important;
+        font-family: var(--font-family);
+        font-weight: var(--font-weight-bold);
+    }
+
+    .btn {
+        border-radius: var(--radius-sm);
+        font-weight: var(--font-weight-medium);
+        font-family: var(--font-family);
+        transition: all 0.3s;
         border-width: 2px;
-        font-weight: 600;
-        transition: all 0.2s;
-        box-shadow: 0 2px 8px rgba(13,110,253,0.08);
     }
+
     .btn-outline-primary {
-        color: #006d38 !important;
-        border-color: #006d38 !important;
-        background: #fff;
+        color: var(--cvsu-green) !important;
+        border-color: var(--cvsu-green) !important;
+        background: var(--cvsu-white);
     }
-    .btn-outline-primary:hover, .btn-primary:hover {
-        background-color: #f9b233 !important;
-        color: #fff !important;
-        border-color: #f9b233 !important;
-        box-shadow: 0 4px 16px rgba(249,178,51,0.15);
+    .btn-outline-primary:hover {
+        background-color: var(--cvsu-green) !important;
+        color: var(--cvsu-white) !important;
+        border-color: var(--cvsu-green) !important;
+        box-shadow: var(--shadow-md);
+        transform: translateY(-2px);
     }
     .btn-outline-secondary {
-        color: #f9b233 !important;
-        border-color: #f9b233 !important;
-        background: #fff;
+        color: var(--cvsu-gold) !important;
+        border-color: var(--cvsu-gold) !important;
+        background: var(--cvsu-white);
     }
     .btn-outline-secondary:hover {
-        background-color: #006d38 !important;
-        color: #fff !important;
-        border-color: #006d38 !important;
+        background-color: var(--cvsu-gold) !important;
+        color: var(--cvsu-dark-green) !important;
+        border-color: var(--cvsu-gold) !important;
+    }
+    .btn-outline-danger {
+        color: var(--cvsu-red) !important;
+        border-color: var(--cvsu-red) !important;
+    }
+    .btn-outline-danger:hover {
+        background-color: var(--cvsu-red) !important;
+        color: var(--cvsu-white) !important;
+        border-color: var(--cvsu-red) !important;
     }
     .btn-primary {
-        background: linear-gradient(90deg, #0d6efd 0%, #0a58ca 100%);
+        background: linear-gradient(135deg, var(--cvsu-green), var(--cvsu-green-light));
         border: none;
+        color: var(--cvsu-white) !important;
     }
+    .btn-primary:hover {
+        background: linear-gradient(135deg, var(--cvsu-green-light), var(--cvsu-green));
+        box-shadow: var(--shadow-md);
+        transform: translateY(-2px);
+    }
+    .btn-success {
+        background: linear-gradient(135deg, var(--cvsu-green), var(--cvsu-green-light));
+        border: none;
+        color: var(--cvsu-white) !important;
+    }
+    .btn-danger {
+        background: linear-gradient(135deg, var(--cvsu-red), #e63946);
+        border: none;
+        color: var(--cvsu-white) !important;
+    }
+
     .badge {
         font-size: 1em;
         padding: 0.5em 1.2em;
         letter-spacing: 0.5px;
-        box-shadow: 0 2px 8px rgba(13,110,253,0.08);
+        border-radius: 25px;
     }
+    .badge.bg-success {
+        background: linear-gradient(135deg, var(--cvsu-green), var(--cvsu-green-light)) !important;
+    }
+    .badge.bg-danger {
+        background: linear-gradient(135deg, var(--cvsu-red), #e63946) !important;
+    }
+    .badge.bg-info {
+        background: linear-gradient(135deg, var(--cvsu-gold), var(--cvsu-gold-light)) !important;
+        color: var(--cvsu-dark-green) !important;
+    }
+
     .chip-skill {
         display: inline-block;
-        background: #495057;
-        color: #fff;
+        background: linear-gradient(135deg, var(--cvsu-green), var(--cvsu-green-light));
+        color: var(--cvsu-white);
         border-radius: 2em;
         padding: 0.4em 1.1em;
         font-size: 1em;
         margin: 0.2em 0.2em 0.2em 0;
         font-weight: 500;
         box-shadow: 0 1px 4px rgba(0,0,0,0.07);
-        transition: background 0.2s;
+        transition: all 0.2s;
     }
     .chip-skill:hover {
-        background: #0a58ca;
-        color: #fff;
+        background: linear-gradient(135deg, var(--cvsu-gold), var(--cvsu-gold-light));
+        color: var(--cvsu-dark-green);
     }
+
     .internship-list-item {
-        background: #f8fafc;
-        border-radius: 1.25rem;
+        background: var(--gray-50);
+        border-radius: var(--radius-md);
         margin-bottom: 1.2em;
         padding: 1.2em 1.5em;
-        box-shadow: 0 2px 8px rgba(13,110,253,0.07);
-        border: 1px solid #e6e6e6;
-        transition: box-shadow 0.2s, border 0.2s;
+        box-shadow: var(--shadow-md);
+        border: 1px solid var(--gray-200);
+        transition: all 0.3s;
     }
     .internship-list-item:hover {
-        box-shadow: 0 6px 24px rgba(13,110,253,0.13);
-        border: 1px solid #b6d4fe;
+        box-shadow: var(--shadow-lg);
+        border: 1px solid var(--cvsu-green);
+        transform: translateY(-2px);
     }
     .internship-title {
         font-size: 1.2em;
-        font-weight: 700;
-        color: #0a58ca;
+        font-weight: var(--font-weight-bold);
+        color: var(--cvsu-green);
+        font-family: var(--font-family);
     }
     .internship-slots {
-        background: #e6f4ea;
-        color: #006d38;
-        font-weight: 600;
+        background: linear-gradient(135deg, var(--cvsu-gold), var(--cvsu-gold-light));
+        color: var(--cvsu-dark-green);
+        font-weight: var(--font-weight-medium);
         border-radius: 1em;
         padding: 0.3em 1em;
         font-size: 0.95em;
@@ -190,46 +275,75 @@
         font-size: 1em;
         padding: 0.4em 1.2em;
         border-radius: 2em;
-        font-weight: 600;
-        box-shadow: 0 2px 8px rgba(13,110,253,0.10);
+        font-weight: var(--font-weight-medium);
     }
+
     .breadcrumb {
-        background: #f9f9f9;
-        border-radius: 1.25rem;
+        background: var(--cvsu-white);
+        border-radius: var(--radius-md);
         padding: 0.75rem 1.25rem;
         font-size: 1.1em;
         font-weight: 500;
+        box-shadow: var(--shadow-md);
+    }
+    .breadcrumb-item a {
+        color: var(--cvsu-green);
+        text-decoration: none;
+    }
+    .breadcrumb-item a:hover {
+        color: var(--cvsu-gold);
     }
     .breadcrumb-item.active {
-        color: #0a58ca !important;
-        font-weight: 700;
+        color: var(--cvsu-green) !important;
+        font-weight: var(--font-weight-bold);
     }
-    .shadow-sm {
-        box-shadow: 0 6px 32px rgba(0,109,56,0.10) !important;
+
+    .alert-info {
+        background: linear-gradient(135deg, rgba(6, 78, 7, 0.1), rgba(10, 109, 11, 0.1));
+        border: 1px solid var(--cvsu-green);
+        border-radius: var(--radius-sm);
+        color: var(--cvsu-dark-green);
     }
+    .alert-secondary {
+        background: var(--gray-50);
+        border: 1px solid var(--gray-200);
+        border-radius: var(--radius-sm);
+        color: var(--cvsu-dark-green);
+    }
+
+    .text-warning {
+        color: var(--cvsu-gold) !important;
+    }
+
+    #company-map {
+        border-radius: var(--radius-sm);
+        border: 2px solid var(--gray-200);
+    }
+
     @keyframes fadeIn {
-        from { opacity: 0; }
-        to { opacity: 1; }
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="row mb-4">
-        <div class="col">
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb">
-                    {% if request.user.is_coordinator %}
-                    <li class="breadcrumb-item"><a href="{% url 'internship:companies' %}">Companies</a></li>
-                    {% else %}
-                    <li class="breadcrumb-item"><a href="{% url 'internship:matches' %}">Internship Matches</a></li>
-                    {% endif %}
-                    <li class="breadcrumb-item active" aria-current="page">{{ company.name }}</li>
-                </ol>
-            </nav>
+<div class="company-detail-container">
+    <div class="container">
+        <div class="row mb-4">
+            <div class="col">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-0">
+                        {% if request.user.is_coordinator %}
+                        <li class="breadcrumb-item"><a href="{% url 'internship:companies' %}"><i class="fas fa-building me-1"></i>Companies</a></li>
+                        {% else %}
+                        <li class="breadcrumb-item"><a href="{% url 'internship:matches' %}"><i class="fas fa-briefcase me-1"></i>Internship Matches</a></li>
+                        {% endif %}
+                        <li class="breadcrumb-item active" aria-current="page">{{ company.name }}</li>
+                    </ol>
+                </nav>
+            </div>
         </div>
-    </div>
 
     <div class="row">
         <div class="col-lg-8">
@@ -478,6 +592,7 @@
                 </div>
             </div>
         </div>
+    </div>
     </div>
 </div>
 

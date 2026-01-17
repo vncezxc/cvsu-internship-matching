@@ -1,13 +1,337 @@
 {% extends 'dashboard/base_dashboard.html' %}
 {% block dashboard_title %}Upload Document{% endblock %}
+{% block extra_css %}
+<style>
+    :root {
+        --cvsu-dark-green: #030403;
+        --cvsu-light-gray: #787A66;
+        --cvsu-green: #064E07;
+        --cvsu-gold: #EFB60A;
+        --cvsu-red: #CF120F;
+        --cvsu-white: #FFFFFF;
+        --cvsu-green-light: #0a6d0b;
+        --cvsu-gold-light: #f9b233;
+        --cvsu-gold-dark: #d4a007;
+        --gray-50: #f8f9fa;
+        --gray-100: #e9ecef;
+        --gray-200: #dee2e6;
+        --success: #198754;
+        --warning: #ffc107;
+        --danger: #dc3545;
+        --info: #17a2b8;
+        --primary: #0d6efd;
+        --secondary: #6c757d;
+        --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
+        --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+        --shadow-lg: 0 10px 30px rgba(0,0,0,0.15);
+        --radius-sm: 0.5rem;
+        --radius-md: 1rem;
+        --radius-lg: 1.5rem;
+        --font-family: 'Nunito', Arial, sans-serif;
+        --font-weight-normal: 400;
+        --font-weight-medium: 600;
+        --font-weight-bold: 700;
+    }
+
+    .upload-card {
+        background: var(--cvsu-white);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-lg);
+        border: none;
+        font-family: var(--font-family);
+        animation: fadeIn 0.7s ease-out;
+        overflow: hidden;
+    }
+
+    .upload-header {
+        background: linear-gradient(90deg, var(--cvsu-green) 0%, var(--cvsu-green-light) 100%) !important;
+        color: var(--cvsu-white) !important;
+        padding: 2rem;
+        border: none;
+        border-radius: var(--radius-lg) var(--radius-lg) 0 0 !important;
+        text-align: center;
+    }
+
+    .upload-header h2 {
+        font-weight: var(--font-weight-bold);
+        margin: 0;
+        font-size: 1.75rem;
+    }
+
+    .upload-header i {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        color: var(--cvsu-gold);
+    }
+
+    .upload-body {
+        padding: 2.5rem;
+    }
+
+    .form-label {
+        font-weight: var(--font-weight-medium);
+        color: var(--cvsu-dark-green);
+        margin-bottom: 0.5rem;
+    }
+
+    .form-control {
+        border-radius: var(--radius-sm);
+        border: 1.5px solid var(--gray-200);
+        padding: 0.75rem 1rem;
+        font-family: var(--font-family);
+        transition: all 0.3s ease;
+    }
+
+    .form-control:focus {
+        border-color: var(--cvsu-green);
+        box-shadow: 0 0 0 0.25rem rgba(6, 78, 7, 0.25);
+    }
+
+    .btn {
+        border-radius: var(--radius-sm);
+        font-family: var(--font-family);
+        font-weight: var(--font-weight-medium);
+        padding: 0.75rem 1.5rem;
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, var(--cvsu-green), var(--cvsu-green-light));
+        border-color: var(--cvsu-green);
+        color: var(--cvsu-white) !important;
+    }
+
+    .btn-primary:hover {
+        background: linear-gradient(135deg, var(--cvsu-gold), var(--cvsu-gold-light));
+        border-color: var(--cvsu-gold);
+        color: var(--cvsu-dark-green) !important;
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+    }
+
+    .btn-secondary {
+        background: linear-gradient(135deg, var(--secondary), #5a6268);
+        border-color: var(--secondary);
+        color: var(--cvsu-white) !important;
+    }
+
+    .btn-secondary:hover {
+        background: linear-gradient(135deg, var(--cvsu-light-gray), #6c757d);
+        border-color: var(--cvsu-light-gray);
+    }
+
+    .btn-group-form {
+        display: flex;
+        gap: 1rem;
+        justify-content: flex-end;
+        margin-top: 2rem;
+    }
+
+    .document-info-card {
+        background: linear-gradient(135deg, rgba(6, 78, 7, 0.05), rgba(6, 78, 7, 0.02));
+        border-radius: var(--radius-md);
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        border: 1px solid var(--gray-200);
+    }
+
+    .document-name {
+        font-weight: var(--font-weight-bold);
+        color: var(--cvsu-dark-green);
+        margin: 0;
+    }
+
+    .document-description {
+        color: var(--cvsu-light-gray);
+        margin: 0.5rem 0 0 0;
+    }
+
+    .upload-area {
+        border: 2px dashed var(--gray-300);
+        border-radius: var(--radius-md);
+        padding: 3rem 2rem;
+        text-align: center;
+        transition: all 0.3s ease;
+        background: var(--gray-50);
+        cursor: pointer;
+    }
+
+    .upload-area:hover {
+        border-color: var(--cvsu-green);
+        background: rgba(6, 78, 7, 0.05);
+    }
+
+    .upload-icon {
+        font-size: 3rem;
+        color: var(--cvsu-green);
+        margin-bottom: 1rem;
+    }
+
+    .upload-text {
+        font-weight: var(--font-weight-medium);
+        color: var(--cvsu-dark-green);
+        margin-bottom: 0.5rem;
+    }
+
+    .upload-hint {
+        color: var(--cvsu-light-gray);
+        font-size: 0.875rem;
+    }
+
+    .file-info {
+        background: rgba(25, 135, 84, 0.1);
+        border-radius: var(--radius-sm);
+        padding: 1rem;
+        margin-top: 1rem;
+        border-left: 4px solid var(--success);
+    }
+
+    .file-name {
+        font-weight: var(--font-weight-medium);
+        color: var(--success);
+        margin: 0;
+    }
+
+    .file-size {
+        color: var(--cvsu-light-gray);
+        font-size: 0.875rem;
+        margin: 0;
+    }
+
+    @media (max-width: 576px) {
+        .upload-body {
+            padding: 1.5rem;
+        }
+        
+        .upload-header {
+            padding: 1.5rem;
+        }
+        
+        .upload-header i {
+            font-size: 2.5rem;
+        }
+        
+        .btn-group-form {
+            flex-direction: column;
+        }
+        
+        .btn {
+            width: 100%;
+        }
+        
+        .upload-area {
+            padding: 2rem 1.5rem;
+        }
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .hover-lift {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .hover-lift:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-lg);
+    }
+</style>
+{% endblock %}
+
 {% block dashboard_content %}
 <div class="container mt-4">
-    <h2>Upload: {{ required_doc.name }}</h2>
-    <form method="post" enctype="multipart/form-data">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit" class="btn btn-primary">Upload</button>
-        <a href="{% url 'dashboard:student_dashboard' %}" class="btn btn-secondary">Cancel</a>
-    </form>
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card hover-lift upload-card">
+                <div class="upload-header">
+                    <i class="bi bi-cloud-arrow-up-fill"></i>
+                    <h2>Upload: {{ required_doc.name }}</h2>
+                </div>
+                <div class="upload-body">
+                    <div class="document-info-card">
+                        <h5 class="document-name">{{ required_doc.name }}</h5>
+                        {% if required_doc.description %}
+                            <p class="document-description">{{ required_doc.description }}</p>
+                        {% endif %}
+                        {% if required_doc.is_required %}
+                            <span class="badge bg-danger">Required Document</span>
+                        {% endif %}
+                    </div>
+
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <div class="upload-area" onclick="document.getElementById('id_file').click();">
+                            <div class="upload-icon">
+                                <i class="bi bi-cloud-upload"></i>
+                            </div>
+                            <div class="upload-text">Click to select file or drag and drop</div>
+                            <div class="upload-hint">PDF, DOCX, JPG, PNG (Max 10MB)</div>
+                        </div>
+
+                        {{ form.file|as_crispy_field }}
+
+                        {% if form.file.value %}
+                            <div class="file-info">
+                                <p class="file-name">Selected: {{ form.file.value.name }}</p>
+                                <p class="file-size">Size: {{ form.file.value.size|filesizeformat }}</p>
+                            </div>
+                        {% endif %}
+
+                        <div class="btn-group-form">
+                            <a href="{% url 'dashboard:student_dashboard' %}" class="btn btn-secondary">
+                                <i class="bi bi-x-circle me-1"></i> Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-upload me-1"></i> Upload Document
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
-{% endblock %}
+
+<script>
+// Add drag and drop functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const uploadArea = document.querySelector('.upload-area');
+    const fileInput = document.getElementById('id_file');
+
+    uploadArea.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        this.style.borderColor = 'var(--cvsu-green)';
+        this.style.backgroundColor = 'rgba(6, 78, 7, 0.1)';
+    });
+
+    uploadArea.addEventListener('dragleave', function(e) {
+        e.preventDefault();
+        this.style.borderColor = 'var(--gray-300)';
+        this.style.backgroundColor = 'var(--gray-50)';
+    });
+
+    uploadArea.addEventListener('drop', function(e) {
+        e.preventDefault();
+        this.style.borderColor = 'var(--gray-300)';
+        this.style.backgroundColor = 'var(--gray-50)';
+        
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            fileInput.files = files;
+            // Trigger change event to update form
+            fileInput.dispatchEvent(new Event('change'));
+        }
+    });
+});
+</script>
+{% endblock dashboard_content %}

@@ -1,7 +1,170 @@
 {% extends 'dashboard/base_dashboard.html' %}
 {% load static %}
 
-{% block title %}Company Management{% endblock %}
+{% block title %}Company Management - CVSU{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --cvsu-dark-green: #030403;
+        --cvsu-light-gray: #787A66;
+        --cvsu-green: #064E07;
+        --cvsu-gold: #EFB60A;
+        --cvsu-red: #CF120F;
+        --cvsu-white: #FFFFFF;
+        --cvsu-green-light: #0a6d0b;
+        --cvsu-gold-light: #f9b233;
+        --gray-50: #f8f9fa;
+        --gray-100: #e9ecef;
+        --gray-200: #dee2e6;
+        --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+        --shadow-lg: 0 10px 30px rgba(0,0,0,0.15);
+        --radius-md: 1rem;
+        --radius-sm: 0.5rem;
+        --font-family: 'Nunito', Arial, sans-serif;
+        --font-weight-medium: 600;
+        --font-weight-bold: 700;
+    }
+
+    h2 {
+        color: var(--cvsu-green);
+        font-family: var(--font-family);
+        font-weight: var(--font-weight-bold);
+    }
+
+    .card {
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-md);
+        border: none;
+        overflow: hidden;
+    }
+
+    .card-header.bg-white {
+        background: linear-gradient(135deg, var(--cvsu-gold), var(--cvsu-gold-light)) !important;
+        color: var(--cvsu-dark-green) !important;
+        padding: 1rem 1.25rem;
+        border: none;
+    }
+
+    .card-header h5, .card-title {
+        font-family: var(--font-family);
+        font-weight: var(--font-weight-bold);
+        color: var(--cvsu-dark-green);
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, var(--cvsu-green), var(--cvsu-green-light));
+        border: none;
+        border-radius: var(--radius-sm);
+        font-family: var(--font-family);
+        font-weight: var(--font-weight-medium);
+    }
+
+    .btn-primary:hover {
+        background: linear-gradient(135deg, var(--cvsu-green-light), var(--cvsu-green));
+        box-shadow: var(--shadow-md);
+        transform: translateY(-2px);
+    }
+
+    .btn-outline-primary {
+        border-color: var(--cvsu-green);
+        color: var(--cvsu-green);
+        border-radius: var(--radius-sm);
+    }
+
+    .btn-outline-primary:hover {
+        background: var(--cvsu-green);
+        border-color: var(--cvsu-green);
+        color: var(--cvsu-white);
+    }
+
+    .btn-outline-secondary {
+        border-color: var(--cvsu-gold);
+        color: var(--cvsu-gold);
+        border-radius: var(--radius-sm);
+    }
+
+    .btn-outline-secondary:hover {
+        background: var(--cvsu-gold);
+        border-color: var(--cvsu-gold);
+        color: var(--cvsu-dark-green);
+    }
+
+    .btn-outline-danger {
+        border-color: var(--cvsu-red);
+        color: var(--cvsu-red);
+        border-radius: var(--radius-sm);
+    }
+
+    .btn-outline-danger:hover {
+        background: var(--cvsu-red);
+        border-color: var(--cvsu-red);
+        color: var(--cvsu-white);
+    }
+
+    .btn-outline-success {
+        border-color: var(--cvsu-green);
+        color: var(--cvsu-green);
+        border-radius: var(--radius-sm);
+    }
+
+    .btn-outline-success:hover {
+        background: var(--cvsu-green);
+        border-color: var(--cvsu-green);
+        color: var(--cvsu-white);
+    }
+
+    .badge.bg-success {
+        background: linear-gradient(135deg, var(--cvsu-green), var(--cvsu-green-light)) !important;
+    }
+
+    .badge.bg-danger {
+        background: linear-gradient(135deg, var(--cvsu-red), #e63946) !important;
+    }
+
+    .table th {
+        background: var(--gray-50);
+        color: var(--cvsu-dark-green);
+        font-family: var(--font-family);
+        font-weight: var(--font-weight-bold);
+    }
+
+    .pagination .page-link {
+        border-radius: var(--radius-sm);
+        border: 1px solid var(--gray-200);
+        color: var(--cvsu-green);
+        margin: 0 0.25rem;
+    }
+
+    .pagination .page-item.active .page-link {
+        background: linear-gradient(135deg, var(--cvsu-green), var(--cvsu-green-light));
+        border-color: var(--cvsu-green);
+        color: var(--cvsu-white);
+    }
+
+    .pagination .page-link:hover {
+        background: var(--gray-100);
+        border-color: var(--cvsu-green);
+    }
+
+    .alert-info {
+        background: linear-gradient(135deg, rgba(6, 78, 7, 0.1), rgba(10, 109, 11, 0.1));
+        border: 1px solid var(--cvsu-green);
+        border-radius: var(--radius-sm);
+        color: var(--cvsu-dark-green);
+    }
+
+    .form-select {
+        border-radius: var(--radius-sm);
+        border-color: var(--gray-200);
+    }
+
+    .form-select:focus {
+        border-color: var(--cvsu-green);
+        box-shadow: 0 0 0 0.25rem rgba(6, 78, 7, 0.25);
+    }
+</style>
+{% endblock %}
 
 {% block dashboard_content %}
     <div class="row mb-4">
@@ -198,4 +361,4 @@
             </div>
         </div>
     </div>
-{% endblock %}
+{% endblock dashboard_content %}

@@ -2,6 +2,245 @@
 
 {% block dashboard_title %}Update OJT Hours{% endblock %}
 
+{% block extra_css %}
+<style>
+    :root {
+        --cvsu-dark-green: #030403;
+        --cvsu-light-gray: #787A66;
+        --cvsu-green: #064E07;
+        --cvsu-gold: #EFB60A;
+        --cvsu-red: #CF120F;
+        --cvsu-white: #FFFFFF;
+        --cvsu-green-light: #0a6d0b;
+        --cvsu-gold-light: #f9b233;
+        --cvsu-gold-dark: #d4a007;
+        --gray-50: #f8f9fa;
+        --gray-100: #e9ecef;
+        --gray-200: #dee2e6;
+        --success: #198754;
+        --warning: #ffc107;
+        --danger: #dc3545;
+        --info: #17a2b8;
+        --primary: #0d6efd;
+        --secondary: #6c757d;
+        --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
+        --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+        --shadow-lg: 0 10px 30px rgba(0,0,0,0.15);
+        --radius-sm: 0.5rem;
+        --radius-md: 1rem;
+        --radius-lg: 1.5rem;
+        --font-family: 'Nunito', Arial, sans-serif;
+        --font-weight-normal: 400;
+        --font-weight-medium: 600;
+        --font-weight-bold: 700;
+    }
+
+    .card {
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-md);
+        border: none;
+        font-family: var(--font-family);
+        animation: fadeIn 0.7s ease-out;
+        overflow: hidden;
+    }
+
+    .card-header {
+        background: linear-gradient(135deg, var(--cvsu-green), var(--cvsu-green-light)) !important;
+        color: var(--cvsu-white) !important;
+        border-radius: var(--radius-lg) var(--radius-lg) 0 0 !important;
+        padding: 1.5rem;
+        border: none;
+    }
+
+    .card-header .card-title {
+        font-weight: var(--font-weight-bold);
+        margin: 0;
+        font-size: 1.25rem;
+    }
+
+    .btn {
+        border-radius: var(--radius-sm);
+        font-family: var(--font-family);
+        font-weight: var(--font-weight-medium);
+        padding: 0.75rem 1.5rem;
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, var(--cvsu-green), var(--cvsu-green-light));
+        border-color: var(--cvsu-green);
+        color: var(--cvsu-white) !important;
+    }
+
+    .btn-primary:hover {
+        background: linear-gradient(135deg, var(--cvsu-gold), var(--cvsu-gold-light));
+        border-color: var(--cvsu-gold);
+        color: var(--cvsu-dark-green) !important;
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+    }
+
+    .btn-secondary {
+        background: linear-gradient(135deg, var(--secondary), #5a6268);
+        border-color: var(--secondary);
+        color: var(--cvsu-white) !important;
+    }
+
+    .btn-secondary:hover {
+        background: linear-gradient(135deg, var(--cvsu-light-gray), #6c757d);
+        border-color: var(--cvsu-light-gray);
+    }
+
+    .form-label {
+        font-weight: var(--font-weight-medium);
+        color: var(--cvsu-dark-green);
+        margin-bottom: 0.5rem;
+    }
+
+    .form-control {
+        border-radius: var(--radius-sm);
+        border: 1.5px solid var(--gray-200);
+        padding: 0.75rem 1rem;
+        font-family: var(--font-family);
+        transition: all 0.3s ease;
+    }
+
+    .form-control:focus {
+        border-color: var(--cvsu-green);
+        box-shadow: 0 0 0 0.25rem rgba(6, 78, 7, 0.25);
+    }
+
+    .form-text {
+        font-size: 0.875rem;
+        color: var(--cvsu-light-gray);
+        margin-top: 0.25rem;
+    }
+
+    .hours-card {
+        background: var(--cvsu-white);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-md);
+    }
+
+    .hours-info {
+        background: linear-gradient(135deg, rgba(6, 78, 7, 0.05), rgba(6, 78, 7, 0.02));
+        border-radius: var(--radius-sm);
+        padding: 2rem;
+        margin-bottom: 2rem;
+        border: 1px solid var(--gray-200);
+    }
+
+    .hours-display {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .hours-number {
+        font-size: 3rem;
+        font-weight: var(--font-weight-bold);
+        color: var(--cvsu-green);
+        margin: 0;
+    }
+
+    .hours-divider {
+        font-size: 2rem;
+        color: var(--cvsu-light-gray);
+    }
+
+    .hours-total {
+        font-size: 1.5rem;
+        color: var(--cvsu-light-gray);
+        margin: 0;
+    }
+
+    .progress {
+        border-radius: var(--radius-sm);
+        background-color: var(--gray-200);
+        height: 2rem;
+    }
+
+    .progress-bar {
+        background: linear-gradient(90deg, var(--cvsu-green) 80%, var(--cvsu-gold) 100%);
+        border-radius: var(--radius-sm);
+        font-weight: var(--font-weight-medium);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .student-info {
+        text-align: center;
+        margin-bottom: 1.5rem;
+    }
+
+    .student-name {
+        font-weight: var(--font-weight-bold);
+        color: var(--cvsu-dark-green);
+        margin: 0;
+    }
+
+    .student-details {
+        color: var(--cvsu-light-gray);
+        margin: 0.5rem 0 0 0;
+    }
+
+    @media (max-width: 576px) {
+        .card-body {
+            padding: 1.5rem;
+        }
+        
+        .hours-info {
+            padding: 1.5rem;
+        }
+        
+        .hours-number {
+            font-size: 2.5rem;
+        }
+        
+        .hours-divider {
+            font-size: 1.5rem;
+        }
+        
+        .hours-total {
+            font-size: 1.2rem;
+        }
+        
+        .btn {
+            width: 100%;
+            margin-bottom: 0.5rem;
+        }
+        
+        .d-flex.justify-content-end {
+            flex-direction: column;
+        }
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .hover-lift {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .hover-lift:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-lg);
+    }
+</style>
+{% endblock %}
+
 {% block dashboard_content %}
 <div class="row mb-4">
     <div class="col-12 d-flex justify-content-between align-items-center">
@@ -13,18 +252,28 @@
 
 <div class="row">
     <div class="col-md-8 mx-auto">
-        <div class="card">
-            <div class="card-header bg-primary text-white">
+        <div class="card hover-lift hours-card">
+            <div class="card-header">
                 <h5 class="card-title mb-0">Update OJT Hours for {{ student.user.get_full_name }}</h5>
             </div>
             <div class="card-body">
-                <div class="mb-4">
-                    <p class="mb-2"><strong>Current OJT Hours:</strong></p>
-                    <div class="d-flex align-items-center">
-                        <h3 class="me-2">{{ student.ojt_hours_completed }} / {{ student.ojt_hours_required }}</h3>
-                        <span class="text-muted">hours</span>
+                <div class="student-info">
+                    <h5 class="student-name">{{ student.user.get_full_name }}</h5>
+                    <p class="student-details">
+                        {{ student.course.name }} - {{ student.section }} | 
+                        Student ID: {{ student.student_id }}
+                    </p>
+                </div>
+
+                <div class="hours-info">
+                    <div class="hours-display">
+                        <h3 class="hours-number">{{ student.ojt_hours_completed }}</h3>
+                        <span class="hours-divider">/</span>
+                        <h3 class="hours-total">{{ student.ojt_hours_required }}</h3>
                     </div>
-                    <div class="progress mt-2">
+                    <p class="text-center text-muted mb-3">hours completed</p>
+                    
+                    <div class="progress mt-2 mb-3">
                         <div class="progress-bar bg-success" role="progressbar" 
                              style="width: {% widthratio student.ojt_hours_completed student.ojt_hours_required 100 %}%;" 
                              aria-valuenow="{% widthratio student.ojt_hours_completed student.ojt_hours_required 100 %}" 
@@ -32,19 +281,35 @@
                             {% widthratio student.ojt_hours_completed student.ojt_hours_required 100 %}%
                         </div>
                     </div>
+                    <p class="text-center text-muted">Overall Progress</p>
                 </div>
-                {# Only advisers can update OJT hours. #}
+                
                 {% if request.user.is_adviser %}
                 <form method="post" action="{% url 'dashboard:update_ojt_hours' student.id %}">
                     {% csrf_token %}
                     <div class="mb-3">
                         <label for="hours" class="form-label">New Hours Completed</label>
-                        <input type="number" name="hours" id="hours" class="form-control" value="{{ student.ojt_hours_completed }}" min="0" max="{{ student.ojt_hours_required }}" required>
-                        <div class="form-text">Enter the total cumulative hours completed, not additional hours.</div>
+                        <input 
+                            type="number" 
+                            name="hours" 
+                            id="hours" 
+                            class="form-control" 
+                            value="{{ student.ojt_hours_completed }}" 
+                            min="0" 
+                            max="{{ student.ojt_hours_required }}" 
+                            required
+                            placeholder="Enter total cumulative hours">
+                        <div class="form-text">
+                            Enter the total cumulative hours completed, not additional hours.
+                        </div>
                     </div>
                     <div class="text-end">
-                        <a href="{% url 'dashboard:student_detail' student.id %}" class="btn btn-secondary me-2">Cancel</a>
-                        <button type="submit" class="btn btn-primary">Update Hours</button>
+                        <a href="{% url 'dashboard:student_detail' student.id %}" class="btn btn-secondary me-2">
+                            Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            Update Hours
+                        </button>
                     </div>
                 </form>
                 {% endif %}
@@ -52,4 +317,4 @@
         </div>
     </div>
 </div>
-{% endblock %} 
+{% endblock dashboard_content %}

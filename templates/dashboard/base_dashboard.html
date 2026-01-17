@@ -2,13 +2,206 @@
 
 {% block title %}Dashboard - CVSU Internship Matching{% endblock %}
 
+{% block extra_css %}
+<style>
+    :root {
+        --cvsu-dark-green: #030403;
+        --cvsu-light-gray: #787A66;
+        --cvsu-green: #064E07;
+        --cvsu-gold: #EFB60A;
+        --cvsu-red: #CF120F;
+        --cvsu-white: #FFFFFF;
+        --cvsu-green-light: #0a6d0b;
+        --cvsu-gold-light: #f9b233;
+        --cvsu-gold-dark: #d4a007;
+        --gray-50: #f8f9fa;
+        --gray-100: #e9ecef;
+        --gray-200: #dee2e6;
+        --success: #198754;
+        --warning: #ffc107;
+        --danger: #dc3545;
+        --info: #17a2b8;
+        --primary: #0d6efd;
+        --secondary: #6c757d;
+        --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
+        --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+        --shadow-lg: 0 10px 30px rgba(0,0,0,0.15);
+        --radius-sm: 0.5rem;
+        --radius-md: 1rem;
+        --radius-lg: 1.5rem;
+        --font-family: 'Nunito', Arial, sans-serif;
+        --font-weight-normal: 400;
+        --font-weight-medium: 600;
+        --font-weight-bold: 700;
+    }
+
+    /* Sidebar Styling */
+    .sidebar {
+        background: linear-gradient(180deg, var(--cvsu-dark-green), var(--cvsu-green)) !important;
+        color: var(--cvsu-white);
+        box-shadow: var(--shadow-lg);
+        min-height: 100vh;
+        padding-top: 1rem;
+    }
+
+    .sidebar .nav-link {
+        color: rgba(255, 255, 255, 0.8);
+        border-radius: var(--radius-sm);
+        padding: 0.75rem 1rem;
+        margin: 0.25rem 0;
+        transition: all 0.3s ease;
+        font-weight: var(--font-weight-medium);
+    }
+
+    .sidebar .nav-link:hover {
+        background: rgba(255, 255, 255, 0.1);
+        color: var(--cvsu-white);
+        transform: translateX(5px);
+    }
+
+    .sidebar .nav-link.active {
+        background: var(--cvsu-gold);
+        color: var(--cvsu-dark-green) !important;
+        font-weight: var(--font-weight-bold);
+    }
+
+    .sidebar .nav-link i {
+        margin-right: 0.5rem;
+        font-size: 1.1rem;
+    }
+
+    .user-info-card {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: var(--radius-md);
+        padding: 1.5rem;
+        margin: 1rem;
+        backdrop-filter: blur(10px);
+    }
+
+    .user-info-card h5 {
+        color: var(--cvsu-gold);
+        font-weight: var(--font-weight-bold);
+        margin-bottom: 0.5rem;
+    }
+
+    .user-info-card p {
+        color: rgba(255, 255, 255, 0.9);
+        margin: 0;
+        font-size: 0.9rem;
+    }
+
+    /* Main Content Area */
+    main {
+        background: var(--gray-50);
+        min-height: 100vh;
+        padding: 2rem;
+    }
+
+    .dashboard-header {
+        background: var(--cvsu-white);
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-sm);
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .dashboard-title {
+        color: var(--cvsu-dark-green);
+        font-weight: var(--font-weight-bold);
+        margin: 0;
+    }
+
+    /* Alert Styling */
+    .alert {
+        border-radius: var(--radius-md);
+        border: none;
+        font-family: var(--font-family);
+        border-left: 4px solid;
+    }
+
+    .alert-success {
+        background: linear-gradient(135deg, rgba(25, 135, 84, 0.1), rgba(25, 135, 84, 0.05));
+        color: var(--success);
+        border-left-color: var(--success);
+    }
+
+    .alert-warning {
+        background: linear-gradient(135deg, rgba(255, 193, 7, 0.1), rgba(255, 193, 7, 0.05));
+        color: var(--cvsu-dark-green);
+        border-left-color: var(--warning);
+    }
+
+    .alert-danger {
+        background: linear-gradient(135deg, rgba(220, 53, 69, 0.1), rgba(220, 53, 69, 0.05));
+        color: var(--danger);
+        border-left-color: var(--danger);
+    }
+
+    .alert-info {
+        background: linear-gradient(135deg, rgba(23, 162, 184, 0.1), rgba(23, 162, 184, 0.05));
+        color: var(--info);
+        border-left-color: var(--info);
+    }
+
+    /* Responsive Sidebar */
+    @media (max-width: 768px) {
+        .sidebar {
+            min-height: auto;
+            padding: 1rem;
+        }
+        
+        .user-info-card {
+            margin: 0.5rem;
+            padding: 1rem;
+        }
+        
+        main {
+            padding: 1rem;
+        }
+        
+        .dashboard-header {
+            padding: 1rem;
+        }
+    }
+
+    /* Smooth transitions */
+    * {
+        transition: all 0.3s ease;
+    }
+
+    .hover-lift {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .hover-lift:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .fade-in {
+        animation: fadeIn 0.7s ease-out;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container-fluid">
     <div class="row">
         <!-- Sidebar -->
-        <div class="col-md-3 col-lg-2 d-md-block bg-light sidebar">
+        <div class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">
             <div class="position-sticky pt-3">
-                <div class="p-3 mb-3 bg-primary text-white rounded">
+                <div class="user-info-card fade-in">
                     <h5>{{ user.get_full_name }}</h5>
                     <p class="mb-0">
                         {% if user.is_student %}Student
@@ -21,8 +214,7 @@
                 <ul class="nav flex-column">
                     {% if user.is_student %}
                         <li class="nav-item">
-                            <a class="nav-link {% if request.resolver_match.url_name == 'student_dashboard' %}active{% endif %}"
-                               href="{% url 'dashboard:student_dashboard' %}">
+                            <a class="nav-link {% if request.resolver_match.url_name == 'student_dashboard' %}active{% endif %}" href="{% url 'dashboard:student_dashboard' %}">
                                 <i class="bi bi-house-door"></i> Dashboard
                             </a>
                         </li>
@@ -46,15 +238,14 @@
                                 <i class="bi bi-file-earmark-text"></i> My Applications
                             </a>
                         </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.resolver_match.url_name == 'student_documents_view' %}active{% endif %}" href="{% url 'dashboard:student_documents_view' %}">
-                            <i class="bi bi-clipboard-check"></i> My OJT Documents
-                        </a>
-                    </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.resolver_match.url_name == 'student_documents_view' %}active{% endif %}" href="{% url 'dashboard:student_documents_view' %}">
+                                <i class="bi bi-clipboard-check"></i> My OJT Documents
+                            </a>
+                        </li>
                     {% elif user.is_adviser %}
                         <li class="nav-item">
-                            <a class="nav-link {% if request.resolver_match.url_name == 'adviser_dashboard' %}active{% endif %}"
-                               href="{% url 'dashboard:adviser_dashboard' %}">
+                            <a class="nav-link {% if request.resolver_match.url_name == 'adviser_dashboard' %}active{% endif %}" href="{% url 'dashboard:adviser_dashboard' %}">
                                 <i class="bi bi-house-door"></i> Dashboard
                             </a>
                         </li>
@@ -69,14 +260,12 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link {% if request.resolver_match.url_name == 'student_list' %}active{% endif %}"
-                               href="{% url 'dashboard:student_list' %}">
+                            <a class="nav-link {% if request.resolver_match.url_name == 'student_list' %}active{% endif %}" href="{% url 'dashboard:student_list' %}">
                                 <i class="bi bi-people"></i> Manage Students
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link {% if request.resolver_match.url_name == 'reports' %}active{% endif %}"
-                               href="{% url 'dashboard:reports' %}">
+                            <a class="nav-link {% if request.resolver_match.url_name == 'reports' %}active{% endif %}" href="{% url 'dashboard:reports' %}">
                                 <i class="bi bi-file-earmark-bar-graph"></i> Reports
                             </a>
                         </li>
@@ -87,30 +276,44 @@
                         </li>
                     {% elif user.is_coordinator %}
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'internship:companies' %}"><i class="bi bi-building"></i> Company Listing</a>
+                            <a class="nav-link" href="{% url 'internship:companies' %}">
+                                <i class="bi bi-building"></i> Company Listing
+                            </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'internship:internships' %}"><i class="bi bi-briefcase"></i> Internship Placement Status</a>
+                            <a class="nav-link" href="{% url 'internship:internships' %}">
+                                <i class="bi bi-briefcase"></i> Internship Placement Status
+                            </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'accounts:user_list' %}"><i class="bi bi-people"></i> Users Center</a>
-                        </li>
-                         <li class="nav-item">
-                            <a class="nav-link {% if request.resolver_match.url_name == 'pending_adviser_approvals' %}active{% endif %}" href="{% url 'accounts:pending_adviser_approvals' %}"><i class="bi bi-person-check"></i> Pending Adviser Approvals</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {% if request.resolver_match.url_name == 'coordinator_deactivation_requests' %}active{% endif %}" href="{% url 'accounts:coordinator_deactivation_requests' %}"><i class="bi bi-person-x"></i> Account Deactivation Requests</a>
+                            <a class="nav-link" href="{% url 'accounts:user_list' %}">
+                                <i class="bi bi-people"></i> Users Center
+                            </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link {% if request.resolver_match.url_name == 'reports' %}active{% endif %}" href="{% url 'dashboard:reports' %}"><i class="bi bi-file-earmark-bar-graph"></i> Student Status Report</a>
+                            <a class="nav-link {% if request.resolver_match.url_name == 'pending_adviser_approvals' %}active{% endif %}" href="{% url 'accounts:pending_adviser_approvals' %}">
+                                <i class="bi bi-person-check"></i> Pending Adviser Approvals
+                            </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link {% if request.resolver_match.url_name == 'required_documents_list' %}active{% endif %}" href="{% url 'dashboard:required_documents_list' %}"><i class="bi bi-clipboard-check"></i> Documents Center</a>
+                            <a class="nav-link {% if request.resolver_match.url_name == 'coordinator_deactivation_requests' %}active{% endif %}" href="{% url 'accounts:coordinator_deactivation_requests' %}">
+                                <i class="bi bi-person-x"></i> Account Deactivation Requests
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.resolver_match.url_name == 'reports' %}active{% endif %}" href="{% url 'dashboard:reports' %}">
+                                <i class="bi bi-file-earmark-bar-graph"></i> Student Status Report
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.resolver_match.url_name == 'required_documents_list' %}active{% endif %}" href="{% url 'dashboard:required_documents_list' %}">
+                                <i class="bi bi-clipboard-check"></i> Documents Center
+                            </a>
                         </li>
                     {% endif %}
                 </ul>
                 
-                <hr>
+                <hr class="text-white-50">
                 <div class="nav flex-column">
                     <a class="nav-link text-danger" href="{% url 'account_logout' %}">
                         <i class="bi bi-box-arrow-right"></i> Logout
@@ -121,13 +324,15 @@
 
         <!-- Main content -->
         <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
-            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                <h1 class="h2">{% block dashboard_title %}Dashboard{% endblock %}</h1>
+            <div class="dashboard-header fade-in">
+                <h1 class="dashboard-title">
+                    <i class="bi bi-speedometer2 me-2"></i>{% block dashboard_title %}Dashboard{% endblock %}
+                </h1>
             </div>
 
             {% if messages %}
                 {% for message in messages %}
-                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade-in hover-lift" role="alert">
                     {{ message }}
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>

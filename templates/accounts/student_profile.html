@@ -3,199 +3,678 @@
 
 {% block dashboard_title %}Student Profile{% endblock %}
 
+{% block extra_css %}
+<style>
+    :root {
+        --cvsu-dark-green: #030403;
+        --cvsu-light-gray: #787A66;
+        --cvsu-green: #064E07;
+        --cvsu-gold: #EFB60A;
+        --cvsu-red: #CF120F;
+        --cvsu-white: #FFFFFF;
+        --cvsu-green-light: #0a6d0b;
+        --cvsu-gold-light: #f9b233;
+        --gray-50: #f8f9fa;
+        --gray-100: #e9ecef;
+        --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
+        --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+        --shadow-lg: 0 10px 30px rgba(0,0,0,0.15);
+        --radius-md: 1rem;
+        --radius-sm: 0.5rem;
+        --font-family: 'Nunito', Arial, sans-serif;
+        --font-weight-medium: 600;
+        --font-weight-bold: 700;
+    }
+
+    .student-profile-container {
+        padding: 2rem 0;
+    }
+
+    .profile-card {
+        background: var(--cvsu-white);
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-md);
+        border: none;
+        overflow: hidden;
+        animation: fadeIn 0.7s ease-out;
+        margin-bottom: 1.5rem;
+    }
+
+    .profile-card .card-body {
+        padding: 2rem;
+    }
+
+    .profile-image-container {
+        text-align: center;
+        margin-bottom: 1.5rem;
+    }
+
+    .profile-image {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 4px solid var(--cvsu-gold);
+        box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        transition: all 0.3s ease;
+    }
+
+    .profile-image:hover {
+        transform: scale(1.05);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+    }
+
+    .avatar-placeholder {
+        width: 120px;
+        height: 120px;
+        background: linear-gradient(135deg, var(--cvsu-gold), var(--cvsu-gold-light));
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--cvsu-dark-green);
+        border: 4px solid var(--cvsu-gold);
+        box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        margin: 0 auto;
+        font-size: 2.5rem;
+        font-weight: var(--font-weight-bold);
+    }
+
+    .profile-info h4 {
+        color: var(--cvsu-dark-green);
+        font-family: var(--font-family);
+        font-weight: var(--font-weight-bold);
+        margin-bottom: 0.5rem;
+        text-align: center;
+    }
+
+    .profile-subtitle {
+        color: var(--cvsu-light-gray);
+        text-align: center;
+        margin-bottom: 1.5rem;
+        font-size: 0.9rem;
+    }
+
+    .info-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .info-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid var(--gray-100);
+    }
+
+    .info-item:last-child {
+        border-bottom: none;
+    }
+
+    .info-label {
+        color: var(--cvsu-dark-green);
+        font-weight: var(--font-weight-medium);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .info-label i {
+        color: var(--cvsu-gold);
+        width: 16px;
+    }
+
+    .info-value {
+        color: var(--cvsu-light-gray);
+        font-weight: var(--font-weight-medium);
+    }
+
+    .btn {
+        border-radius: var(--radius-sm);
+        font-family: var(--font-family);
+        font-weight: var(--font-weight-medium);
+        padding: 0.5rem 1rem;
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, var(--cvsu-green), var(--cvsu-green-light));
+        border-color: var(--cvsu-green);
+        color: var(--cvsu-white) !important;
+    }
+
+    .btn-primary:hover {
+        background: linear-gradient(135deg, var(--cvsu-gold), var(--cvsu-gold-light));
+        border-color: var(--cvsu-gold);
+        color: var(--cvsu-dark-green) !important;
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-sm);
+    }
+
+    .btn-outline-secondary {
+        color: var(--cvsu-light-gray) !important;
+        border-color: var(--gray-200) !important;
+        background: transparent;
+    }
+
+    .btn-outline-secondary:hover {
+        background: var(--gray-100);
+        border-color: var(--cvsu-light-gray) !important;
+        color: var(--cvsu-dark-green) !important;
+    }
+
+    .btn-outline-warning {
+        color: var(--cvsu-gold) !important;
+        border-color: var(--cvsu-gold) !important;
+        background: transparent;
+    }
+
+    .btn-outline-warning:hover {
+        background: linear-gradient(135deg, var(--cvsu-gold), var(--cvsu-gold-light));
+        border-color: var(--cvsu-gold);
+        color: var(--cvsu-dark-green) !important;
+    }
+
+    .progress-container {
+        margin: 1.5rem 0;
+    }
+
+    .progress-label {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.5rem;
+    }
+
+    .progress-title {
+        color: var(--cvsu-dark-green);
+        font-weight: var(--font-weight-medium);
+    }
+
+    .progress-percentage {
+        color: var(--cvsu-green);
+        font-weight: var(--font-weight-bold);
+    }
+
+    .progress {
+        border-radius: var(--radius-sm);
+        background-color: var(--gray-100);
+        height: 1.5rem;
+    }
+
+    .progress-bar {
+        background: linear-gradient(90deg, var(--cvsu-green) 80%, var(--cvsu-gold) 100%);
+        border-radius: var(--radius-sm);
+        font-weight: var(--font-weight-medium);
+    }
+
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        border-radius: var(--radius-sm);
+        font-size: 0.875rem;
+        font-weight: var(--font-weight-medium);
+        margin-top: 0.5rem;
+    }
+
+    .status-progress {
+        background: linear-gradient(135deg, var(--cvsu-green), var(--cvsu-green-light));
+        color: var(--cvsu-white);
+    }
+
+    .status-looking {
+        background: linear-gradient(135deg, var(--cvsu-gold), var(--cvsu-gold-light));
+        color: var(--cvsu-dark-green);
+    }
+
+    .status-waiting {
+        background: linear-gradient(135deg, #17a2b8, #138496);
+        color: var(--cvsu-white);
+    }
+
+    .status-ongoing {
+        background: linear-gradient(135deg, #6f42c1, #5a32a3);
+        color: var(--cvsu-white);
+    }
+
+    .status-completed {
+        background: linear-gradient(135deg, #28a745, #218838);
+        color: var(--cvsu-white);
+    }
+
+    .section-header {
+        background: linear-gradient(135deg, var(--cvsu-gold), var(--cvsu-gold-light));
+        color: var(--cvsu-dark-green);
+        padding: 1rem 1.5rem;
+        margin: 0 -2rem 1.5rem -2rem;
+        font-family: var(--font-family);
+        font-weight: var(--font-weight-bold);
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .skills-section {
+        margin-top: 1.5rem;
+    }
+
+    .skills-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .skill-badge {
+        background: linear-gradient(135deg, var(--cvsu-green), var(--cvsu-green-light));
+        color: var(--cvsu-white);
+        padding: 0.5rem 1rem;
+        border-radius: 25px;
+        font-size: 0.875rem;
+        font-weight: var(--font-weight-medium);
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .location-map {
+        border-radius: var(--radius-sm);
+        border: 2px solid var(--gray-200);
+        margin-top: 1rem;
+    }
+
+    .map-instructions {
+        color: var(--cvsu-light-gray);
+        font-size: 0.875rem;
+        text-align: center;
+        margin-top: 0.5rem;
+    }
+
+    .contact-info {
+        background: var(--gray-50);
+        border-radius: var(--radius-sm);
+        padding: 1.5rem;
+        margin-top: 1.5rem;
+    }
+
+    .contact-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 0.75rem;
+        color: var(--cvsu-dark-green);
+    }
+
+    .contact-item:last-child {
+        margin-bottom: 0;
+    }
+
+    .contact-item i {
+        color: var(--cvsu-gold);
+        width: 16px;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+        margin-top: 1.5rem;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .student-profile-container {
+            padding: 1rem 0;
+        }
+        
+        .profile-card .card-body {
+            padding: 1.5rem;
+        }
+        
+        .section-header {
+            margin: 0 -1.5rem 1rem -1.5rem;
+        }
+        
+        .action-buttons {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        
+        .btn {
+            width: 100%;
+            justify-content: center;
+        }
+        
+        .info-item {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.5rem;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block dashboard_content %}
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-lg-4">
-            <!-- Profile Card -->
-            <div class="card shadow-sm mb-4">
-                <div class="card-body text-center">
-                    <div class="mb-4">
-                        {% if profile.profile_image %}
-                            <img src="{{ profile.profile_image.url }}" alt="Profile Image" class="rounded-circle mx-auto mb-4" style="width: 120px; height: 120px; object-fit: cover; display: block;">
+<div class="student-profile-container">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-lg-4">
+                <!-- Profile Card -->
+                <div class="profile-card">
+                    <div class="card-body">
+                        <div class="profile-image-container">
+                            {% if profile.profile_image %}
+                                <img src="{{ profile.profile_image.url }}" alt="Profile Image" class="profile-image">
+                            {% else %}
+                                <div class="avatar-placeholder">
+                                    {{ profile.user.first_name|first }}{{ profile.user.last_name|first }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="profile-info">
+                            <h4>{{ profile.user.get_full_name }}</h4>
+                            <p class="profile-subtitle">
+                                <i class="fas fa-user-graduate me-2"></i>Student
+                            </p>
+                            
+                            <div class="d-grid gap-2">
+                                <a href="{% url 'accounts:edit_profile' %}" class="btn btn-primary">
+                                    <i class="fas fa-user-edit me-2"></i>Edit Profile
+                                </a>
+                                <a href="{% url 'accounts:change_password' %}" class="btn btn-outline-secondary">
+                                    <i class="fas fa-key me-2"></i>Change Password
+                                </a>
+                                {% if profile.ojt_status == 'completed' %}
+                                    <a href="{% url 'accounts:request_deactivation' %}" class="btn btn-outline-warning">
+                                        <i class="bi bi-person-x me-2"></i>Request Account Deactivation
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Contact Information -->
+                <div class="profile-card">
+                    <div class="card-body">
+                        <h5 class="section-header">
+                            <i class="fas fa-address-card me-2"></i>Contact Information
+                        </h5>
+                        
+                        <ul class="info-list">
+                            <li class="info-item">
+                                <span class="info-label">
+                                    <i class="fas fa-envelope"></i>
+                                    Email
+                                </span>
+                                <span class="info-value">
+                                    <a href="mailto:{{ profile.user.email }}" class="text-decoration-none">
+                                        {{ profile.user.email }}
+                                    </a>
+                                </span>
+                            </li>
+                            <li class="info-item">
+                                <span class="info-label">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                    Address
+                                </span>
+                                <span class="info-value">
+                                    {% if profile.street %}
+                                        {{ profile.get_full_address }}
+                                    {% else %}
+                                        <span class="text-muted">Not provided</span>
+                                    {% endif %}
+                                </span>
+                            </li>
+                        </ul>
+                        
+                        <div class="contact-info">
+                            <div class="contact-item">
+                                <i class="fas fa-id-card"></i>
+                                <span>Student ID: {{ profile.student_id }}</span>
+                            </div>
+                            <div class="contact-item">
+                                <i class="fas fa-phone"></i>
+                                <span>{{ profile.phone_number|default:"No phone number" }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Location -->
+                <div class="profile-card">
+                    <div class="card-body">
+                        <h5 class="section-header">
+                            <i class="fas fa-map-marker-alt me-2"></i>Location
+                        </h5>
+                        
+                        {% if profile.latitude and profile.longitude %}
+                            <div id="student-map" class="location-map" style="height: 200px;"></div>
+                            <p class="map-instructions">
+                                <i class="fas fa-info-circle me-1"></i>
+                                Your current location
+                            </p>
                         {% else %}
-                            <div class="avatar-placeholder bg-primary text-white rounded-circle mx-auto mb-4" style="width: 120px; height: 120px; display: flex; align-items: center; justify-content: center; font-size: 3rem;">
-                                {{ profile.user.first_name|first }}{{ profile.user.last_name|first }}
+                            <div class="text-center text-muted py-4">
+                                <i class="fas fa-map fa-2x mb-2"></i>
+                                <p>No location set</p>
                             </div>
                         {% endif %}
-                        <h4>{{ profile.user.get_full_name }}</h4>
-                        <p class="text-muted">Student ID: {{ profile.student_id }}</p>
-                        <p class="text-muted">
-                            <i class="fas fa-user-graduate me-2"></i>Student
-                        </p>
                     </div>
-                    
-                    <div class="d-grid gap-2">
-                        <a href="{% url 'accounts:edit_profile' %}" class="btn btn-primary">
-                            <i class="fas fa-user-edit me-2"></i>Edit Profile
-                        </a>
-                        <a href="{% url 'accounts:change_password' %}" class="btn btn-outline-secondary">
-                            <i class="fas fa-key me-2"></i>Change Password
-                        </a>
-                        {% if profile.ojt_status == 'completed' %}
-                            <a href="{% url 'accounts:request_deactivation' %}" class="btn btn-outline-warning">
-                                <i class="bi bi-person-x me-2"></i>Request Account Deactivation
+                </div>
+            </div>
+            
+            <div class="col-lg-8">
+                <!-- OJT Progress -->
+                <div class="profile-card">
+                    <div class="card-body">
+                        <h5 class="section-header">
+                            <i class="fas fa-chart-line me-2"></i>OJT Progress
+                        </h5>
+                        
+                        <div class="progress-container">
+                            <div class="progress-label">
+                                <span class="progress-title">Overall Progress</span>
+                                <span class="progress-percentage">{{ profile.get_progress_percentage }}%</span>
+                            </div>
+                            <div class="progress">
+                                <div class="progress-bar" role="progressbar" 
+                                     style="width: {{ profile.get_progress_percentage }}%;"
+                                     aria-valuenow="{{ profile.get_progress_percentage }}" 
+                                     aria-valuemin="0" aria-valuemax="100">
+                                    {{ profile.get_progress_percentage }}%
+                                </div>
+                            </div>
+                            <div class="d-flex justify-content-between text-muted mt-2">
+                                <span>{{ profile.ojt_hours_completed }} hours completed</span>
+                                <span>{{ profile.ojt_hours_required }} hours required</span>
+                            </div>
+                        </div>
+                        
+                        <div class="row mt-4">
+                            <div class="col-md-6">
+                                <div class="text-center">
+                                    <h4 class="text-success">{{ profile.ojt_hours_completed }}</h4>
+                                    <p class="text-muted mb-0">Hours Completed</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="text-center">
+                                    <h4 class="text-primary">{{ profile.ojt_hours_required }}</h4>
+                                    <p class="text-muted mb-0">Hours Required</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4 text-center">
+                            <form method="post" action="{% url 'accounts:update_ojt_status' %}" class="d-inline-block">
+                                {% csrf_token %}
+                                <label for="ojt_status" class="form-label fw-bold">Current Status:</label>
+                                <select name="ojt_status" id="ojt_status" class="form-select d-inline-block w-auto align-middle">
+                                    {% for value, label in profile.student_ojt_status_choices %}
+                                        <option value="{{ value }}" {% if profile.ojt_status == value %}selected{% endif %}>{{ label }}</option>
+                                    {% endfor %}
+                                </select>
+                                <button type="submit" class="btn btn-sm btn-success ms-2">Update</button>
+                            </form>
+                            <div class="mt-2">
+                                <span class="status-badge status-{{ profile.ojt_status }}">
+                                    <i class="fas fa-circle me-1"></i>{{ profile.get_ojt_status_display }}
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <div class="action-buttons mt-4">
+                            <a href="{% url 'internship:applications' %}" class="btn btn-outline-primary">
+                                <i class="fas fa-file-alt me-1"></i> Applications
                             </a>
-                        {% endif %}
+                            <a href="{% url 'internship:matches' %}" class="btn btn-primary">
+                                <i class="fas fa-search me-1"></i> Find Internships
+                            </a>
+                        </div>
                     </div>
                 </div>
-            </div>
-            
-            <!-- Contact Information -->
-            <div class="card shadow-sm mb-4">
-                <div class="card-header bg-white">
-                    <h5 class="card-title mb-0">Contact Information</h5>
+                
+                <!-- Academic Information -->
+                <div class="profile-card">
+                    <div class="card-body">
+                        <h5 class="section-header">
+                            <i class="fas fa-graduation-cap me-2"></i>Academic Information
+                        </h5>
+                        
+                        <ul class="info-list">
+                            <li class="info-item">
+                                <span class="info-label">
+                                    <i class="fas fa-book"></i>
+                                    Course
+                                </span>
+                                <span class="info-value">
+                                    {% if profile.course %}
+                                        {{ profile.course.name }} ({{ profile.course.code }})
+                                    {% else %}
+                                        <span class="text-muted">No course selected</span>
+                                    {% endif %}
+                                </span>
+                            </li>
+                            <li class="info-item">
+                                <span class="info-label">
+                                    <i class="fas fa-users"></i>
+                                    Section
+                                </span>
+                                <span class="info-value">
+                                    {{ profile.section|default:"Not assigned" }}
+                                </span>
+                            </li>
+                            <li class="info-item">
+                                <span class="info-label">
+                                    <i class="fas fa-layer-group"></i>
+                                    Year Level
+                                </span>
+                                <span class="info-value">
+                                    {{ profile.get_year_level_display }}
+                                </span>
+                            </li>
+                            <li class="info-item">
+                                <span class="info-label">
+                                    <i class="fas fa-id-badge"></i>
+                                    Student ID
+                                </span>
+                                <span class="info-value">
+                                    {{ profile.student_id }}
+                                </span>
+                            </li>
+                        </ul>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <ul class="list-unstyled">
-                        <li class="mb-2">
-                            <i class="fas fa-envelope me-2"></i>
-                            <a href="mailto:{{ profile.user.email }}">{{ profile.user.email }}</a>
-                        </li>
-                        <li>
-                            <i class="fas fa-map-marker-alt me-2"></i>
-                            {% if profile.street %}
-                                {{ profile.get_full_address }}
+                
+                <!-- Skills Section -->
+                <div class="profile-card">
+                    <div class="card-body">
+                        <h5 class="section-header">
+                            <i class="fas fa-cogs me-2"></i>Skills & Expertise
+                        </h5>
+                        
+                        <div class="skills-section">
+                            {% if profile.skills.all %}
+                                <div class="skills-list">
+                                    {% for skill in profile.skills.all %}
+                                        <span class="skill-badge">
+                                            <i class="fas fa-check me-1"></i>{{ skill.name }}
+                                        </span>
+                                    {% endfor %}
+                                </div>
                             {% else %}
-                                <span class="text-muted">No address provided</span>
+                                <div class="text-center text-muted py-4">
+                                    <i class="fas fa-cogs fa-2x mb-2"></i>
+                                    <p>No skills added yet</p>
+                                    <a href="{% url 'accounts:manage_skills' %}" class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-plus me-1"></i>Add Skills
+                                    </a>
+                                </div>
                             {% endif %}
-                        </li>
-                    </ul>
-                </div>
-            </div>
-            
-            <!-- Academic Information -->
-            <div class="card shadow-sm mb-4">
-                <div class="card-header bg-white">
-                    <h5 class="card-title mb-0">Academic Information</h5>
-                </div>
-                <div class="card-body">
-                    <div class="mb-3">
-                        <h6>Student ID</h6>
-                        <p>{{ profile.student_id }}</p>
-                    </div>
-                    <div class="mb-3">
-                        <h6>Course</h6>
-                        {% if profile.course %}
-                            <p>{{ profile.course.name }} ({{ profile.course.code }})</p>
-                        {% else %}
-                            <p class="text-muted">No course selected</p>
-                        {% endif %}
-                    </div>
-                    
-                    <div class="mb-3">
-                        <h6>Year & Section</h6>
-                        <p>{{ profile.get_year_level_display }}{% if profile.section %} - {{ profile.section }}{% endif %}</p>
-                    </div>
-                    
-                </div>
-            </div>
-            
-            <!-- Location -->
-            <div class="card shadow-sm mb-4">
-                <div class="card-header bg-white">
-                    <h5 class="card-title mb-0">Location</h5>
-                </div>
-                <div class="card-body">
-                    {% if profile.latitude and profile.longitude %}
-                    <div id="student-map" style="height: 200px;"></div>
-                    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-                    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-                    <script>
-                      document.addEventListener('DOMContentLoaded', function() {
-                        var map = L.map('student-map').setView([{{ profile.latitude }}, {{ profile.longitude }}], 16);
-                        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                          maxZoom: 19,
-                          attribution: '© OpenStreetMap'
-                        }).addTo(map);
-                        L.marker([{{ profile.latitude }}, {{ profile.longitude }}]).addTo(map);
-                      });
-                    </script>
-                    {% else %}
-                    <p class="text-muted">No location set.</p>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-lg-8">
-            <!-- OJT Progress -->
-            <div class="card shadow-sm mb-4">
-                <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                    <h5 class="card-title mb-0">OJT Progress</h5>
-                    <span class="badge bg-primary text-white">{{ profile.get_progress_percentage }}% Complete</span>
-                </div>
-                <div class="card-body">
-                    <div class="progress mb-3" style="height: 20px;">
-                        <div class="progress-bar" role="progressbar" style="width: {{ profile.get_progress_percentage }}%;"
-                             aria-valuenow="{{ profile.get_progress_percentage }}" aria-valuemin="0" aria-valuemax="100"></div>
-                    </div>
-                    <div class="d-flex justify-content-between text-muted">
-                        <span>{{ profile.ojt_hours_completed }} hours completed</span>
-                        <span>{{ profile.ojt_hours_required }} hours required</span>
-                    </div>
-                    <div class="mt-3 text-center">
-                        <form method="post" action="{% url 'accounts:update_ojt_status' %}" class="d-inline-block">
-                            {% csrf_token %}
-                            <label for="ojt_status" class="form-label fw-bold">OJT Status:</label>
-                            <select name="ojt_status" id="ojt_status" class="form-select d-inline-block w-auto align-middle" style="min-width: 150px;">
-                                {% for value, label in profile.student_ojt_status_choices %}
-                                    <option value="{{ value }}" {% if profile.ojt_status == value %}selected{% endif %}>{{ label }}</option>
-                                {% endfor %}
-                            </select>
-                            <button type="submit" class="btn btn-sm btn-success ms-2">Update</button>
-                        </form>
-                        <span class="badge bg-{{ profile.get_ojt_status_color }} ms-2 text-white" style="font-size:1rem;">{{ profile.get_ojt_status_display }}</span>
-                    </div>
-                    <div class="mt-3 text-center">
-                        <a href="{% url 'internship:applications' %}" class="btn btn-outline-primary me-2">
-                            <i class="fas fa-file-alt me-1"></i> Applications
-                        </a>
-                        <a href="{% url 'internship:matches' %}" class="btn btn-primary">
-                            <i class="fas fa-search me-1"></i> Find Internships
-                        </a>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Skills -->
-            <div class="card shadow-sm mb-4">
-                <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                    <h5 class="card-title mb-0">Skills</h5>
-                    <a href="{% url 'accounts:manage_skills' %}" class="btn btn-sm btn-primary">
-                        <i class="fas fa-plus me-1"></i> Add Skills
-                    </a>
-                </div>
-                <div class="card-body">
-                    {% if profile.skills.all %}
-                        <div class="mb-3">
-                            {% for skill in profile.skills.all %}
-                                <span class="badge bg-primary text-white me-2 mb-2">{{ skill.name }}</span>
-                            {% endfor %}
                         </div>
-                    {% else %}
-                        <div class="alert alert-warning">
-                            <i class="fas fa-exclamation-triangle me-2"></i>
-                            You haven't added any skills yet. Adding skills will help match you with the right internships.
+                        
+                        <div class="action-buttons">
+                            <a href="{% url 'accounts:manage_skills' %}" class="btn btn-outline-primary">
+                                <i class="fas fa-plus me-1"></i>Manage Skills
+                            </a>
                         </div>
-                    {% endif %}
+                    </div>
                 </div>
-            </div>
-            
-            <!-- Documents -->
-            <div class="card shadow-sm mb-4">
-                <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                    <h5 class="card-title mb-0">OJT Documents</h5>
-                    <a href="{% url 'dashboard:student_documents_view' %}" class="btn btn-sm btn-warning">
-                        <i class="fas fa-folder-open me-1"></i> Manage OJT Documents
-                    </a>
-                </div>
-                <div class="card-body">
-                    <p>View, download templates, and upload your required OJT documents for adviser review.</p>
-                    <a href="{% url 'dashboard:student_documents_view' %}" class="btn btn-outline-warning">Go to My OJT Documents</a>
+                
+                <!-- Documents Section -->
+                <div class="profile-card">
+                    <div class="card-body">
+                        <h5 class="section-header">
+                            <i class="fas fa-folder-open me-2"></i>OJT Documents
+                        </h5>
+                        
+                        <p class="text-muted mb-3">Manage your required OJT documents and templates</p>
+                        
+                        <div class="action-buttons">
+                            <a href="{% url 'dashboard:student_documents_view' %}" class="btn btn-warning">
+                                <i class="fas fa-folder-open me-1"></i> Manage OJT Documents
+                            </a>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    {% if profile.latitude and profile.longitude %}
+    var map = L.map('student-map').setView([{{ profile.latitude }}, {{ profile.longitude }}], 16);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '© OpenStreetMap'
+    }).addTo(map);
+    L.marker([{{ profile.latitude }}, {{ profile.longitude }}]).addTo(map);
+    {% endif %}
+});
+</script>
 {% endblock dashboard_content %}

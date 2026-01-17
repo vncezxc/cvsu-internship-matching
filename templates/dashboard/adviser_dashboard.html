@@ -5,56 +5,204 @@
 
 {% block extra_css %}
 <style>
-    .card, .progress, .btn, .table, .alert, .badge {
-        border-radius: 1rem;
-        font-family: 'Nunito', Arial, sans-serif;
+    :root {
+        --cvsu-dark-green: #030403;
+        --cvsu-light-gray: #787A66;
+        --cvsu-green: #064E07;
+        --cvsu-gold: #EFB60A;
+        --cvsu-red: #CF120F;
+        --cvsu-white: #FFFFFF;
+        --cvsu-green-light: #0a6d0b;
+        --cvsu-gold-light: #f9b233;
+        --cvsu-gold-dark: #d4a007;
+        --gray-50: #f8f9fa;
+        --gray-100: #e9ecef;
+        --gray-200: #dee2e6;
+        --success: #198754;
+        --warning: #ffc107;
+        --danger: #dc3545;
+        --info: #17a2b8;
+        --primary: #0d6efd;
+        --secondary: #6c757d;
+        --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
+        --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+        --shadow-lg: 0 10px 30px rgba(0,0,0,0.15);
+        --radius-sm: 0.5rem;
+        --radius-md: 1rem;
+        --radius-lg: 1.5rem;
+        --font-family: 'Nunito', Arial, sans-serif;
+        --font-weight-normal: 400;
+        --font-weight-medium: 600;
+        --font-weight-bold: 700;
     }
+
     .card {
-        box-shadow: 0 4px 24px rgba(0,109,56,0.08);
-        animation: fadeIn 0.7s;
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-md);
+        border: none;
+        font-family: var(--font-family);
+        animation: fadeIn 0.7s ease-out;
+        overflow: hidden;
     }
-    .btn-outline-primary, .btn-outline-secondary {
-        border-width: 2px;
-        font-weight: 600;
-        transition: all 0.2s;
+
+    .card-header {
+        background: linear-gradient(135deg, var(--cvsu-green), var(--cvsu-green-light)) !important;
+        color: var(--cvsu-white) !important;
+        border-radius: var(--radius-md) var(--radius-md) 0 0 !important;
+        padding: 1.25rem 1.5rem;
+        border: none;
     }
+
+    .card-header .card-title {
+        font-weight: var(--font-weight-bold);
+        margin: 0;
+        font-size: 1.1rem;
+    }
+
+    .btn {
+        border-radius: var(--radius-sm);
+        font-family: var(--font-family);
+        font-weight: var(--font-weight-medium);
+        padding: 0.5rem 1rem;
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, var(--cvsu-green), var(--cvsu-green-light));
+        border-color: var(--cvsu-green);
+        color: var(--cvsu-white) !important;
+    }
+
+    .btn-primary:hover {
+        background: linear-gradient(135deg, var(--cvsu-gold), var(--cvsu-gold-light));
+        border-color: var(--cvsu-gold);
+        color: var(--cvsu-dark-green) !important;
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+    }
+
     .btn-outline-primary {
-        color: #006d38 !important;
-        border-color: #006d38 !important;
+        color: var(--cvsu-green) !important;
+        border-color: var(--cvsu-green) !important;
+        background: transparent;
     }
+
     .btn-outline-primary:hover {
-        background-color: #f9b233 !important;
-        color: #fff !important;
-        border-color: #f9b233 !important;
+        background: linear-gradient(135deg, var(--cvsu-green), var(--cvsu-green-light));
+        border-color: var(--cvsu-green);
+        color: var(--cvsu-white) !important;
     }
-    .btn-outline-secondary {
-        color: #f9b233 !important;
-        border-color: #f9b233 !important;
+
+    .btn-outline-success {
+        color: var(--success) !important;
+        border-color: var(--success) !important;
+        background: transparent;
     }
-    .btn-outline-secondary:hover {
-        background-color: #006d38 !important;
-        color: #fff !important;
-        border-color: #006d38 !important;
+
+    .btn-outline-success:hover {
+        background: linear-gradient(135deg, var(--success), #28a745);
+        border-color: var(--success);
+        color: var(--cvsu-white) !important;
     }
+
+    .progress {
+        border-radius: var(--radius-sm);
+        background-color: var(--gray-200);
+        height: 1.5rem;
+    }
+
     .progress-bar {
-        background: linear-gradient(90deg, #006d38 80%, #f9b233 100%);
-        font-weight: 600;
-        animation: progressGrow 1.2s cubic-bezier(.4,1.4,.7,1) forwards;
+        background: linear-gradient(90deg, var(--cvsu-green) 80%, var(--cvsu-gold) 100%);
+        border-radius: var(--radius-sm);
+        font-weight: var(--font-weight-medium);
     }
-    @keyframes fadeIn {
-        from { opacity: 0; }
-        to { opacity: 1; }
+
+    .table {
+        border-radius: var(--radius-md);
+        overflow: hidden;
+        box-shadow: var(--shadow-sm);
+        margin-bottom: 0;
     }
-    @keyframes progressGrow {
-        from { width: 0; }
-        to { width: 100%; }
+
+    .table thead th {
+        background: linear-gradient(135deg, var(--cvsu-green), var(--cvsu-green-light));
+        color: var(--cvsu-white);
+        font-weight: var(--font-weight-medium);
+        border: none;
+        padding: 1rem 0.75rem;
     }
-    .table-striped > tbody > tr:nth-of-type(odd) {
-        background-color: #f9f9f9;
+
+    .table-striped tbody tr:nth-of-type(odd) {
+        background-color: var(--gray-50);
     }
+
     .badge {
-        font-size: 1em;
-        padding: 0.5em 1em;
+        border-radius: var(--radius-sm);
+        font-weight: var(--font-weight-medium);
+        padding: 0.5em 0.75em;
+        font-size: 0.875em;
+    }
+
+    .bg-primary {
+        background: linear-gradient(135deg, var(--cvsu-green), var(--cvsu-green-light)) !important;
+    }
+
+    .bg-success {
+        background: linear-gradient(135deg, var(--success), #28a745) !important;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .hover-lift {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .hover-lift:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .stat-number {
+        font-size: 2.5rem;
+        font-weight: var(--font-weight-bold);
+        color: var(--cvsu-gold);
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .quick-action-btn {
+        background: linear-gradient(135deg, var(--cvsu-white), var(--gray-50));
+        border: 2px solid var(--gray-200);
+        color: var(--cvsu-dark-green);
+        border-radius: var(--radius-md);
+        padding: 1rem;
+        text-align: center;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: block;
+    }
+
+    .quick-action-btn:hover {
+        background: linear-gradient(135deg, var(--cvsu-green), var(--cvsu-green-light));
+        color: var(--cvsu-white);
+        border-color: var(--cvsu-green);
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+    }
+
+    .quick-action-btn i {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+        display: block;
     }
 </style>
 {% endblock %}
@@ -63,21 +211,21 @@
 <div class="container mt-4">
     <h3>Welcome, {{ user.get_full_name }}</h3>
     <div class="mb-3">
-        <a href="{% url 'accounts:manage_courses' %}" class="btn btn-primary me-2">Manage My Courses</a>
+        <a href="{% url 'accounts:manage_courses' %}" class="btn btn-primary me-2 hover-lift">Manage My Courses</a>
     </div>
 </div>
 
 <div class="row mb-4">
     <div class="col-md-6">
-        <div class="card h-100">
-            <div class="card-header bg-primary text-white">
+        <div class="card h-100 hover-lift">
+            <div class="card-header">
                 <h5 class="card-title mb-0">Adviser Information</h5>
             </div>
             <div class="card-body">
                 {% if profile.profile_image %}
-                    <img src="{{ profile.profile_image.url }}" alt="Profile Image" class="rounded-circle mb-3" style="width: 100px; height: 100px; object-fit: cover;">
+                    <img src="{{ profile.profile_image.url }}" alt="Profile Image" class="rounded-circle mb-3" style="width: 100px; height: 100px; object-fit: cover; border: 3px solid var(--cvsu-gold);">
                 {% endif %}
-                <h6>{{ profile.user.get_full_name }}</h6>
+                <h6 class="text-dark">{{ profile.user.get_full_name }}</h6>
                 <p><strong>First Name:</strong> {{ profile.user.first_name }}</p>
                 <p><strong>Last Name:</strong> {{ profile.user.last_name }}</p>
                 <p><strong>Email:</strong> {{ profile.user.email }}</p>
@@ -104,14 +252,14 @@
     </div>
     
     <div class="col-md-6">
-        <div class="card h-100">
-            <div class="card-header bg-primary text-white">
+        <div class="card h-100 hover-lift">
+            <div class="card-header">
                 <h5 class="card-title mb-0">Students Summary</h5>
             </div>
             <div class="card-body">
                 <div class="row text-center">
                     <div class="col">
-                        <h3>{{ total_students }}</h3>
+                        <h3 class="stat-number">{{ total_students }}</h3>
                         <p>Total Students</p>
                     </div>
                 </div>
@@ -135,8 +283,10 @@
                     </div>
                 </div>
                 
-                <a href="{% url 'dashboard:adviser_dtr_list' %}" class="btn btn-outline-success mt-4">Review DTR Submissions</a>
-                <a href="{% url 'dashboard:student_list' %}" class="btn btn-outline-primary mt-4 ms-2">Manage Students</a>
+                <div class="mt-4 d-grid gap-2">
+                    <a href="{% url 'dashboard:adviser_dtr_list' %}" class="btn btn-outline-success">Review DTR Submissions</a>
+                    <a href="{% url 'dashboard:student_list' %}" class="btn btn-outline-primary">Manage Students</a>
+                </div>
             </div>
         </div>
     </div>
@@ -144,14 +294,14 @@
 
 <div class="row">
     <div class="col-12">
-        <div class="card">
-            <div class="card-header bg-primary text-white">
+        <div class="card hover-lift">
+            <div class="card-header">
                 <h5 class="card-title mb-0">Recent Students</h5>
             </div>
             <div class="card-body">
                 {% if recent_students %}
                     <div class="table-responsive">
-                        <table class="table table-striped">
+                        <table class="table table-striped table-hover">
                             <thead>
                                 <tr>
                                     <th>Name</th>
@@ -192,27 +342,27 @@
 
 <div class="row mt-4">
     <div class="col-12">
-        <div class="card">
-            <div class="card-header bg-primary text-white">
+        <div class="card hover-lift">
+            <div class="card-header">
                 <h5 class="card-title mb-0">Quick Actions</h5>
             </div>
             <div class="card-body">
                 <div class="row">
                     <div class="col-md-4">
-                        <a href="{% url 'dashboard:student_list' %}" class="btn btn-outline-primary w-100 mb-3">
-                            <i class="bi bi-people fs-4 d-block mb-2"></i>
+                        <a href="{% url 'dashboard:student_list' %}" class="quick-action-btn">
+                            <i class="bi bi-people"></i>
                             Manage Students
                         </a>
                     </div>
                     <div class="col-md-4">
-                        <a href="{% url 'dashboard:reports' %}" class="btn btn-outline-primary w-100 mb-3">
-                            <i class="bi bi-file-earmark-bar-graph fs-4 d-block mb-2"></i>
+                        <a href="{% url 'dashboard:reports' %}" class="quick-action-btn">
+                            <i class="bi bi-file-earmark-bar-graph"></i>
                             Generate Reports
                         </a>
                     </div>
                     <div class="col-md-4">
-                        <a href="{% url 'chat:chat_list' %}" class="btn btn-outline-primary w-100 mb-3">
-                            <i class="bi bi-chat-dots fs-4 d-block mb-2"></i>
+                        <a href="{% url 'chat:chat_list' %}" class="quick-action-btn">
+                            <i class="bi bi-chat-dots"></i>
                             Student Chats
                         </a>
                     </div>
@@ -224,8 +374,8 @@
 
 <div class="row mt-4">
     <div class="col-12">
-        <div class="card">
-            <div class="card-header bg-primary text-white">
+        <div class="card hover-lift">
+            <div class="card-header">
                 <h5 class="card-title mb-0">Student Document Completion</h5>
             </div>
             <div class="card-body">
@@ -278,4 +428,4 @@
         </div>
     </div>
 </div>
-{% endblock %}
+{% endblock dashboard_content %}

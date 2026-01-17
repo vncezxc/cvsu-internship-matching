@@ -1,26 +1,278 @@
 {% extends 'base.html' %}
 {% load crispy_forms_tags %}
-{% block title %}Add Company{% endblock %}
+{% block title %}Add Company - CVSU Internship Matching{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --cvsu-dark-green: #030403;
+        --cvsu-light-gray: #787A66;
+        --cvsu-green: #064E07;
+        --cvsu-gold: #EFB60A;
+        --cvsu-red: #CF120F;
+        --cvsu-white: #FFFFFF;
+        --cvsu-green-light: #0a6d0b;
+        --cvsu-gold-light: #f9b233;
+        --gray-50: #f8f9fa;
+        --gray-100: #e9ecef;
+        --gray-200: #dee2e6;
+        --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+        --shadow-lg: 0 10px 30px rgba(0,0,0,0.15);
+        --radius-md: 1rem;
+        --radius-sm: 0.5rem;
+        --font-family: 'Nunito', Arial, sans-serif;
+        --font-weight-medium: 600;
+        --font-weight-bold: 700;
+    }
+
+    .company-form-container {
+        min-height: 80vh;
+        padding: 2rem 0;
+    }
+
+    .breadcrumb-wrapper {
+        background: var(--gray-50);
+        border-radius: var(--radius-sm);
+        padding: 0.75rem 1.25rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .breadcrumb {
+        margin-bottom: 0;
+        font-family: var(--font-family);
+    }
+
+    .breadcrumb a {
+        color: var(--cvsu-green);
+        text-decoration: none;
+        font-weight: var(--font-weight-medium);
+    }
+
+    .breadcrumb a:hover {
+        color: var(--cvsu-gold);
+    }
+
+    .page-title {
+        color: var(--cvsu-dark-green);
+        font-family: var(--font-family);
+        font-weight: var(--font-weight-bold);
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .page-title i {
+        color: var(--cvsu-green);
+    }
+
+    .company-form-card {
+        background: var(--cvsu-white);
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-lg);
+        border: none;
+        overflow: hidden;
+        animation: fadeIn 0.7s ease-out;
+    }
+
+    .company-form-card .card-header {
+        background: linear-gradient(135deg, var(--cvsu-green), var(--cvsu-green-light)) !important;
+        color: var(--cvsu-white) !important;
+        padding: 1.5rem;
+        border: none;
+    }
+
+    .company-form-card .card-header h5 {
+        font-family: var(--font-family);
+        font-weight: var(--font-weight-bold);
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .company-form-card .card-body {
+        padding: 2rem;
+    }
+
+    .form-control, .form-select {
+        border-radius: var(--radius-sm);
+        border: 2px solid var(--gray-200);
+        font-family: var(--font-family);
+        transition: all 0.3s ease;
+        padding: 0.75rem 1rem;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: var(--cvsu-gold);
+        box-shadow: 0 0 0 0.25rem rgba(239, 182, 10, 0.25);
+    }
+
+    .form-label {
+        color: var(--cvsu-dark-green);
+        font-family: var(--font-family);
+        font-weight: var(--font-weight-medium);
+        margin-bottom: 0.5rem;
+    }
+
+    .section-divider {
+        background: linear-gradient(135deg, var(--cvsu-gold), var(--cvsu-gold-light));
+        color: var(--cvsu-dark-green);
+        padding: 1rem 1.5rem;
+        margin: 2rem -2rem 1.5rem -2rem;
+        font-family: var(--font-family);
+        font-weight: var(--font-weight-bold);
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .map-container {
+        border-radius: var(--radius-sm);
+        overflow: hidden;
+        border: 2px solid var(--gray-200);
+        margin-bottom: 1rem;
+    }
+
+    .btn {
+        border-radius: var(--radius-sm);
+        font-family: var(--font-family);
+        font-weight: var(--font-weight-medium);
+        padding: 0.75rem 1.5rem;
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, var(--cvsu-green), var(--cvsu-green-light));
+        border-color: var(--cvsu-green);
+        color: var(--cvsu-white) !important;
+    }
+
+    .btn-primary:hover {
+        background: linear-gradient(135deg, var(--cvsu-gold), var(--cvsu-gold-light));
+        border-color: var(--cvsu-gold);
+        color: var(--cvsu-dark-green) !important;
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+    }
+
+    .btn-secondary {
+        background: var(--gray-50);
+        border-color: var(--gray-200);
+        color: var(--cvsu-dark-green) !important;
+    }
+
+    .btn-secondary:hover {
+        background: var(--cvsu-light-gray);
+        border-color: var(--cvsu-light-gray);
+        color: var(--cvsu-white) !important;
+        transform: translateY(-2px);
+    }
+
+    .tips-card {
+        background: var(--cvsu-white);
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-md);
+        border: none;
+        overflow: hidden;
+    }
+
+    .tips-card .card-header {
+        background: linear-gradient(135deg, var(--cvsu-gold), var(--cvsu-gold-light));
+        color: var(--cvsu-dark-green);
+        padding: 1.25rem;
+        border: none;
+    }
+
+    .tips-card .card-header h5 {
+        font-family: var(--font-family);
+        font-weight: var(--font-weight-bold);
+        margin: 0;
+    }
+
+    .tips-card .card-body {
+        padding: 1.5rem;
+    }
+
+    .tip-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid var(--gray-100);
+    }
+
+    .tip-item:last-child {
+        margin-bottom: 0;
+        padding-bottom: 0;
+        border-bottom: none;
+    }
+
+    .tip-item i {
+        color: var(--cvsu-green);
+        font-size: 1.25rem;
+        margin-top: 0.25rem;
+    }
+
+    .tip-item strong {
+        color: var(--cvsu-dark-green);
+        font-family: var(--font-family);
+        display: block;
+        margin-bottom: 0.25rem;
+    }
+
+    .tip-item p {
+        color: var(--cvsu-light-gray);
+        font-size: 0.875rem;
+        margin: 0;
+    }
+
+    .alert-danger {
+        background: linear-gradient(135deg, rgba(207, 18, 15, 0.1), rgba(220, 53, 69, 0.1));
+        border: 1px solid var(--cvsu-red);
+        border-radius: var(--radius-sm);
+        color: var(--cvsu-red);
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 768px) {
+        .company-form-card .card-body {
+            padding: 1.5rem;
+        }
+        .section-divider {
+            margin: 1.5rem -1.5rem 1rem -1.5rem;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container mt-4">
-    <div class="row mb-4">
-        <div class="col">
+<div class="company-form-container">
+    <div class="container">
+        <div class="breadcrumb-wrapper">
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="{% url 'internship:companies' %}">Companies</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'internship:companies' %}"><i class="fas fa-building me-1"></i>Companies</a></li>
                     <li class="breadcrumb-item active" aria-current="page">Add Company</li>
                 </ol>
             </nav>
-            <h2 class="mb-3"><i class="fas fa-plus-circle me-2"></i>Add New Company</h2>
         </div>
-    </div>
-    <div class="row g-3">
-        <div class="col-lg-8">
-            <div class="card shadow-sm mb-4">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0">Company Information</h5>
-                </div>
-                <div class="card-body">
+        
+        <h2 class="page-title"><i class="fas fa-plus-circle"></i>Add New Company</h2>
+        
+        <div class="row g-4">
+            <div class="col-lg-8">
+                <div class="company-form-card card">
+                    <div class="card-header">
+                        <h5><i class="fas fa-building me-2"></i>Company Information</h5>
+                    </div>
+                    <div class="card-body">
                     <form method="post" enctype="multipart/form-data" novalidate>
                         {% if form.non_field_errors %}
                             <div class="alert alert-danger">
@@ -106,24 +358,28 @@
                             <input type="hidden" name="latitude" id="id_latitude" value="{{ form.latitude.value|default_if_none:'' }}">
                             <input type="hidden" name="longitude" id="id_longitude" value="{{ form.longitude.value|default_if_none:'' }}">
                         </div>
-                        <hr>
+                        <div class="section-divider">
+                            <i class="fas fa-map-marker-alt"></i>Address Information
+                        </div>
                         <div class="row g-2">
                             <div class="col-md-6">{{ form.street|as_crispy_field }}</div>
                             <div class="col-md-6">{{ form.barangay|as_crispy_field }}</div>
                             <div class="col-md-6">{{ form.city|as_crispy_field }}</div>
                             <div class="col-md-6">{{ form.province|as_crispy_field }}</div>
                         </div>
-                        <div class="mt-3 mb-3">
-                            <label class="form-label fw-bold">Pin Company Location</label>
-                            <div id="company-map" style="height: 250px; border-radius: 8px; overflow: hidden;"></div>
-                            <div class="form-text">Drag the marker or click on the map to set the company location. The map link will update automatically.</div>
+                        <div class="mt-4 mb-3">
+                            <label class="form-label"><i class="fas fa-map-pin me-2"></i>Pin Company Location</label>
+                            <div class="map-container">
+                                <div id="company-map" style="height: 250px;"></div>
+                            </div>
+                            <div class="form-text"><i class="fas fa-info-circle me-1"></i>Drag the marker or click on the map to set the company location. The map link will update automatically.</div>
                         </div>
-                        <div class="d-flex justify-content-between mt-3">
+                        <div class="d-flex justify-content-between mt-4">
                             <a href="{% url 'internship:companies' %}" class="btn btn-secondary">
-                                <i class="fas fa-arrow-left me-1"></i> Back to Companies
+                                <i class="fas fa-arrow-left me-2"></i>Back to Companies
                             </a>
                             <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-save me-1"></i> Save Company
+                                <i class="fas fa-save me-2"></i>Save Company
                             </button>
                         </div>
                     </form>
@@ -131,37 +387,44 @@
             </div>
         </div>
         <div class="col-lg-4">
-            <div class="card shadow-sm mb-4">
-                <div class="card-header bg-white border-bottom-0">
-                    <h5 class="card-title mb-0">Tips for Adding a Company</h5>
+            <div class="tips-card card">
+                <div class="card-header">
+                    <h5><i class="fas fa-lightbulb me-2"></i>Tips for Adding a Company</h5>
                 </div>
                 <div class="card-body">
-                    <ul class="list-unstyled">
-                        <li class="mb-2">
-                            <i class="fas fa-check-circle text-success me-2"></i>
+                    <div class="tip-item">
+                        <i class="fas fa-check-circle"></i>
+                        <div>
                             <strong>Complete all information</strong>
-                            <p class="text-muted small mb-0">Make sure to fill in all required fields for the company profile.</p>
-                        </li>
-                        <li class="mb-2">
-                            <i class="fas fa-check-circle text-success me-2"></i>
+                            <p>Make sure to fill in all required fields for the company profile.</p>
+                        </div>
+                    </div>
+                    <div class="tip-item">
+                        <i class="fas fa-check-circle"></i>
+                        <div>
                             <strong>Verify contact information</strong>
-                            <p class="text-muted small mb-0">Double-check email addresses and phone numbers for accuracy.</p>
-                        </li>
-                        <li class="mb-2">
-                            <i class="fas fa-map-marker-alt text-success me-2"></i>
+                            <p>Double-check email addresses and phone numbers for accuracy.</p>
+                        </div>
+                    </div>
+                    <div class="tip-item">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <div>
                             <strong>Set correct location</strong>
-                            <p class="text-muted small mb-0">Use the map tool to precisely locate the company for students.</p>
-                        </li>
-                        <li class="mb-2">
-                            <i class="fas fa-image text-success me-2"></i>
+                            <p>Use the map tool to precisely locate the company for students.</p>
+                        </div>
+                    </div>
+                    <div class="tip-item">
+                        <i class="fas fa-image"></i>
+                        <div>
                             <strong>Add a company logo</strong>
-                            <p class="text-muted small mb-0">A logo helps students recognize the company more easily.</p>
-                        </li>
-                    </ul>
+                            <p>A logo helps students recognize the company more easily.</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
+</div>
 </div>
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>

@@ -1,110 +1,342 @@
 {% extends 'base.html' %}
-{% block title %}Internship Details{% endblock %}
-{% block content %}
-<div class="container py-4">
-  <div class="row g-4">
-    <div class="col-lg-8">
-      <div class="card shadow-sm mb-4 border-0">
-        <div class="card-header bg-gradient bg-primary text-white d-flex align-items-center justify-content-between rounded-top">
-          <div>
-            <h3 class="mb-0 fw-bold">{{ internship.title }}</h3>
-            <div class="small mt-1">
-              <span class="me-2"><i class="bi bi-building"></i> <a class="text-white text-decoration-underline" href="{% url 'internship:company_detail' internship.company.id %}">{{ internship.company.name }}</a></span>
-              <span class="me-2"><i class="bi bi-people"></i> {{ internship.slots_available }} slots</span>
-              <span class="me-2"><i class="bi bi-calendar-plus"></i> {{ internship.created_at|date:"M d, Y h:i A" }}</span>
-              <span><i class="bi bi-calendar-check"></i> Updated: {{ internship.updated_at|date:"M d, Y h:i A" }}</span>
-            </div>
-          </div>
-          <span class="badge fs-6 px-3 py-2 {% if internship.is_active %}bg-success text-dark{% else %}bg-secondary text-dark{% endif %}">{% if internship.is_active %}Active{% else %}Inactive{% endif %}</span>
-        </div>
-        <div class="card-body pb-2">
-          <div class="row g-3">
-            <div class="col-md-6">
-              <div class="mb-2">
-                <strong><i class="bi bi-mortarboard-fill text-primary me-1"></i> Recommended Courses:</strong>
-                <div class="d-flex flex-wrap gap-1 mt-1">
-                  {% for course in internship.recommended_courses.all %}
-                    <span class="badge bg-info text-dark px-2 py-1"><i class="bi bi-bookmark-star-fill me-1"></i>{{ course.name }}</span>
-                  {% empty %}
-                    <span class="text-muted"><i class="bi bi-dash-circle"></i> None</span>
-                  {% endfor %}
-                </div>
-              </div>
-              <div class="mb-2">
-                <strong><i class="bi bi-tools text-warning me-1"></i> Required Skills:</strong>
-                <div class="d-flex flex-wrap gap-1 mt-1">
-                  {% for skill in internship.required_skills.all %}
-                    <span class="badge bg-warning text-dark px-2 py-1"><i class="bi bi-lightning-charge-fill me-1"></i>{{ skill.name }}</span>
-                  {% empty %}
-                    <span class="text-muted"><i class="bi bi-dash-circle"></i> None</span>
-                  {% endfor %}
-                </div>
-              </div>
-            </div>
-            <div class="col-md-6">
-              <div class="mb-2"><strong>Description:</strong>
-                <div class="text-muted small border rounded p-2 bg-light"><i class="bi bi-card-text"></i> {{ internship.description|linebreaksbr }}</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="card shadow-sm border-0">
-        <div class="card-header bg-light d-flex align-items-center justify-content-between rounded-top">
-          <h5 class="mb-0 fw-semibold">Applications</h5>
-          <span class="badge bg-primary text-dark">{{ applications|length }} total</span>
-        </div>
-        <div class="card-body p-0">
-          {% if applications %}
-            <div class="table-responsive">
-              <table class="table table-sm table-hover align-middle mb-0">
-                <thead class="table-light">
-                  <tr>
-                    <th>Student</th>
-                    <th>Match</th>
-                    <th>Status</th>
-                    <th>Applied</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {% for app in applications %}
-                  <tr>
-                    <td>{{ app.student.get_full_name }}</td>
-                    <td><span class="fw-bold">{{ app.match_score }}%</span></td>
-                    <td><span class="badge bg-{{ app.get_status_display|lower }} text-dark">{{ app.get_status_display }}</span></td>
-                    <td class="text-muted small">{{ app.applied_at|date:"M d, Y h:i A" }}</td>
-                  </tr>
-                  {% endfor %}
-                </tbody>
-              </table>
-            </div>
-          {% else %}
-            <div class="alert alert-info m-0">No applications yet.</div>
-          {% endif %}
-        </div>
-      </div>
-    </div>
-    <div class="col-lg-4">
-      <div class="card shadow-sm border-0">
-        <div class="card-header bg-light rounded-top">
-          <h5 class="mb-0 fw-semibold">Company Info</h5>
-        </div>
-        <div class="card-body">
-          <div class="mb-2"><strong><i class="bi bi-building"></i> Name:</strong> {{ internship.company.name }}</div>
-          <div class="mb-2"><strong><i class="bi bi-envelope"></i> Email:</strong> {{ internship.company.company_email }}</div>
-          <div class="mb-2"><strong><i class="bi bi-telephone"></i> Phone:</strong> {{ internship.company.phone_number }}</div>
-          <div class="mb-2"><strong><i class="bi bi-geo-alt"></i> Address:</strong> <span class="text-muted small">{{ internship.company.get_full_address }}</span></div>
-          {% if internship.company.location_link %}
-            <a href="{{ internship.company.location_link }}" target="_blank" class="btn btn-outline-primary btn-sm mt-2 w-100"><i class="bi bi-geo-alt"></i> View on Map</a>
-          {% endif %}
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
+{% block title %}Internship Details - CVSU Internship Matching{% endblock %}
+
+{% block extra_css %}
 <style>
-  .card-header.bg-gradient {
-    background: linear-gradient(90deg, #0d6efd 0%, #0a58ca 100%);
-  }
+    :root {
+        --cvsu-dark-green: #030403;
+        --cvsu-light-gray: #787A66;
+        --cvsu-green: #064E07;
+        --cvsu-gold: #EFB60A;
+        --cvsu-red: #CF120F;
+        --cvsu-white: #FFFFFF;
+        --cvsu-green-light: #0a6d0b;
+        --cvsu-gold-light: #f9b233;
+        --gray-50: #f8f9fa;
+        --gray-100: #e9ecef;
+        --gray-200: #dee2e6;
+        --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+        --shadow-lg: 0 10px 30px rgba(0,0,0,0.15);
+        --radius-md: 1rem;
+        --radius-sm: 0.5rem;
+        --font-family: 'Nunito', Arial, sans-serif;
+        --font-weight-medium: 600;
+        --font-weight-bold: 700;
+    }
+
+    .internship-detail-container {
+        min-height: 80vh;
+        padding: 2rem 0;
+    }
+
+    .detail-card {
+        background: var(--cvsu-white);
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-lg);
+        border: none;
+        overflow: hidden;
+        animation: fadeIn 0.7s ease-out;
+    }
+
+    .detail-card .card-header {
+        background: linear-gradient(135deg, var(--cvsu-green), var(--cvsu-green-light)) !important;
+        color: var(--cvsu-white) !important;
+        padding: 1.5rem;
+        border: none;
+    }
+
+    .detail-card .card-header h3 {
+        font-family: var(--font-family);
+        font-weight: var(--font-weight-bold);
+        margin: 0;
+    }
+
+    .detail-card .card-header a {
+        color: var(--cvsu-gold) !important;
+        text-decoration: none;
+    }
+
+    .detail-card .card-header a:hover {
+        text-decoration: underline;
+    }
+
+    .detail-card .card-body {
+        padding: 2rem;
+    }
+
+    .badge-active {
+        background: linear-gradient(135deg, var(--cvsu-green), var(--cvsu-green-light)) !important;
+        color: var(--cvsu-white) !important;
+    }
+
+    .badge-inactive {
+        background: var(--gray-200) !important;
+        color: var(--cvsu-dark-green) !important;
+    }
+
+    .info-badge {
+        display: inline-block;
+        padding: 0.4rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.875rem;
+        font-weight: var(--font-weight-medium);
+        margin: 0.2rem;
+    }
+
+    .badge-course {
+        background: linear-gradient(135deg, var(--cvsu-gold), var(--cvsu-gold-light));
+        color: var(--cvsu-dark-green);
+    }
+
+    .badge-skill {
+        background: var(--gray-200);
+        color: var(--cvsu-dark-green);
+    }
+
+    .section-title {
+        color: var(--cvsu-green);
+        font-family: var(--font-family);
+        font-weight: var(--font-weight-bold);
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .description-box {
+        background: var(--gray-50);
+        border-radius: var(--radius-sm);
+        padding: 1rem;
+        border: 1px solid var(--gray-200);
+    }
+
+    .applications-card {
+        background: var(--cvsu-white);
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-md);
+        border: none;
+        overflow: hidden;
+    }
+
+    .applications-card .card-header {
+        background: linear-gradient(135deg, var(--cvsu-gold), var(--cvsu-gold-light));
+        color: var(--cvsu-dark-green);
+        padding: 1.25rem;
+        border: none;
+    }
+
+    .applications-card .card-header h5 {
+        font-family: var(--font-family);
+        font-weight: var(--font-weight-bold);
+        margin: 0;
+    }
+
+    .table th {
+        background: var(--gray-50);
+        color: var(--cvsu-dark-green);
+        font-weight: var(--font-weight-bold);
+        font-family: var(--font-family);
+    }
+
+    .company-card {
+        background: var(--cvsu-white);
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-md);
+        border: none;
+        overflow: hidden;
+    }
+
+    .company-card .card-header {
+        background: linear-gradient(135deg, var(--cvsu-gold), var(--cvsu-gold-light));
+        color: var(--cvsu-dark-green);
+        padding: 1.25rem;
+        border: none;
+    }
+
+    .company-card .card-header h5 {
+        font-family: var(--font-family);
+        font-weight: var(--font-weight-bold);
+        margin: 0;
+    }
+
+    .company-card .card-body {
+        padding: 1.5rem;
+    }
+
+    .company-info-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.5rem;
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 1px solid var(--gray-100);
+    }
+
+    .company-info-item:last-child {
+        margin-bottom: 0;
+        padding-bottom: 0;
+        border-bottom: none;
+    }
+
+    .company-info-item i {
+        color: var(--cvsu-green);
+        margin-top: 0.25rem;
+    }
+
+    .btn {
+        border-radius: var(--radius-sm);
+        font-family: var(--font-family);
+        font-weight: var(--font-weight-medium);
+        padding: 0.5rem 1rem;
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+    }
+
+    .btn-outline-primary {
+        border-color: var(--cvsu-green);
+        color: var(--cvsu-green) !important;
+    }
+
+    .btn-outline-primary:hover {
+        background: var(--cvsu-green);
+        border-color: var(--cvsu-green);
+        color: var(--cvsu-white) !important;
+    }
+
+    .alert-info {
+        background: linear-gradient(135deg, rgba(6, 78, 7, 0.1), rgba(10, 109, 11, 0.1));
+        border: 1px solid var(--cvsu-green);
+        border-radius: var(--radius-sm);
+        color: var(--cvsu-dark-green);
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
 </style>
+{% endblock %}
+
+{% block content %}
+<div class="internship-detail-container">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-lg-8">
+                <div class="detail-card card mb-4">
+                    <div class="card-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+                        <div>
+                            <h3>{{ internship.title }}</h3>
+                            <div class="small mt-1">
+                                <span class="me-3"><i class="fas fa-building me-1"></i><a href="{% url 'internship:company_detail' internship.company.id %}">{{ internship.company.name }}</a></span>
+                                <span class="me-3"><i class="fas fa-users me-1"></i>{{ internship.slots_available }} slots</span>
+                                <span class="me-3"><i class="fas fa-calendar-plus me-1"></i>{{ internship.created_at|date:"M d, Y" }}</span>
+                            </div>
+                        </div>
+                        <span class="badge fs-6 px-3 py-2 {% if internship.is_active %}badge-active{% else %}badge-inactive{% endif %}">
+                            {% if internship.is_active %}Active{% else %}Inactive{% endif %}
+                        </span>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-4">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <div class="section-title"><i class="fas fa-graduation-cap"></i>Recommended Courses</div>
+                                    <div class="mt-2">
+                                        {% for course in internship.recommended_courses.all %}
+                                            <span class="info-badge badge-course"><i class="fas fa-bookmark me-1"></i>{{ course.name }}</span>
+                                        {% empty %}
+                                            <span class="text-muted">None specified</span>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <div class="section-title"><i class="fas fa-tools"></i>Required Skills</div>
+                                    <div class="mt-2">
+                                        {% for skill in internship.required_skills.all %}
+                                            <span class="info-badge badge-skill"><i class="fas fa-bolt me-1"></i>{{ skill.name }}</span>
+                                        {% empty %}
+                                            <span class="text-muted">None specified</span>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="section-title"><i class="fas fa-file-alt"></i>Description</div>
+                                <div class="description-box mt-2">
+                                    {{ internship.description|linebreaksbr }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="applications-card card">
+                    <div class="card-header d-flex align-items-center justify-content-between">
+                        <h5><i class="fas fa-clipboard-list me-2"></i>Applications</h5>
+                        <span class="badge bg-dark">{{ applications|length }} total</span>
+                    </div>
+                    <div class="card-body p-0">
+                        {% if applications %}
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>Student</th>
+                                            <th>Match</th>
+                                            <th>Status</th>
+                                            <th>Applied</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for app in applications %}
+                                        <tr>
+                                            <td><i class="fas fa-user-circle me-1 text-muted"></i>{{ app.student.get_full_name }}</td>
+                                            <td><span class="fw-bold text-success">{{ app.match_score }}%</span></td>
+                                            <td><span class="badge bg-{{ app.get_status_display|lower }}">{{ app.get_status_display }}</span></td>
+                                            <td class="text-muted small">{{ app.applied_at|date:"M d, Y h:i A" }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <div class="alert alert-info m-3"><i class="fas fa-info-circle me-2"></i>No applications yet.</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4">
+                <div class="company-card card">
+                    <div class="card-header">
+                        <h5><i class="fas fa-building me-2"></i>Company Info</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="company-info-item">
+                            <i class="fas fa-building"></i>
+                            <div><strong>Name:</strong> {{ internship.company.name }}</div>
+                        </div>
+                        <div class="company-info-item">
+                            <i class="fas fa-envelope"></i>
+                            <div><strong>Email:</strong> {{ internship.company.company_email }}</div>
+                        </div>
+                        <div class="company-info-item">
+                            <i class="fas fa-phone"></i>
+                            <div><strong>Phone:</strong> {{ internship.company.phone_number }}</div>
+                        </div>
+                        <div class="company-info-item">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <div><strong>Address:</strong> <span class="text-muted">{{ internship.company.get_full_address }}</span></div>
+                        </div>
+                        {% if internship.company.location_link %}
+                            <a href="{{ internship.company.location_link }}" target="_blank" class="btn btn-outline-primary btn-sm w-100 mt-3">
+                                <i class="fas fa-map me-1"></i>View on Map
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}

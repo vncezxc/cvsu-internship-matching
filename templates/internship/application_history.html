@@ -1,7 +1,135 @@
 {% extends 'dashboard/base_dashboard.html' %}
 {% load static %}
 
-{% block dashboard_title %}Application History{% endblock %}
+{% block dashboard_title %}Application History - CVSU{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --cvsu-dark-green: #030403;
+        --cvsu-light-gray: #787A66;
+        --cvsu-green: #064E07;
+        --cvsu-gold: #EFB60A;
+        --cvsu-red: #CF120F;
+        --cvsu-white: #FFFFFF;
+        --cvsu-green-light: #0a6d0b;
+        --cvsu-gold-light: #f9b233;
+        --gray-50: #f8f9fa;
+        --gray-100: #e9ecef;
+        --gray-200: #dee2e6;
+        --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+        --shadow-lg: 0 10px 30px rgba(0,0,0,0.15);
+        --radius-md: 1rem;
+        --radius-sm: 0.5rem;
+        --font-family: 'Nunito', Arial, sans-serif;
+        --font-weight-medium: 600;
+        --font-weight-bold: 700;
+    }
+
+    h2 {
+        color: var(--cvsu-green);
+        font-family: var(--font-family);
+        font-weight: var(--font-weight-bold);
+    }
+
+    .card {
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-md);
+        border: none;
+        overflow: hidden;
+    }
+
+    .table th, .table-light th {
+        background: var(--gray-50) !important;
+        color: var(--cvsu-dark-green);
+        font-family: var(--font-family);
+        font-weight: var(--font-weight-bold);
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, var(--cvsu-green), var(--cvsu-green-light));
+        border: none;
+        border-radius: var(--radius-sm);
+        font-family: var(--font-family);
+        font-weight: var(--font-weight-medium);
+    }
+
+    .btn-primary:hover {
+        background: linear-gradient(135deg, var(--cvsu-green-light), var(--cvsu-green));
+        box-shadow: var(--shadow-md);
+        transform: translateY(-2px);
+    }
+
+    .btn-outline-secondary {
+        border-color: var(--cvsu-light-gray);
+        color: var(--cvsu-dark-green);
+        border-radius: var(--radius-sm);
+    }
+
+    .btn-outline-secondary:hover {
+        background: var(--cvsu-light-gray);
+        border-color: var(--cvsu-light-gray);
+        color: var(--cvsu-white);
+    }
+
+    .btn-success {
+        background: linear-gradient(135deg, var(--cvsu-green), var(--cvsu-green-light));
+        border: none;
+        border-radius: var(--radius-sm);
+    }
+
+    .badge.bg-warning {
+        background: linear-gradient(135deg, var(--cvsu-gold), var(--cvsu-gold-light)) !important;
+        color: var(--cvsu-dark-green) !important;
+    }
+
+    .badge.bg-success {
+        background: linear-gradient(135deg, var(--cvsu-green), var(--cvsu-green-light)) !important;
+    }
+
+    .badge.bg-danger {
+        background: linear-gradient(135deg, var(--cvsu-red), #e63946) !important;
+    }
+
+    .badge.bg-primary {
+        background: linear-gradient(135deg, var(--cvsu-green), var(--cvsu-green-light)) !important;
+    }
+
+    .progress-bar.bg-primary {
+        background: linear-gradient(135deg, var(--cvsu-green), var(--cvsu-green-light)) !important;
+    }
+
+    .progress {
+        border-radius: var(--radius-sm);
+        background: var(--gray-100);
+    }
+
+    .pagination .page-link {
+        border-radius: var(--radius-sm);
+        border: 1px solid var(--gray-200);
+        color: var(--cvsu-green);
+        margin: 0 0.25rem;
+    }
+
+    .pagination .page-item.active .page-link {
+        background: linear-gradient(135deg, var(--cvsu-green), var(--cvsu-green-light));
+        border-color: var(--cvsu-green);
+        color: var(--cvsu-white);
+    }
+
+    .pagination .page-link:hover {
+        background: var(--gray-100);
+        border-color: var(--cvsu-green);
+    }
+
+    .alert-info {
+        background: linear-gradient(135deg, rgba(6, 78, 7, 0.1), rgba(10, 109, 11, 0.1));
+        border: 1px solid var(--cvsu-green);
+        border-radius: var(--radius-sm);
+        color: var(--cvsu-dark-green);
+    }
+</style>
+{% endblock %}
 
 {% block dashboard_content %}
 <div class="container-fluid">
