@@ -42,7 +42,8 @@
         border: none;
         font-family: var(--font-family);
         animation: fadeIn 0.7s ease-out;
-        overflow: hidden;
+        /* Allow dropdown/stat popups to render outside the card */
+        overflow: visible;
     }
 
     .card-header {
@@ -226,7 +227,7 @@
         border-radius: var(--radius-sm);
         box-shadow: var(--shadow-lg);
         padding: 1rem;
-        z-index: 100;
+        z-index: 1050; /* above cards and sticky elements */
         min-width: 220px;
         margin-top: 0.5rem;
         border: 2px solid var(--cvsu-green);

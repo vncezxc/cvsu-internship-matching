@@ -229,6 +229,12 @@
         opacity: 0.3;
         margin-bottom: 1.5rem;
     }
+    .empty-chat .btn {
+        padding: 0.4rem 0.8rem;
+        border-radius: 0.5rem;
+        width: auto;
+        height: auto;
+    }
 
     /* Modal Styling */
     .modal-header {
@@ -243,6 +249,9 @@
     .modal-header .modal-title {
         color: white;
     }
+
+    /* Hide global toasts on chat pages */
+    .toast-container { display: none !important; }
 
     @media (max-width: 991px) {
         .chat-sidebar, .chat-main {
@@ -439,7 +448,7 @@
                         <i class="bi bi-chat-square-dots"></i>
                         <h4>Select a conversation</h4>
                         <p class="text-muted">Choose an existing chat or start a new one</p>
-                        <button class="btn btn-success mt-2" data-bs-toggle="modal" data-bs-target="#newChatModal">
+                        <button class="btn btn-success btn-sm mt-2" data-bs-toggle="modal" data-bs-target="#newChatModal">
                             <i class="bi bi-plus-lg me-1"></i> New Chat
                         </button>
                     </div>
@@ -495,7 +504,7 @@
                         <textarea class="form-control" id="initial-message" name="initial_message" rows="3" placeholder="Say hello..."></textarea>
                     </div>
                     <div class="d-grid">
-                        <button type="submit" class="btn btn-success btn-lg">
+                        <button type="submit" class="btn btn-success">
                             <i class="bi bi-send me-2"></i>Start Conversation
                         </button>
                     </div>
