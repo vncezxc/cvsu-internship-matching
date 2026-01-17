@@ -339,8 +339,12 @@
                 <h5 class="card-title mb-0">Student Information</h5>
             </div>
             <div class="card-body text-center">
-                {% if student.profile_picture %}
-                    <img src="{{ student.profile_picture.url }}" alt="Profile Picture" class="rounded-circle student-profile-img mb-3">
+                {% if student.profile_image %}
+                    <img src="{{ student.profile_image.url }}" alt="Profile Picture" class="rounded-circle student-profile-img mb-3">
+                {% else %}
+                    <div class="rounded-circle student-profile-img mb-3 d-flex align-items-center justify-content-center mx-auto" style="background: linear-gradient(135deg, var(--cvsu-green), var(--cvsu-green-light)); color: var(--cvsu-white); font-size: 3rem; font-weight: bold;">
+                        {{ student.user.first_name|slice:":1"|upper }}{{ student.user.last_name|slice:":1"|upper }}
+                    </div>
                 {% endif %}
                 <h5 class="student-name">{{ student.user.get_full_name }}</h5>
                 <p class="course-info">{{ student.course.name }} - {{ student.section }}</p>

@@ -303,6 +303,51 @@
         justify-content: space-between;
         align-items: center;
     }
+
+    .student-avatar {
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px solid var(--cvsu-gold);
+        box-shadow: var(--shadow-sm);
+    }
+
+    .student-avatar-placeholder {
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--cvsu-green), var(--cvsu-green-light));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--cvsu-white);
+        font-weight: var(--font-weight-bold);
+        font-size: 1rem;
+        border: 2px solid var(--cvsu-gold);
+        box-shadow: var(--shadow-sm);
+    }
+
+    .student-name-cell {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .student-name-info {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .student-name-text {
+        font-weight: var(--font-weight-medium);
+        color: var(--cvsu-dark-green);
+    }
+
+    .student-id-text {
+        font-size: 0.75rem;
+        color: var(--cvsu-light-gray);
+    }
 </style>
 {% endblock %}
 
@@ -388,7 +433,23 @@
                             <tbody>
                                 {% for student in students %}
                                 <tr>
-                                    <td>{{ student.user.get_full_name }}</td>
+                                    <td>
+                                        <div class="student-name-cell">
+                                            {% if student.profile_image %}
+                                                <img src="{{ student.profile_image.url }}" alt="{{ student.user.get_full_name }}" class="student-avatar">
+                                            {% else %}
+                                                <div class="student-avatar-placeholder">
+                                                    {{ student.user.first_name|slice:":1"|upper }}{{ student.user.last_name|slice:":1"|upper }}
+                                                </div>
+                                            {% endif %}
+                                            <div class="student-name-info">
+                                                <span class="student-name-text">{{ student.user.get_full_name }}</span>
+                                                {% if student.student_id %}
+                                                    <span class="student-id-text">{{ student.student_id }}</span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </td>
                                     <td>{{ student.user.email }}</td>
                                     <td>{{ student.course.name }}</td>
                                     <td>{{ student.section }}</td>

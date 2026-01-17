@@ -1,4 +1,4 @@
-{% extends 'dashboard/base_dashboard.html' %}
+{% extends 'base.html' %}
 {% load static %}
 
 {% block title %}My Chats{% endblock %}
@@ -247,14 +247,72 @@
     @media (max-width: 991px) {
         .chat-sidebar, .chat-main {
             height: auto;
-            min-height: 400px;
+            min-height: 350px;
+        }
+        
+        .chat-sidebar {
+            margin-bottom: 1rem;
+        }
+        
+        .chat-list {
+            max-height: 300px;
+        }
+    }
+    
+    @media (max-width: 576px) {
+        .chat-sidebar, .chat-main {
+            min-height: 300px;
+        }
+        
+        .chat-avatar {
+            width: 40px;
+            height: 40px;
+        }
+        
+        .chat-item {
+            padding: 0.75rem;
+        }
+        
+        .chat-name {
+            font-size: 0.9rem;
+        }
+        
+        .chat-preview {
+            font-size: 0.8rem;
+        }
+        
+        .message {
+            max-width: 85%;
+        }
+        
+        .message-content {
+            padding: 0.5rem 0.75rem;
+            font-size: 0.9rem;
+        }
+        
+        .chat-input-area {
+            padding: 0.75rem;
+        }
+        
+        .chat-input-area .form-control {
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+        }
+        
+        .chat-input-area .btn-send {
+            width: 40px;
+            height: 40px;
+        }
+        
+        h3 {
+            font-size: 1.25rem;
         }
     }
 </style>
 {% endblock %}
 
-{% block dashboard_content %}
-<div class="container-fluid">
+{% block content %}
+<div class="container-fluid py-4">
     <div class="row mb-4">
         <div class="col">
             <h3 class="mb-1"><i class="bi bi-chat-dots-fill me-2 text-success"></i>My Chats</h3>
@@ -447,10 +505,9 @@
     </div>
 </div>
 
-{% endblock dashboard_content %}
+{% endblock content %}
 
 {% block extra_js %}
-{{ block.super }}
 {% if active_room %}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
