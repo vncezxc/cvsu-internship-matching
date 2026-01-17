@@ -1,68 +1,265 @@
-{% extends 'base.html' %}
-{% block title %}Pending Adviser Approvals{% endblock %}
+{% extends 'dashboard/base_dashboard.html' %}
+{% block dashboard_title %}Pending Adviser Approvals{% endblock %}
 
-{% block content %}
-<div class="container mt-4">
-    <div class="row">
-        <div class="col-md-12">
-            <div class="card shadow-sm">
-                <div class="card-header bg-primary text-white">
-                    <h4 class="mb-0">Pending Adviser Registrations</h4>
-                </div>
-                <div class="card-body">
-                    {% if pending_advisers %}
-                        <div class="table-responsive">
-                            <table class="table table-hover align-middle">
-                                <thead class="table-light">
-                                    <tr>
-                                        <th>Name</th>
-                                        <th>Email</th>
-                                        <th>Registration Date</th>
-                                        <th>Email Verified</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for adviser in pending_advisers %}
-                                    <tr>
-                                        <td>{{ adviser.get_full_name }}</td>
-                                        <td>{{ adviser.email }}</td>
-                                        <td>{{ adviser.date_joined|date:"M d, Y g:i A" }}</td>
-                                        <td>
-                                            {% if adviser.emailaddress_set.first.verified %}
-                                                <span class="badge bg-success">Verified</span>
-                                            {% else %}
-                                                <span class="badge bg-warning text-dark">Not Verified</span>
-                                            {% endif %}
-                                        </td>
-                                        <td>
-                                            <div class="btn-group" role="group">
-                                                <a href="{% url 'accounts:approve_adviser' adviser.id %}" 
-                                                   class="btn btn-sm btn-success"
-                                                   onclick="return confirm('Are you sure you want to approve {{ adviser.get_full_name }}?')">
-                                                    <i class="fas fa-check"></i> Approve
-                                                </a>
-                                                <a href="{% url 'accounts:reject_adviser' adviser.id %}" 
-                                                   class="btn btn-sm btn-danger"
-                                                   onclick="return confirm('Are you sure you want to reject {{ adviser.get_full_name }}? This will delete their account.')">
-                                                    <i class="fas fa-times"></i> Reject
-                                                </a>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                    {% else %}
-                        <div class="alert alert-info">
-                            <i class="fas fa-info-circle me-2"></i>
-                            No pending adviser registrations at this time.
-                        </div>
-                    {% endif %}
-                    <a href="{% url 'dashboard:coordinator_dashboard' %}" class="btn btn-secondary mt-3">
-                        <i class="fas fa-arrow-left me-1"></i> Back to Dashboard
-                    </a>
+{% block extra_css %}
+<style>
+    :root {
+        --cvsu-dark-green: #030403;
+        --cvsu-light-gray: #787A66;
+        --cvsu-green: #064E07;
+        --cvsu-gold: #EFB60A;
+        --cvsu-red: #CF120F;
+        --cvsu-white: #FFFFFF;
+        --cvsu-green-light: #0a6d0b;
+        --cvsu-gold-light: #f9b233;
+        --gray-50: #f8f9fa;
+        --gray-100: #e9ecef;
+        --gray-200: #dee2e6;
+        --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
+        --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+        --shadow-lg: 0 10px 30px rgba(0,0,0,0.15);
+        --radius-md: 1rem;
+        --radius-sm: 0.5rem;
+        --font-family: 'Nunito', Arial, sans-serif;
+        --font-weight-medium: 600;
+        --font-weight-bold: 700;
+    }
+
+    .approvals-container {
+        padding: 2rem 0;
+    }
+
+    .card {
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-lg);
+        border: none;
+        overflow: hidden;
+        animation: fadeIn 0.7s ease-out;
+    }
+
+    .card-header {
+        background: linear-gradient(135deg, var(--cvsu-green), var(--cvsu-green-light)) !important;
+        color: var(--cvsu-white) !important;
+        padding: 1.25rem 1.5rem;
+        border: none;
+    }
+
+    .card-header h4, .card-header h5 {
+        font-family: var(--font-family);
+        font-weight: var(--font-weight-bold);
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .card-body {
+        padding: 1.5rem;
+    }
+
+    .table {
+        border-radius: var(--radius-sm);
+        overflow: hidden;
+        margin-bottom: 0;
+    }
+
+    .table thead th {
+        background: linear-gradient(135deg, var(--cvsu-green), var(--cvsu-green-light));
+        color: var(--cvsu-white);
+        font-weight: var(--font-weight-medium);
+        font-family: var(--font-family);
+        border: none;
+        padding: 1rem 0.75rem;
+    }
+
+    .table tbody tr {
+        transition: all 0.3s ease;
+    }
+
+    .table tbody tr:hover {
+        background-color: rgba(6, 78, 7, 0.05);
+    }
+
+    .table td {
+        vertical-align: middle;
+        padding: 1rem 0.75rem;
+        border-bottom: 1px solid var(--gray-200);
+    }
+
+    .badge {
+        border-radius: var(--radius-sm);
+        font-weight: var(--font-weight-medium);
+        padding: 0.5em 0.75em;
+    }
+
+    .badge.bg-success {
+        background: linear-gradient(135deg, var(--cvsu-green), var(--cvsu-green-light)) !important;
+    }
+
+    .badge.bg-warning {
+        background: linear-gradient(135deg, var(--cvsu-gold), var(--cvsu-gold-light)) !important;
+        color: var(--cvsu-dark-green) !important;
+    }
+
+    .btn {
+        border-radius: var(--radius-sm);
+        font-family: var(--font-family);
+        font-weight: var(--font-weight-medium);
+        padding: 0.5rem 1rem;
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+    }
+
+    .btn-success {
+        background: linear-gradient(135deg, var(--cvsu-green), var(--cvsu-green-light));
+        border-color: var(--cvsu-green);
+        color: var(--cvsu-white) !important;
+    }
+
+    .btn-success:hover {
+        background: linear-gradient(135deg, var(--cvsu-gold), var(--cvsu-gold-light));
+        border-color: var(--cvsu-gold);
+        color: var(--cvsu-dark-green) !important;
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-sm);
+    }
+
+    .btn-danger {
+        background: linear-gradient(135deg, var(--cvsu-red), #e53935);
+        border-color: var(--cvsu-red);
+        color: var(--cvsu-white) !important;
+    }
+
+    .btn-danger:hover {
+        background: linear-gradient(135deg, #b71c1c, var(--cvsu-red));
+        border-color: #b71c1c;
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-sm);
+    }
+
+    .btn-secondary {
+        background: var(--gray-50);
+        border-color: var(--gray-200);
+        color: var(--cvsu-dark-green) !important;
+    }
+
+    .btn-secondary:hover {
+        background: var(--cvsu-light-gray);
+        border-color: var(--cvsu-light-gray);
+        color: var(--cvsu-white) !important;
+        transform: translateY(-2px);
+    }
+
+    .alert-info {
+        background: linear-gradient(135deg, rgba(6, 78, 7, 0.1), rgba(10, 109, 11, 0.1));
+        border: 2px solid var(--cvsu-green);
+        border-radius: var(--radius-sm);
+        color: var(--cvsu-dark-green);
+        font-family: var(--font-family);
+    }
+
+    .btn-group {
+        gap: 0.5rem;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .hover-lift {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .hover-lift:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    @media (max-width: 768px) {
+        .btn-group {
+            flex-direction: column;
+            width: 100%;
+        }
+        
+        .btn-group .btn {
+            width: 100%;
+            margin-bottom: 0.5rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="approvals-container">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12">
+                <div class="card hover-lift">
+                    <div class="card-header">
+                        <h4><i class="bi bi-person-check-fill"></i> Pending Adviser Registrations</h4>
+                    </div>
+                    <div class="card-body">
+                        {% if pending_advisers %}
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle">
+                                    <thead>
+                                        <tr>
+                                            <th><i class="bi bi-person me-1"></i> Name</th>
+                                            <th><i class="bi bi-envelope me-1"></i> Email</th>
+                                            <th><i class="bi bi-calendar me-1"></i> Registration Date</th>
+                                            <th><i class="bi bi-check-circle me-1"></i> Email Verified</th>
+                                            <th><i class="bi bi-gear me-1"></i> Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for adviser in pending_advisers %}
+                                        <tr>
+                                            <td><strong>{{ adviser.get_full_name }}</strong></td>
+                                            <td>{{ adviser.email }}</td>
+                                            <td>{{ adviser.date_joined|date:"M d, Y g:i A" }}</td>
+                                            <td>
+                                                {% if adviser.emailaddress_set.first.verified %}
+                                                    <span class="badge bg-success"><i class="bi bi-check-lg me-1"></i>Verified</span>
+                                                {% else %}
+                                                    <span class="badge bg-warning"><i class="bi bi-exclamation-triangle me-1"></i>Not Verified</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <div class="btn-group" role="group">
+                                                    <a href="{% url 'accounts:approve_adviser' adviser.id %}" 
+                                                       class="btn btn-sm btn-success"
+                                                       onclick="return confirm('Are you sure you want to approve {{ adviser.get_full_name }}?')">
+                                                        <i class="bi bi-check-lg me-1"></i> Approve
+                                                    </a>
+                                                    <a href="{% url 'accounts:reject_adviser' adviser.id %}" 
+                                                       class="btn btn-sm btn-danger"
+                                                       onclick="return confirm('Are you sure you want to reject {{ adviser.get_full_name }}? This will delete their account.')">
+                                                        <i class="bi bi-x-lg me-1"></i> Reject
+                                                    </a>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <div class="alert alert-info">
+                                <i class="bi bi-info-circle me-2"></i>
+                                No pending adviser registrations at this time.
+                            </div>
+                        {% endif %}
+                        <a href="{% url 'dashboard:coordinator_dashboard' %}" class="btn btn-secondary mt-3">
+                            <i class="bi bi-arrow-left me-1"></i> Back to Dashboard
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>

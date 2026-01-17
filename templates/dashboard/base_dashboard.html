@@ -192,6 +192,123 @@
     .fade-in {
         animation: fadeIn 0.7s ease-out;
     }
+
+    /* Card Styling */
+    .card {
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-md);
+        border: none;
+        font-family: var(--font-family);
+        overflow: hidden;
+    }
+
+    .card-header {
+        background: linear-gradient(135deg, var(--cvsu-green), var(--cvsu-green-light)) !important;
+        color: var(--cvsu-white) !important;
+        border-radius: var(--radius-md) var(--radius-md) 0 0 !important;
+        padding: 1.25rem 1.5rem;
+        border: none;
+    }
+
+    .card-header .card-title,
+    .card-header h4,
+    .card-header h5,
+    .card-header h6 {
+        font-weight: var(--font-weight-bold);
+        margin: 0;
+        color: var(--cvsu-white) !important;
+    }
+
+    .card-body {
+        padding: 1.5rem;
+    }
+
+    /* Button Styling */
+    .btn {
+        border-radius: var(--radius-sm);
+        font-family: var(--font-family);
+        font-weight: var(--font-weight-medium);
+        padding: 0.5rem 1rem;
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, var(--cvsu-green), var(--cvsu-green-light));
+        border-color: var(--cvsu-green);
+        color: var(--cvsu-white) !important;
+    }
+
+    .btn-primary:hover {
+        background: linear-gradient(135deg, var(--cvsu-gold), var(--cvsu-gold-light));
+        border-color: var(--cvsu-gold);
+        color: var(--cvsu-dark-green) !important;
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+    }
+
+    .btn-outline-primary {
+        color: var(--cvsu-green) !important;
+        border-color: var(--cvsu-green) !important;
+        background: transparent;
+    }
+
+    .btn-outline-primary:hover {
+        background: linear-gradient(135deg, var(--cvsu-green), var(--cvsu-green-light));
+        border-color: var(--cvsu-green);
+        color: var(--cvsu-white) !important;
+    }
+
+    .btn-success {
+        background: linear-gradient(135deg, var(--cvsu-green), var(--cvsu-green-light));
+        border-color: var(--cvsu-green);
+        color: var(--cvsu-white) !important;
+    }
+
+    .btn-success:hover {
+        background: linear-gradient(135deg, var(--cvsu-gold), var(--cvsu-gold-light));
+        border-color: var(--cvsu-gold);
+        color: var(--cvsu-dark-green) !important;
+    }
+
+    /* Table Styling */
+    .table {
+        border-radius: var(--radius-sm);
+        overflow: hidden;
+    }
+
+    .table thead th {
+        background: linear-gradient(135deg, var(--cvsu-green), var(--cvsu-green-light));
+        color: var(--cvsu-white);
+        font-weight: var(--font-weight-medium);
+        border: none;
+        padding: 1rem 0.75rem;
+    }
+
+    .table tbody tr:hover {
+        background-color: rgba(6, 78, 7, 0.05);
+    }
+
+    /* Badge Styling */
+    .badge {
+        border-radius: var(--radius-sm);
+        font-weight: var(--font-weight-medium);
+        padding: 0.5em 0.75em;
+    }
+
+    .badge.bg-primary,
+    .badge.bg-success {
+        background: linear-gradient(135deg, var(--cvsu-green), var(--cvsu-green-light)) !important;
+    }
+
+    .badge.bg-warning {
+        background: linear-gradient(135deg, var(--cvsu-gold), var(--cvsu-gold-light)) !important;
+        color: var(--cvsu-dark-green) !important;
+    }
+
+    .badge.bg-danger {
+        background: linear-gradient(135deg, var(--cvsu-red), #e53935) !important;
+    }
 </style>
 {% endblock %}
 
@@ -199,7 +316,7 @@
 <div class="container-fluid">
     <div class="row">
         <!-- Sidebar -->
-        <div class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">
+        <div class="col-md-3 col-lg-2 d-md-block sidebar collapse">
             <div class="position-sticky pt-3">
                 <div class="user-info-card fade-in">
                     <h5>{{ user.get_full_name }}</h5>

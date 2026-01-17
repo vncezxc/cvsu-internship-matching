@@ -192,48 +192,28 @@
 
 {% block dashboard_content %}
 <div class="row mb-4">
-    <div class="col-md-6">
-        <div class="card h-100 hover-lift">
+    <div class="col-12">
+        <div class="card hover-lift">
             <div class="card-header">
-                <h5 class="card-title mb-0">Coordinator Information</h5>
+                <h5 class="card-title mb-0"><i class="bi bi-graph-up me-2"></i>System Summary</h5>
             </div>
             <div class="card-body">
-                {% if profile.profile_image %}
-                    <img src="{{ profile.profile_image.url }}" alt="Profile Image" class="rounded-circle mb-3" style="width: 100px; height: 100px; object-fit: cover; border: 3px solid var(--cvsu-gold);">
-                {% endif %}
-                <h6 class="text-dark">{{ profile.user.get_full_name }}</h6>
-                <p><strong>First Name:</strong> {{ profile.user.first_name }}</p>
-                <p><strong>Last Name:</strong> {{ profile.user.last_name }}</p>
-                <p><strong>Department:</strong> {{ profile.department }}</p>
-                <p><strong>Office:</strong> {{ profile.office|default:'-' }}</p>
-                <p><strong>Phone Number:</strong> {{ profile.phone_number|default:'-' }}</p>
-                <p><strong>Email:</strong> {{ profile.user.email }}</p>
-            </div>
-        </div>
-    </div>
-    
-    <div class="col-md-6">
-        <div class="card h-100 hover-lift">
-            <div class="card-header">
-                <h5 class="card-title mb-0">System Summary</h5>
-            </div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-6 text-center border-end border-bottom p-3">
+                <div class="row text-center">
+                    <div class="col-md-3 col-6 border-end p-3">
                         <h3 class="stat-number">{{ stats.total_students }}</h3>
-                        <p>Total Students</p>
+                        <p class="mb-0">Total Students</p>
                     </div>
-                    <div class="col-6 text-center border-bottom p-3">
+                    <div class="col-md-3 col-6 border-end p-3">
                         <h3 class="stat-number">{{ stats.total_companies }}</h3>
-                        <p>Total Companies</p>
+                        <p class="mb-0">Total Companies</p>
                     </div>
-                    <div class="col-6 text-center border-end p-3">
+                    <div class="col-md-3 col-6 border-end p-3">
                         <h3 class="stat-number">{{ stats.total_internships }}</h3>
-                        <p>Total Internships</p>
+                        <p class="mb-0">Total Internships</p>
                     </div>
-                    <div class="col-6 text-center p-3">
+                    <div class="col-md-3 col-6 p-3">
                         <h3 class="stat-number">{{ stats.total_applications }}</h3>
-                        <p>Total Applications</p>
+                        <p class="mb-0">Total Applications</p>
                     </div>
                 </div>
             </div>

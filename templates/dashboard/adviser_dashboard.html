@@ -219,33 +219,31 @@
     <div class="col-md-6">
         <div class="card h-100 hover-lift">
             <div class="card-header">
-                <h5 class="card-title mb-0">Adviser Information</h5>
+                <h5 class="card-title mb-0"><i class="bi bi-mortarboard me-2"></i>Courses & Sections</h5>
             </div>
             <div class="card-body">
-                {% if profile.profile_image %}
-                    <img src="{{ profile.profile_image.url }}" alt="Profile Image" class="rounded-circle mb-3" style="width: 100px; height: 100px; object-fit: cover; border: 3px solid var(--cvsu-gold);">
-                {% endif %}
-                <h6 class="text-dark">{{ profile.user.get_full_name }}</h6>
-                <p><strong>First Name:</strong> {{ profile.user.first_name }}</p>
-                <p><strong>Last Name:</strong> {{ profile.user.last_name }}</p>
-                <p><strong>Email:</strong> {{ profile.user.email }}</p>
-                <p><strong>Phone:</strong> {{ profile.phone_number }}</p>
-                <p><strong>Department:</strong> {{ profile.department }}</p>
-                <p><strong>Office:</strong> {{ profile.office }}</p>
-                <p><strong>Year Levels Handled:</strong> {{ profile.get_year_levels_display }}</p>
-                <div class="mt-3">
-                    <h6>Courses Managed:</h6>
-                    <ul class="list-group list-group-flush">
+                <div class="mb-4">
+                    <h6 class="text-muted mb-3"><i class="bi bi-book me-2"></i>Courses Managed:</h6>
+                    <div class="d-flex flex-wrap gap-2">
                         {% for course in profile.courses.all %}
-                            <li class="list-group-item">{{ course.name }}</li>
+                            <span class="badge bg-success px-3 py-2">{{ course.name }} ({{ course.code }})</span>
                         {% empty %}
-                            <li class="list-group-item">No courses assigned yet</li>
+                            <span class="text-muted">No courses assigned yet</span>
                         {% endfor %}
-                    </ul>
+                    </div>
                 </div>
-                <div class="mt-3">
-                    <h6>Sections:</h6>
-                    <p>{{ profile.sections|default:"No sections assigned yet" }}</p>
+                <div class="mb-3">
+                    <h6 class="text-muted mb-2"><i class="bi bi-people me-2"></i>Sections:</h6>
+                    <p class="mb-0">{{ profile.sections|default:"No sections assigned yet" }}</p>
+                </div>
+                <div class="mb-3">
+                    <h6 class="text-muted mb-2"><i class="bi bi-calendar-check me-2"></i>Year Levels Handled:</h6>
+                    <p class="mb-0">{{ profile.get_year_levels_display|default:"Not specified" }}</p>
+                </div>
+                <div class="mt-4">
+                    <a href="{% url 'accounts:manage_courses' %}" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-gear me-1"></i>Manage Courses
+                    </a>
                 </div>
             </div>
         </div>

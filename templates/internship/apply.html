@@ -166,6 +166,7 @@
         overflow: hidden;
         border: 2px solid var(--gray-200);
         margin-bottom: 1rem;
+        min-height: 320px;
     }
 
     .alert-info {
@@ -362,7 +363,7 @@
                         <div class="info-section">
                             <strong><i class="fas fa-map me-2"></i>Location</strong>
                             <div class="map-container mt-2">
-                                <div id="map-apply" style="height: 220px;"></div>
+                                <div id="map-apply" style="height: 300px; width: 100%;"></div>
                             </div>
                             <span class="badge bg-info text-dark">
                                 <i class="fas fa-route me-1"></i>Distance: {{ distance_km|default:'-' }} km

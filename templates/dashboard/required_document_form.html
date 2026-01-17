@@ -222,9 +222,6 @@
                         {% endif %}
 
                         <div class="mb-3">
-                            <label for="id_template_file" class="form-label fw-semibold">
-                                <i class="bi bi-file-earmark-arrow-up text-success me-1"></i> Template File (PDF/DOCX)
-                            </label>
                             {{ form.template_file|as_crispy_field }}
                             {% if form.template_file.help_text %}
                                 <div class="form-text">{{ form.template_file.help_text }}</div>
@@ -232,26 +229,15 @@
                         </div>
 
                         <div class="mb-3">
-                            <label for="id_name" class="form-label fw-semibold">
-                                <i class="bi bi-tag-fill text-primary me-1"></i> Name
-                            </label>
                             {{ form.name|as_crispy_field }}
                         </div>
 
                         <div class="mb-3">
-                            <label for="id_description" class="form-label fw-semibold">
-                                <i class="bi bi-card-text text-secondary me-1"></i> Description
-                            </label>
                             {{ form.description|as_crispy_field }}
                         </div>
 
                         <div class="mb-3">
-                            <div class="form-check">
-                                {{ form.is_required|as_crispy_field }}
-                                <label class="form-check-label ms-2" for="id_is_required">
-                                    <i class="bi bi-exclamation-circle-fill text-danger me-1"></i> Required?
-                                </label>
-                            </div>
+                            {{ form.is_required|as_crispy_field }}
                         </div>
 
                         <div class="d-flex justify-content-end gap-2 mt-4">
