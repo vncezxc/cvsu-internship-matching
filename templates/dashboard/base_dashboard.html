@@ -415,13 +415,7 @@
 <div class="container-fluid">
     <div class="row">
         <!-- Mobile Sidebar Backdrop -->
-        <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="toggleSidebar()"></div>
-        
-        <!-- Sidebar -->
-        <div class="sidebar" id="sidebarMenu">
-            <button class="sidebar-close-btn" onclick="toggleSidebar()" aria-label="Close menu">
-                <i class="bi bi-x-lg"></i>
-            </button>
+
             <div class="position-sticky pt-3">
                 <div class="user-info-card fade-in">
                     <h5>{{ user.get_full_name }}</h5>
@@ -542,7 +536,7 @@
                     </a>
                 </div>
             </div>
-        </div>
+        
 
         <!-- Main content -->
         <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
