@@ -262,7 +262,11 @@ def student_dashboard(request):
         return redirect('dashboard:home')
     
     try:
-        profile = request.user.student_profile
+        # Use select_related to optimize current_internship query
+        profile = StudentProfile.objects.select_related(
+            'user', 'course', 
+            'current_internship__internship__company'
+        ).get(user=request.user)
         
         # Get application statistics
         applications = Application.objects.filter(student=profile)
@@ -744,10 +748,21 @@ def reports_dashboard(request):
     else:
         recent_reports = reports_qs[:10]
 
+    # Get students for preview table
+    if request.user.is_adviser:
+        adviser_profile = request.user.adviser_profile
+        students = StudentProfile.objects.filter(
+            course__in=adviser_profile.courses.all(),
+            section__in=adviser_profile.get_sections_list()
+        ).select_related('user', 'course', 'current_internship__internship__company').order_by('course__name', 'section', 'user__last_name')[:20]
+    else:
+        students = StudentProfile.objects.all().select_related('user', 'course', 'current_internship__internship__company').order_by('course__name', 'section', 'user__last_name')[:20]
+
     context = {
         'recent_reports': recent_reports,
         'is_coordinator': request.user.is_coordinator,
         'filter_form': form,
+        'students': students,
     }
     return render(request, 'dashboard/reports_dashboard.html', context)
 

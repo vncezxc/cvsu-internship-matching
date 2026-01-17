@@ -365,6 +365,41 @@
                     </div>
                 </div>
                 
+                <!-- Current Internship Company Section -->
+                {% if profile.current_internship %}
+                <div class="mt-4 p-3 rounded shadow-sm" style="background: linear-gradient(135deg, #e8f5e9, #f1f8e9); border-left: 4px solid var(--cvsu-green);">
+                    <h6 class="mb-2 text-success"><i class="bi bi-building me-2"></i>Current Internship Placement</h6>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p class="mb-1"><strong>Company:</strong> <span class="text-success fw-bold">{{ profile.current_internship.internship.company.name }}</span></p>
+                            <p class="mb-1"><strong>Position:</strong> {{ profile.current_internship.internship.title }}</p>
+                            <p class="mb-1"><strong>Location:</strong> {{ profile.current_internship.internship.company.address|default:"-" }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p class="mb-1"><strong>Company Email:</strong> <a href="mailto:{{ profile.current_internship.internship.company.email }}">{{ profile.current_internship.internship.company.email|default:"-" }}</a></p>
+                            <p class="mb-1"><strong>HR Email:</strong> <a href="mailto:{{ profile.current_internship.internship.company.hr_email }}">{{ profile.current_internship.internship.company.hr_email|default:"-" }}</a></p>
+                            <p class="mb-0"><strong>Accepted On:</strong> <span class="badge bg-success">{{ profile.current_internship.updated_at|date:"M d, Y" }}</span></p>
+                        </div>
+                    </div>
+                    <div class="mt-2">
+                        <a href="{% url 'internship:company_detail' profile.current_internship.internship.company.id %}" class="btn btn-sm btn-outline-success">
+                            <i class="bi bi-building me-1"></i>View Company Details
+                        </a>
+                        <a href="{% url 'internship:internship_detail' profile.current_internship.internship.id %}" class="btn btn-sm btn-outline-primary ms-2">
+                            <i class="bi bi-briefcase me-1"></i>View Internship Details
+                        </a>
+                    </div>
+                </div>
+                {% else %}
+                <div class="mt-4 p-3 rounded shadow-sm bg-light" style="border-left: 4px solid #6c757d;">
+                    <h6 class="mb-2 text-muted"><i class="bi bi-building me-2"></i>Current Internship Placement</h6>
+                    <p class="mb-2 text-muted">You haven't been accepted to any internship yet.</p>
+                    <a href="{% url 'internship:internship_list' %}" class="btn btn-sm btn-success">
+                        <i class="bi bi-search me-1"></i>Browse Internships
+                    </a>
+                </div>
+                {% endif %}
+                
                 <div class="mt-4 d-grid gap-2 d-md-block">
                     <a href="{% url 'dashboard:submit_dtr' %}" class="btn btn-outline-success mb-2 mb-md-0">Submit Weekly DTR</a>
                     <a href="{% url 'accounts:edit_profile' %}" class="btn btn-outline-primary mb-2 mb-md-0 ms-md-2">Update Profile</a>

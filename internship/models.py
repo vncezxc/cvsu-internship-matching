@@ -136,7 +136,37 @@ class Application(models.Model):
         # Calculate match score if not provided
         if not self.match_score:
             self.match_score = self.internship.get_match_score(self.student)
+        
+        # Check if status changed to ACCEPTED
+        is_new = self.pk is None
+        old_status = None
+        if not is_new:
+            try:
+                old_status = Application.objects.get(pk=self.pk).status
+            except Application.DoesNotExist:
+                pass
+        
         super().save(*args, **kwargs)
+        
+        # After save, update student profile if status changed to ACCEPTED
+        if self.status == self.Status.ACCEPTED and (is_new or old_status != self.Status.ACCEPTED):
+            # Update student's current internship and OJT status
+            self.student.current_internship = self
+            self.student.ojt_status = StudentProfile.OJTStatus.ONGOING
+            self.student.save(update_fields=['current_internship', 'ojt_status'])
+        
+        # If status changed from ACCEPTED to something else, clear current_internship
+        elif old_status == self.Status.ACCEPTED and self.status != self.Status.ACCEPTED:
+            if self.student.current_internship == self:
+                self.student.current_internship = None
+                # Only change status if they don't have another accepted application
+                other_accepted = Application.objects.filter(
+                    student=self.student, 
+                    status=self.Status.ACCEPTED
+                ).exclude(pk=self.pk).exists()
+                if not other_accepted:
+                    self.student.ojt_status = StudentProfile.OJTStatus.LOOKING
+                self.student.save(update_fields=['current_internship', 'ojt_status'])
 
 class CompanyReview(models.Model):
     """Model for student reviews of companies."""

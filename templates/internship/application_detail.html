@@ -321,9 +321,15 @@
                                         <span style="color: var(--cvsu-light-gray);">Applied On:</span>
                                         <span class="fw-medium">{{ application.applied_at|date:"M d, Y" }}</span>
                                     </div>
-                                    <div class="d-flex justify-content-between mb-2">
-                                        <span style="color: var(--cvsu-light-gray);">Match Score:</span>
-                                        <span class="fw-bold" style="color: var(--cvsu-green);">{{ application.match_score|floatformat:1 }}/5.0</span>
+                                    <div class="mb-3">
+                                        <div class="d-flex justify-content-between mb-1">
+                                            <span style="color: var(--cvsu-light-gray);">Match Score:</span>
+                                            <span class="fw-bold" style="color: var(--cvsu-green);">{{ application.match_score }}%</span>
+                                        </div>
+                                        <div class="progress" style="height: 8px;">
+                                            <div class="progress-bar" role="progressbar" style="width: {{ application.match_score }}%; background: linear-gradient(135deg, var(--cvsu-green), #0a6d0b);" aria-valuenow="{{ application.match_score }}" aria-valuemin="0" aria-valuemax="100"></div>
+                                        </div>
+                                        <small class="text-muted">Based on skills (60%) and course (40%) matching</small>
                                     </div>
                                     <div class="d-flex justify-content-between">
                                         <span style="color: var(--cvsu-light-gray);">Last Updated:</span>

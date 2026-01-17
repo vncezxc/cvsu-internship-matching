@@ -190,7 +190,10 @@
                                 </td>
                                 <td>
                                     <div class="btn-group">
-                                        <a href="{% url 'internship:company_detail' app.internship.company.id %}" class="btn btn-sm btn-outline-secondary">
+                                        <a href="{% url 'internship:application_detail' app.id %}" class="btn btn-sm btn-outline-primary" data-bs-toggle="tooltip" title="View Details">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a href="{% url 'internship:company_detail' app.internship.company.id %}" class="btn btn-sm btn-outline-secondary" data-bs-toggle="tooltip" title="View Company">
                                             <i class="fas fa-building"></i>
                                         </a>
                                         {% if app.status == 'ACCEPTED' %}

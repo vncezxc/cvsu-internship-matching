@@ -265,6 +265,17 @@ class StudentProfile(models.Model):
     # OJT related fields
     ojt_status = models.CharField(max_length=20, choices=OJTStatus.choices, default=OJTStatus.LOOKING)
     ojt_hours_completed = models.PositiveIntegerField(default=0)
+    
+    # Current internship placement (set when application is ACCEPTED)
+    current_internship = models.ForeignKey(
+        'internship.Application', 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        related_name='placed_student',
+        help_text="The accepted internship application where the student is currently placed"
+    )
+    
     cv = models.FileField(
         upload_to=student_cv_path, 
         null=True, 

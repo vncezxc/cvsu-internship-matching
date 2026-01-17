@@ -204,6 +204,27 @@
         background: linear-gradient(135deg, var(--secondary), #5a6268) !important;
     }
 
+    /* OJT Status Color Coding */
+    .status-looking {
+        background: linear-gradient(135deg, #6c757d, #5a6268) !important;
+        color: white !important;
+    }
+    
+    .status-waiting {
+        background: linear-gradient(135deg, #EFB60A, #f9b233) !important;
+        color: #030403 !important;
+    }
+    
+    .status-ongoing {
+        background: linear-gradient(135deg, #17a2b8, #138496) !important;
+        color: white !important;
+    }
+    
+    .status-completed {
+        background: linear-gradient(135deg, #064E07, #0a6d0b) !important;
+        color: white !important;
+    }
+
     @keyframes fadeIn {
         from {
             opacity: 0;
@@ -358,6 +379,7 @@
                                     <th>Course</th>
                                     <th>Section</th>
                                     <th>OJT Status</th>
+                                    <th>Current Placement</th>
                                     <th>Requirements</th>
                                     <th>OJT Hours</th>
                                     <th>Actions</th>
@@ -374,6 +396,19 @@
                                         <span class="badge status-{{ student.ojt_status|lower }}">
                                             {{ student.get_ojt_status_display }}
                                         </span>
+                                    </td>
+                                    <td>
+                                        {% if student.current_internship %}
+                                            <div class="d-flex flex-column">
+                                                <strong class="text-success">
+                                                    <i class="bi bi-building me-1"></i>{{ student.current_internship.internship.company.name }}
+                                                </strong>
+                                                <small class="text-muted">{{ student.current_internship.internship.title }}</small>
+                                                <small class="text-info"><i class="bi bi-calendar-check me-1"></i>Accepted: {{ student.current_internship.updated_at|date:"M d, Y" }}</small>
+                                            </div>
+                                        {% else %}
+                                            <span class="text-muted"><i class="bi bi-dash"></i> Not placed</span>
+                                        {% endif %}
                                     </td>
                                     <td>
                                         {% if student.requirements_complete %}

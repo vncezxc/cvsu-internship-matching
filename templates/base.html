@@ -445,26 +445,26 @@
 
     <!-- Main Content -->
     <main class="container-fluid px-0">
-        <!-- Messages -->
-        {% block hide_django_messages %}{% endblock %}
-        {% if not hide_django_messages %}
-        <div class="container mt-4">
-            {% if messages %}
-                {% for message in messages %}
-                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                        <div class="d-flex align-items-center">
-                            <i class="fas 
-                                {% if message.tags == 'success' %}fa-check-circle
-                                {% elif message.tags == 'warning' %}fa-exclamation-triangle
-                                {% elif message.tags == 'error' or message.tags == 'danger' %}fa-times-circle
-                                {% else %}fa-info-circle{% endif %}
-                                me-2"></i>
-                            <div>{{ message }}</div>
-                        </div>
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        <!-- Toast Container for Notifications -->
+        {% if messages %}
+        <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 99999; margin-top: 80px;">
+            {% for message in messages %}
+            <div class="toast align-items-center border-0 show" role="alert" aria-live="assertive" aria-atomic="true" data-bs-autohide="true" data-bs-delay="5000"
+                style="background: {% if message.tags == 'success' %}linear-gradient(135deg, #064E07, #0a6d0b){% elif message.tags == 'warning' %}linear-gradient(135deg, #EFB60A, #f9b233){% elif message.tags == 'error' or message.tags == 'danger' %}linear-gradient(135deg, #CF120F, #e53935){% else %}linear-gradient(135deg, #17a2b8, #20c997){% endif %}; color: {% if message.tags == 'warning' %}#333{% else %}#fff{% endif %};">
+                <div class="d-flex">
+                    <div class="toast-body d-flex align-items-center">
+                        <i class="fas 
+                            {% if message.tags == 'success' %}fa-check-circle
+                            {% elif message.tags == 'warning' %}fa-exclamation-triangle
+                            {% elif message.tags == 'error' or message.tags == 'danger' %}fa-times-circle
+                            {% else %}fa-info-circle{% endif %}
+                            me-2 fs-5"></i>
+                        <span>{{ message }}</span>
                     </div>
-                {% endfor %}
-            {% endif %}
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            </div>
+            {% endfor %}
         </div>
         {% endif %}
 
@@ -558,15 +558,13 @@
             });
         });
 
-        // Auto-dismiss Django messages only (not static alerts)
+        // Initialize Bootstrap Toasts
         document.addEventListener('DOMContentLoaded', function() {
-            setTimeout(function() {
-                var alerts = document.querySelectorAll('.alert.alert-dismissible');
-                alerts.forEach(function(alert) {
-                    var bsAlert = new bootstrap.Alert(alert);
-                    bsAlert.close();
-                });
-            }, 5000);
+            var toastElList = document.querySelectorAll('.toast');
+            toastElList.forEach(function(toastEl) {
+                var toast = new bootstrap.Toast(toastEl);
+                toast.show();
+            });
         });
 
         // Initialize on load

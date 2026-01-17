@@ -265,6 +265,108 @@
         font-weight: 700;
         color: #fff !important;
     }
+
+    /* OJT Status Color Coding */
+    .status-looking {
+        background: linear-gradient(135deg, #6c757d, #5a6268) !important;
+        color: white !important;
+    }
+    
+    .status-waiting {
+        background: linear-gradient(135deg, #EFB60A, #f9b233) !important;
+        color: #030403 !important;
+    }
+    
+    .status-ongoing {
+        background: linear-gradient(135deg, #17a2b8, #138496) !important;
+        color: white !important;
+    }
+    
+    .status-completed {
+        background: linear-gradient(135deg, #064E07, #0a6d0b) !important;
+        color: white !important;
+    }
+
+    /* Text truncation for long content in tables */
+    .table-preview {
+        table-layout: fixed;
+        width: 100%;
+    }
+    
+    .table-preview th,
+    .table-preview td {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        max-width: 150px;
+        vertical-align: middle;
+    }
+    
+    .table-preview th:nth-child(1),
+    .table-preview td:nth-child(1) { width: 90px; } /* Student ID */
+    
+    .table-preview th:nth-child(2),
+    .table-preview td:nth-child(2) { width: 130px; } /* Name */
+    
+    .table-preview th:nth-child(3),
+    .table-preview td:nth-child(3) { width: 180px; } /* Email */
+    
+    .table-preview th:nth-child(4),
+    .table-preview td:nth-child(4) { width: 80px; } /* Course */
+    
+    .table-preview th:nth-child(5),
+    .table-preview td:nth-child(5) { width: 70px; } /* Section */
+    
+    .table-preview th:nth-child(6),
+    .table-preview td:nth-child(6) { width: 80px; } /* Year Level */
+    
+    .table-preview th:nth-child(7),
+    .table-preview td:nth-child(7) { width: 100px; } /* OJT Status */
+    
+    .table-preview th:nth-child(8),
+    .table-preview td:nth-child(8) { width: 70px; } /* OJT Hours */
+    
+    .table-preview th:nth-child(9),
+    .table-preview td:nth-child(9) { width: 130px; } /* Company */
+    
+    .table-preview th:nth-child(10),
+    .table-preview td:nth-child(10) { width: 130px; } /* Internship Title */
+    
+    .table-preview th:nth-child(11),
+    .table-preview td:nth-child(11) { width: 100px; } /* Accepted Date */
+    
+    .table-preview td[title] {
+        cursor: help;
+    }
+    
+    .cell-truncate {
+        display: block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    
+    @media (max-width: 1200px) {
+        .table-preview th,
+        .table-preview td {
+            max-width: 100px;
+            font-size: 0.8rem;
+            padding: 0.5rem 0.3rem;
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .table-preview th,
+        .table-preview td {
+            max-width: 80px;
+            font-size: 0.75rem;
+        }
+        
+        .table-preview .badge {
+            font-size: 0.65rem;
+            padding: 0.25rem 0.4rem;
+        }
+    }
 </style>
 {% endblock %}
 
@@ -288,6 +390,100 @@
                         <i class="bi bi-file-earmark-spreadsheet"></i> Export as Excel
                     </button>
                 </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Student Status Preview Table -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card hover-lift">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0"><i class="bi bi-people me-2"></i>Student Status Report Preview</h5>
+                <div class="d-flex align-items-center">
+                    <span class="badge status-looking me-1">Looking</span>
+                    <span class="badge status-waiting me-1">Waiting</span>
+                    <span class="badge status-ongoing me-1">Ongoing</span>
+                    <span class="badge status-completed">Completed</span>
+                </div>
+            </div>
+            <div class="card-body">
+                {% if students %}
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover table-preview">
+                        <thead>
+                            <tr>
+                                <th>Student ID</th>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Course</th>
+                                <th>Section</th>
+                                <th>Year</th>
+                                <th>OJT Status</th>
+                                <th>Hours</th>
+                                <th>Company</th>
+                                <th>Internship Title</th>
+                                <th>Accepted</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for student in students %}
+                            <tr>
+                                <td title="{{ student.student_id|default:'-' }}">
+                                    <span class="cell-truncate">{{ student.student_id|default:"-" }}</span>
+                                </td>
+                                <td title="{{ student.get_full_name }}">
+                                    <span class="cell-truncate">{{ student.get_full_name }}</span>
+                                </td>
+                                <td title="{{ student.user.email }}">
+                                    <span class="cell-truncate">{{ student.user.email }}</span>
+                                </td>
+                                <td title="{{ student.course.name|default:'-' }}">
+                                    <span class="cell-truncate">{{ student.course.code|default:student.course.name|default:"-" }}</span>
+                                </td>
+                                <td>{{ student.section|default:"-" }}</td>
+                                <td>{{ student.get_year_level_display }}</td>
+                                <td>
+                                    <span class="badge status-{{ student.ojt_status|lower }}">
+                                        {{ student.get_ojt_status_display }}
+                                    </span>
+                                </td>
+                                <td>{{ student.ojt_hours_completed }}</td>
+                                <td title="{% if student.current_internship %}{{ student.current_internship.internship.company.name }}{% endif %}">
+                                    {% if student.current_internship %}
+                                        <span class="cell-truncate text-success fw-bold">{{ student.current_internship.internship.company.name }}</span>
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td title="{% if student.current_internship %}{{ student.current_internship.internship.title }}{% endif %}">
+                                    {% if student.current_internship %}
+                                        <span class="cell-truncate">{{ student.current_internship.internship.title }}</span>
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if student.current_internship %}
+                                        {{ student.current_internship.updated_at|date:"M d, Y" }}
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <p class="text-muted small mt-2 mb-0">
+                    <i class="bi bi-info-circle me-1"></i>Showing first 20 students. Hover over truncated text to see full content. Export to PDF or Excel for complete list.
+                </p>
+                {% else %}
+                <div class="alert alert-info mb-0">
+                    <i class="bi bi-info-circle me-2"></i>No students found.
+                </div>
+                {% endif %}
             </div>
         </div>
     </div>
