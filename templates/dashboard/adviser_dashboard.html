@@ -60,6 +60,18 @@
         font-size: 1.1rem;
     }
 
+    /* Buttons inside card-header need white text/border */
+    .card-header .btn-outline-primary {
+        color: var(--cvsu-white) !important;
+        border-color: rgba(255,255,255,0.7) !important;
+        background: transparent;
+    }
+    .card-header .btn-outline-primary:hover {
+        background: var(--cvsu-gold) !important;
+        border-color: var(--cvsu-gold) !important;
+        color: var(--cvsu-dark-green) !important;
+    }
+
     .btn {
         border-radius: var(--radius-sm);
         font-family: var(--font-family);

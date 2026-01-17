@@ -6,6 +6,9 @@
 {% block extra_css %}
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/emoji-picker-element/1.10.2/emoji-picker-element.min.css" />
 <style>
+    /* Hide global toasts/notifications on chat pages */
+    .toast-container { display: none !important; }
+
     .chat-container {
         height: calc(100vh - 220px);
         min-height: 500px;
@@ -325,8 +328,6 @@
         <div class="col-lg-10 col-xl-8 mx-auto">
             <div class="card shadow-sm" style="border-radius: var(--radius-md); overflow: hidden;">
                 <div class="chat-header">
-                    /* Hide global toasts on chat pages */
-                    .toast-container { display: none !important; }
                     <div class="d-flex justify-content-between align-items-center">
                         <div class="d-flex align-items-center">
                             <div class="position-relative me-3">

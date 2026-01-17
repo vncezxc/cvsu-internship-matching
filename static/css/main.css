@@ -437,7 +437,6 @@ body {
 /* ===== SIDEBAR (Dashboard) ===== */
 .sidebar {
     background-color: #f8f9fa;
-    min-height: calc(100vh - 80px);
     box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05);
 }
 
