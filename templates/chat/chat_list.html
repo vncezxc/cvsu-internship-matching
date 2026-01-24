@@ -229,12 +229,27 @@
         opacity: 0.3;
         margin-bottom: 1.5rem;
     }
-    .empty-chat .btn {
+    
+    /* Ensure New Chat button stays normal sized */
+    .chat-main .empty-chat .btn,
+    .empty-chat .btn.btn-success,
+    .empty-chat .btn.btn-sm {
         padding: 0.5rem 1.25rem !important;
         border-radius: 0.5rem !important;
         width: auto !important;
+        max-width: 150px !important;
         height: auto !important;
-        font-size: 0.95rem !important;
+        max-height: 50px !important;
+        font-size: 0.875rem !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+    
+    /* Prevent empty-chat buttons from being circles/squares */
+    .empty-chat button.btn {
+        border-radius: 0.5rem !important;
+        aspect-ratio: auto !important;
     }
 
     /* Modal Styling */

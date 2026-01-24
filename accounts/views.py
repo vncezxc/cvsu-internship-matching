@@ -196,10 +196,20 @@ def edit_profile(request):
                 profile.year_levels = form.cleaned_data.get('year_levels', '')
                 profile.save()
                 form.save_m2m()
-                from django.contrib.auth import update_session_auth_hash
+                from django.contrib.auth import update_session_auth_hash, logout
                 update_session_auth_hash(request, user)
-                messages.success(request, 'Profile updated successfully.')
-                return redirect('dashboard:home')
+                
+                # If adviser is not approved, log them out and redirect to login
+                if not user.is_approved:
+                    # Deactivate user until coordinator approves
+                    user.is_active = False
+                    user.save()
+                    logout(request)
+                    messages.success(request, 'Profile completed successfully! Your adviser account is now pending coordinator approval. You will receive an email once approved.')
+                    return redirect('account_login')
+                else:
+                    messages.success(request, 'Profile updated successfully.')
+                    return redirect('dashboard:home')
         else:
             form = AdviserProfileForm(instance=profile)
             form.fields['first_name'].initial = user.first_name
@@ -907,11 +917,9 @@ def verify_email_code(request):
                         code_obj.is_used = True
                         code_obj.save()
                         
-                        # 1. ACTIVATE USER in Django (but advisers need approval)
-                        if user.is_adviser and not user.is_approved:
-                            user.is_active = False  # Keep inactive until coordinator approves
-                        else:
-                            user.is_active = True
+                        # 1. ACTIVATE USER in Django
+                        # For advisers: temporarily activate to allow profile completion
+                        user.is_active = True
                         user.save()
                         
                         # 2. VERIFY in AllAuth EmailAddress
@@ -934,24 +942,20 @@ def verify_email_code(request):
                             )
                             print(f"[SYNC] Created and verified in AllAuth: {user.email}")
                         
-                        # 3. Login user or redirect to pending approval
+                        # 3. Login user
+                        user.backend = 'django.contrib.auth.backends.ModelBackend'
+                        login(request, user)
+                        
+                        # 4. Clear session
+                        request.session.pop('verifying_user_id', None)
+                        request.session.pop('verifying_user_email', None)
+                        request.session.pop('verification_session_time', None)
+                        
+                        # 5. Redirect advisers to edit profile, others to dashboard
                         if user.is_adviser and not user.is_approved:
-                            # Don't login, show pending approval message
-                            request.session.pop('verifying_user_id', None)
-                            request.session.pop('verifying_user_email', None)
-                            request.session.pop('verification_session_time', None)
-                            messages.success(request, 'Email verified successfully! Your adviser account is pending coordinator approval. You will receive an email once approved.')
-                            return redirect('account_login')
+                            messages.success(request, 'Email verified successfully! Please complete your profile. Your account will be reviewed by the coordinator after you submit your profile.')
+                            return redirect('accounts:edit_profile')
                         else:
-                            # Login user
-                            user.backend = 'django.contrib.auth.backends.ModelBackend'
-                            login(request, user)
-                            
-                            # 4. Clear session
-                            request.session.pop('verifying_user_id', None)
-                            request.session.pop('verifying_user_email', None)
-                            request.session.pop('verification_session_time', None)
-                            
                             messages.success(request, 'Email verified successfully! You are now logged in.')
                             return redirect('dashboard:home')
                 else:

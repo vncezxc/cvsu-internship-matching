@@ -439,8 +439,8 @@
                                 <td title="{{ student.user.email }}">
                                     <span class="cell-truncate">{{ student.user.email }}</span>
                                 </td>
-                                <td title="{{ student.course.name|default:'-' }}">
-                                    <span class="cell-truncate">{{ student.course.code|default:student.course.name|default:"-" }}</span>
+                                <td title="{% if student.course %}{{ student.course.name }}{% else %}-{% endif %}">
+                                    <span class="cell-truncate">{% if student.course %}{{ student.course.code|default:student.course.name }}{% else %}-{% endif %}</span>
                                 </td>
                                 <td>{{ student.section|default:"-" }}</td>
                                 <td>{{ student.get_year_level_display }}</td>
