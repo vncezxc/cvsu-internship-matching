@@ -8,10 +8,10 @@ import sys
 from datetime import datetime
 
 # Your Render database credentials
-POSTGRES_HOST = "dpg-d4pahrali9vc73b07meg-a.virginia-postgres.render.com"
-POSTGRES_DB = "cvsu_internship"
+POSTGRES_HOST = "dpg-d5vbkvggjchc7396h7dg-a"
+POSTGRES_DB = "cvsu_internship_n1ap"
 POSTGRES_USER = "cvsu_internship_user"
-POSTGRES_PASSWORD = "fwAHu3obpc2QGLacfdVpid1aGzKzJpoT"
+POSTGRES_PASSWORD = "4g4yZ82vQDbwULfH7ymAAgvA5e7SGkI9"
 POSTGRES_PORT = "5432"
 
 # Create backup filename with timestamp
@@ -31,6 +31,7 @@ env['POSTGRES_USER'] = POSTGRES_USER
 env['POSTGRES_PASSWORD'] = POSTGRES_PASSWORD
 env['POSTGRES_PORT'] = POSTGRES_PORT
 env['DJANGO_DEBUG'] = 'False'  # This ensures SSL is required
+env['PYTHONIOENCODING'] = 'utf-8'  # Fix encoding issues on Windows
 
 # Apps to backup (excluding problematic system tables)
 APPS_TO_BACKUP = [
@@ -45,10 +46,9 @@ try:
     print("(This may take a minute...)")
     print("\nBacking up your data apps...")
     
-    # Try simpler dumpdata without natural keys
+    # Capture output instead of writing directly to avoid encoding issues
     cmd = [sys.executable, "manage.py", "dumpdata"] + APPS_TO_BACKUP + [
-        "--indent", "2",
-        "-o", backup_file
+        "--indent", "2"
     ]
     
     result = subprocess.run(
@@ -56,8 +56,13 @@ try:
         capture_output=True,
         text=True,
         env=env,
-        check=True
+        check=True,
+        encoding='utf-8'
     )
+    
+    # Write the output with explicit UTF-8 encoding
+    with open(backup_file, 'w', encoding='utf-8') as f:
+        f.write(result.stdout)
     
     print(f"\n✓ Backup successful!")
     print(f"✓ File saved: {backup_file}")
