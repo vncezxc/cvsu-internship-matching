@@ -1,9 +1,9 @@
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from allauth.account.models import EmailAddress
-from allauth.account.utils import send_email_confirmation
 from django.contrib.auth import get_user_model
 from django.views.decorators.http import require_POST
+from .views import send_verification_code  # Import the code sender function
 
 @csrf_exempt
 @require_POST
@@ -16,8 +16,25 @@ def resend_verification_public(request):
         user = User.objects.get(email=email)
     except User.DoesNotExist:
         return JsonResponse({'success': False, 'message': 'No user found with this email.'})
+    
     email_address = EmailAddress.objects.filter(user=user, email=email).first()
     if email_address and email_address.verified:
         return JsonResponse({'success': False, 'message': 'This email is already verified.'})
-    send_email_confirmation(request, user, signup=False)
-    return JsonResponse({'success': True, 'message': 'A new verification email has been sent.'})
+    
+    # Send 6-digit verification code instead of link
+    success = send_verification_code(user)
+    
+    if success:
+        # Store user info in session for verification page
+        request.session['verifying_user_id'] = user.id
+        request.session['verifying_user_email'] = user.email
+        request.session['verification_session_time'] = str(user.date_joined)
+        
+        return JsonResponse({
+            'success': True, 
+            'message': 'A verification code has been sent to your email.',
+            'redirect_url': '/accounts/verify-email-code/'
+        })
+    else:
+        return JsonResponse({'success': False, 'message': 'Failed to send verification code. Please try again.'})
+
