@@ -786,55 +786,21 @@ def reports_dashboard(request):
     else:
         students = StudentProfile.objects.all().select_related('user', 'course', 'current_internship__internship__company').order_by('course__name', 'section', 'user__last_name')[:20]
 
+    # Import student report filter form
+    from .report_filter_forms import StudentReportFilterForm
+    student_filter_form = StudentReportFilterForm(request.GET or None)
+    
     context = {
         'recent_reports': recent_reports,
         'is_coordinator': request.user.is_coordinator,
         'filter_form': form,
+        'student_filter_form': student_filter_form,
         'students': students,
     }
     return render(request, 'dashboard/reports_dashboard.html', context)
 
 @login_required
-def generate_student_list(request):
-    """Generate student list report as Excel."""
-    if not (request.user.is_adviser or request.user.is_coordinator):
-        messages.error(request, 'You do not have access to reports.')
-        return redirect('dashboard:home')
-    # Filter students for advisers
-    if request.user.is_adviser:
-        adviser_profile = request.user.adviser_profile
-        students = StudentProfile.objects.filter(
-            course__in=adviser_profile.courses.all(),
-            section__in=adviser_profile.get_sections_list()
-        ).select_related('user', 'course')
-    else:
-        students = StudentProfile.objects.all().select_related('user', 'course')
-    wb = openpyxl.Workbook()
-    ws = wb.active
-    ws.title = 'Students'
-    ws.append(['Student ID', 'Name', 'Email', 'Course', 'Section', 'OJT Status', 'OJT Hours'])
-    for s in students:
-        ws.append([
-            s.student_id or '',
-            s.get_full_name(),
-            s.user.email,
-            s.course.name if s.course else '',
-            s.section,
-            s.get_ojt_status_display(),
-            s.ojt_hours_completed,
-        ])
-    output = BytesIO()
-    wb.save(output)
-    output.seek(0)
-    report = Report.objects.create(
-        report_type=Report.ReportType.STUDENT_LIST,
-        generated_by=request.user
-    )
-    report.file.save('student_list.xlsx', ContentFile(output.read()))
-    messages.success(request, 'Student list report generated successfully.')
-    return redirect('dashboard:reports')
 
-@login_required
 def generate_ojt_tracking(request):
     """Generate OJT tracking sheet report as Excel."""
     if not (request.user.is_adviser or request.user.is_coordinator):
@@ -1152,7 +1118,8 @@ def generate_student_list_pdf(request):
     if not (request.user.is_adviser or request.user.is_coordinator):
         messages.error(request, 'You do not have access to reports.')
         return redirect('dashboard:home')
-    # Filter students for advisers
+    
+    # Start with base queryset
     if request.user.is_adviser:
         adviser_profile = request.user.adviser_profile
         students = StudentProfile.objects.filter(
@@ -1161,6 +1128,22 @@ def generate_student_list_pdf(request):
         ).select_related('user', 'course')
     else:
         students = StudentProfile.objects.all().select_related('user', 'course')
+    
+    # Apply filters from GET parameters
+    course_id = request.GET.get('course')
+    section = request.GET.get('section')
+    year_level = request.GET.get('year_level')
+    ojt_status = request.GET.get('ojt_status')
+    
+    if course_id:
+        students = students.filter(course_id=course_id)
+    if section:
+        students = students.filter(section__iexact=section.strip())
+    if year_level:
+        students = students.filter(year_level=year_level)
+    if ojt_status:
+        students = students.filter(ojt_status=ojt_status)
+    
     from reportlab.lib.pagesizes import A4
     buffer = BytesIO()
     p = canvas.Canvas(buffer, pagesize=landscape(A4))

@@ -377,19 +377,45 @@
             <div class="card-header">
                 <h5 class="card-title mb-0">Student List Reports</h5>
             </div>
-            <div class="card-body text-center">
-                <i class="bi bi-people fs-1 text-primary mb-3"></i>
-                <h5>Student List</h5>
-                <p class="text-muted small">Export a list of students with their details and OJT status</p>
-                <a href="{% url 'dashboard:generate_student_list_pdf' %}" class="btn btn-outline-danger me-2">
-                    <i class="bi bi-file-pdf"></i> Export as PDF
-                </a>
-                <form method="post" action="{% url 'dashboard:generate_student_list' %}" class="d-inline">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn-outline-primary">
+            <div class="card-body">
+                <i class="bi bi-people fs-1 text-primary mb-3 d-block text-center"></i>
+                <h5 class="text-center">Student List</h5>
+                <p class="text-muted small text-center">Export a list of students with their details and OJT status</p>
+                
+                <!-- Filter Form -->
+                <form method="get" id="student-filter-form" class="border rounded p-3 mb-3" style="background-color: #f8f9fa;">
+                    <div class="row g-2">
+                        <div class="col-md-3">
+                            <label class="form-label small fw-bold">Course</label>
+                            {{ student_filter_form.course }}
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small fw-bold">Section</label>
+                            {{ student_filter_form.section }}
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small fw-bold">Year Level</label>
+                            {{ student_filter_form.year_level }}
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small fw-bold">OJT Status</label>
+                            {{ student_filter_form.ojt_status }}
+                        </div>
+                    </div>
+                    <div class="text-end mt-2">
+                        <button type="button" onclick="clearFilters()" class="btn btn-sm btn-outline-secondary">Clear Filters</button>
+                    </div>
+                </form>
+                
+                <!-- Export Buttons -->
+                <div class="text-center">
+                    <a href="#" onclick="exportStudentListPDF()" class="btn btn-outline-danger me-2">
+                        <i class="bi bi-file-pdf"></i> Export as PDF
+                    </a>
+                    <button type="button" onclick="exportStudentListExcel()" class="btn btn-outline-primary">
                         <i class="bi bi-file-earmark-spreadsheet"></i> Export as Excel
                     </button>
-                </form>
+                </div>
             </div>
         </div>
     </div>
@@ -575,4 +601,60 @@
         </div>
     </div>
 </div>
+
+<script>
+function getFilterParams() {
+    const form = document.getElementById('student-filter-form');
+    const formData = new FormData(form);
+    const params = new URLSearchParams();
+    
+    for (const [key, value] of formData.entries()) {
+        if (value) {
+            params.append(key, value);
+        }
+    }
+    return params.toString();
+}
+
+function exportStudentListPDF() {
+    const params = getFilterParams();
+    const url = "{% url 'dashboard:generate_student_list_pdf' %}" + (params ? '?' + params : '');
+    window.location.href = url;
+    return false;
+}
+
+function exportStudentListExcel() {
+    const form = document.getElementById('student-filter-form');
+    const exportForm = document.createElement('form');
+    exportForm.method = 'POST';
+    exportForm.action = "{% url 'dashboard:generate_student_list' %}";
+    
+    // Add CSRF token
+    const csrfInput = document.createElement('input');
+    csrfInput.type = 'hidden';
+    csrfInput.name = 'csrfmiddlewaretoken';
+    csrfInput.value = '{{ csrf_token }}';
+    exportForm.appendChild(csrfInput);
+    
+    // Add filter values
+    const formData = new FormData(form);
+    for (const [key, value] of formData.entries()) {
+        if (value) {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = key;
+            input.value = value;
+            exportForm.appendChild(input);
+        }
+    }
+    
+    document.body.appendChild(exportForm);
+    exportForm.submit();
+}
+
+function clearFilters() {
+    document.getElementById('student-filter-form').reset();
+}
+</script>
+
 {% endblock dashboard_content %}

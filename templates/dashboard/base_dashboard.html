@@ -203,6 +203,12 @@ main {
                 <i class="bi bi-clipboard-check"></i> Review OJT Documents
             </a>
         </li>
+        <li class="nav-item">
+            <a class="nav-link {% if request.resolver_match.url_name == 'manage_courses' %}active{% endif %}"
+               href="{% url 'accounts:manage_courses' %}">
+                <i class="bi bi-book"></i> Manage Courses
+            </a>
+        </li>
 
         {% elif user.is_coordinator %}
         <li class="nav-item">

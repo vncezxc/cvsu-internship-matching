@@ -1,5 +1,6 @@
 from django import forms
 from .models import Report
+from accounts.models import Course, StudentProfile
 
 class ReportFilterForm(forms.Form):
     report_type = forms.ChoiceField(
@@ -21,4 +22,28 @@ class ReportFilterForm(forms.Form):
         required=False,
         label='To',
         widget=forms.DateInput(attrs={'type': 'date'})
+    )
+
+class StudentReportFilterForm(forms.Form):
+    """Filter form for student reports export"""
+    course = forms.ModelChoiceField(
+        queryset=Course.objects.all(),
+        required=False,
+        label='Course',
+        empty_label='All Courses'
+    )
+    section = forms.CharField(
+        required=False,
+        label='Section',
+        widget=forms.TextInput(attrs={'placeholder': 'e.g., A, B, C'})
+    )
+    year_level = forms.ChoiceField(
+        choices=[('', 'All Year Levels')] + list(StudentProfile.YearLevel.choices),
+        required=False,
+        label='Year Level'
+    )
+    ojt_status = forms.ChoiceField(
+        choices=[('', 'All Statuses')] + list(StudentProfile.OJTStatus.choices),
+        required=False,
+        label='OJT Status'
     )

@@ -345,7 +345,7 @@ class RequiredDocument(models.Model):
         upload_to='document_templates/',
         validators=[FileExtensionValidator(allowed_extensions=['pdf', 'docx'])],
         blank=True, null=True,
-        help_text='PDF template for this document (uploaded by coordinator)'
+        help_text='DOCX template for this document (uploaded by coordinator)'
     )
     
     def __str__(self):
