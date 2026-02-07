@@ -375,56 +375,47 @@
     <div class="col-12">
         <div class="card hover-lift">
             <div class="card-header">
-                <h5 class="card-title mb-0">Student List Reports</h5>
+                <h5 class="card-title mb-0"><i class="bi bi-file-earmark-bar-graph me-2"></i>Student List Reports</h5>
             </div>
-            <div class="card-body">
-                <div class="text-center mb-4">
-                    <i class="bi bi-people fs-1 text-primary mb-2 d-block"></i>
-                    <h5 class="mb-1">Student List</h5>
-                    <p class="text-muted small mb-0">Export a list of students with their details and OJT status</p>
-                </div>
-                
+            <div class="card-body p-3">
                 <!-- Filter Form -->
-                <div class="border rounded p-4 mb-4" style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);">
-                    <h6 class="mb-3 text-success"><i class="bi bi-funnel me-2"></i>Filter Options</h6>
+                <div class="border rounded p-3 mb-3" style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h6 class="mb-0 text-success"><i class="bi bi-funnel me-1"></i>Filter Options</h6>
+                        <button type="button" onclick="clearFilters()" class="btn btn-sm btn-outline-secondary">
+                            <i class="bi bi-x-circle me-1"></i>Clear
+                        </button>
+                    </div>
                     <form method="get" id="student-filter-form">
-                        <div class="row g-3">
+                        <div class="row g-2">
                             <div class="col-md-6 col-lg-3">
-                                <label class="form-label small fw-bold text-dark">Course</label>
+                                <label class="form-label small fw-bold text-dark mb-1">Course</label>
                                 {% load widget_tweaks %}
                                 {{ student_filter_form.course|add_class:"form-select form-select-sm" }}
                             </div>
                             <div class="col-md-6 col-lg-3">
-                                <label class="form-label small fw-bold text-dark">Section</label>
+                                <label class="form-label small fw-bold text-dark mb-1">Section</label>
                                 {{ student_filter_form.section|add_class:"form-control form-control-sm" }}
                             </div>
                             <div class="col-md-6 col-lg-3">
-                                <label class="form-label small fw-bold text-dark">Year Level</label>
+                                <label class="form-label small fw-bold text-dark mb-1">Year Level</label>
                                 {{ student_filter_form.year_level|add_class:"form-select form-select-sm" }}
                             </div>
                             <div class="col-md-6 col-lg-3">
-                                <label class="form-label small fw-bold text-dark">OJT Status</label>
+                                <label class="form-label small fw-bold text-dark mb-1">OJT Status</label>
                                 {{ student_filter_form.ojt_status|add_class:"form-select form-select-sm" }}
                             </div>
-                        </div>
-                        <div class="text-end mt-3">
-                            <button type="button" onclick="clearFilters()" class="btn btn-sm btn-outline-secondary">
-                                <i class="bi bi-x-circle me-1"></i>Clear Filters
-                            </button>
                         </div>
                     </form>
                 </div>
                 
                 <!-- Export Buttons -->
                 <div class="d-flex justify-content-center gap-2 flex-wrap">
-                    <a href="#" onclick="exportStudentListPDF(); return false;" class="btn btn-outline-danger">
+                    <a href="#" onclick="exportStudentListPDF(); return false;" class="btn btn-sm btn-outline-danger">
                         <i class="bi bi-file-pdf me-1"></i> Export as PDF
                     </a>
-                    <button type="button" onclick="exportStudentListExcel()" class="btn btn-outline-primary">
+                    <button type="button" onclick="exportStudentListExcel()" class="btn btn-sm btn-outline-primary">
                         <i class="bi bi-file-earmark-spreadsheet me-1"></i> Export as Excel
-                    </button>
-                </div>
-                        <i class="bi bi-file-earmark-spreadsheet"></i> Export as Excel
                     </button>
                 </div>
             </div>
