@@ -138,6 +138,7 @@ INSTALLED_APPS = [
     'cloudinary',
     'storages',  # For Digital Ocean Spaces/S3
     'django_cleanup.apps.CleanupConfig',  # Auto-delete old files
+    'anymail',  # Email backend for Brevo
     
     # Local apps
     'accounts.apps.AccountsConfig',
@@ -438,19 +439,27 @@ DATA_UPLOAD_MAX_MEMORY_SIZE = 10485760  # 10MB
 EMAIL_BACKEND_CONFIG = get_config('EMAIL_BACKEND', default='')
 SENDGRID_API_KEY = get_config('SENDGRID_API_KEY', default='')
 SENDGRID_SANDBOX_MODE = get_config('SENDGRID_SANDBOX_MODE_IN_DEBUG', default=True, cast_func=bool)
+BREVO_API_KEY = get_config('BREVO_API_KEY', default='')
 
 # Determine email backend
 if EMAIL_BACKEND_CONFIG:
     EMAIL_BACKEND = EMAIL_BACKEND_CONFIG
-elif DEBUG and SENDGRID_SANDBOX_MODE:
+elif DEBUG and SENDGRID_SANDBOX_MODE and not BREVO_API_KEY:
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+elif BREVO_API_KEY:
+    EMAIL_BACKEND = 'anymail.backends.sendinblue.EmailBackend'
 elif SENDGRID_API_KEY:
     EMAIL_BACKEND = 'sendgrid_backend.SendgridBackend'
 else:
     # Fallback to SMTP
     EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 
-# SMTP configuration
+# Anymail (Brevo) configuration
+ANYMAIL = {
+    'SENDINBLUE_API_KEY': BREVO_API_KEY,
+}
+
+# SMTP configuration (fallback)
 EMAIL_HOST = get_config('EMAIL_HOST', default='smtp.sendgrid.net')
 EMAIL_PORT = get_config('EMAIL_PORT', default=587, cast_func=int)
 EMAIL_USE_TLS = get_config('EMAIL_USE_TLS', default=True, cast_func=bool)

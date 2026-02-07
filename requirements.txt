@@ -60,6 +60,7 @@ django-cloudinary-storage==0.3.0
 # Email (compatible versions)
 sendgrid==6.12.5
 django-sendgrid-v5==1.3.0
+django-anymail[sendinblue]==10.2
 
 # Environment & Configuration
 python-decouple==3.8
