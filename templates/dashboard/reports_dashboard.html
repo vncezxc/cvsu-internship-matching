@@ -378,41 +378,52 @@
                 <h5 class="card-title mb-0">Student List Reports</h5>
             </div>
             <div class="card-body">
-                <i class="bi bi-people fs-1 text-primary mb-3 d-block text-center"></i>
-                <h5 class="text-center">Student List</h5>
-                <p class="text-muted small text-center">Export a list of students with their details and OJT status</p>
+                <div class="text-center mb-4">
+                    <i class="bi bi-people fs-1 text-primary mb-2 d-block"></i>
+                    <h5 class="mb-1">Student List</h5>
+                    <p class="text-muted small mb-0">Export a list of students with their details and OJT status</p>
+                </div>
                 
                 <!-- Filter Form -->
-                <form method="get" id="student-filter-form" class="border rounded p-3 mb-3" style="background-color: #f8f9fa;">
-                    <div class="row g-2">
-                        <div class="col-md-3">
-                            <label class="form-label small fw-bold">Course</label>
-                            {{ student_filter_form.course }}
+                <div class="border rounded p-4 mb-4" style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);">
+                    <h6 class="mb-3 text-success"><i class="bi bi-funnel me-2"></i>Filter Options</h6>
+                    <form method="get" id="student-filter-form">
+                        <div class="row g-3">
+                            <div class="col-md-6 col-lg-3">
+                                <label class="form-label small fw-bold text-dark">Course</label>
+                                {% load widget_tweaks %}
+                                {{ student_filter_form.course|add_class:"form-select form-select-sm" }}
+                            </div>
+                            <div class="col-md-6 col-lg-3">
+                                <label class="form-label small fw-bold text-dark">Section</label>
+                                {{ student_filter_form.section|add_class:"form-control form-control-sm" }}
+                            </div>
+                            <div class="col-md-6 col-lg-3">
+                                <label class="form-label small fw-bold text-dark">Year Level</label>
+                                {{ student_filter_form.year_level|add_class:"form-select form-select-sm" }}
+                            </div>
+                            <div class="col-md-6 col-lg-3">
+                                <label class="form-label small fw-bold text-dark">OJT Status</label>
+                                {{ student_filter_form.ojt_status|add_class:"form-select form-select-sm" }}
+                            </div>
                         </div>
-                        <div class="col-md-3">
-                            <label class="form-label small fw-bold">Section</label>
-                            {{ student_filter_form.section }}
+                        <div class="text-end mt-3">
+                            <button type="button" onclick="clearFilters()" class="btn btn-sm btn-outline-secondary">
+                                <i class="bi bi-x-circle me-1"></i>Clear Filters
+                            </button>
                         </div>
-                        <div class="col-md-3">
-                            <label class="form-label small fw-bold">Year Level</label>
-                            {{ student_filter_form.year_level }}
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label small fw-bold">OJT Status</label>
-                            {{ student_filter_form.ojt_status }}
-                        </div>
-                    </div>
-                    <div class="text-end mt-2">
-                        <button type="button" onclick="clearFilters()" class="btn btn-sm btn-outline-secondary">Clear Filters</button>
-                    </div>
-                </form>
+                    </form>
+                </div>
                 
                 <!-- Export Buttons -->
-                <div class="text-center">
-                    <a href="#" onclick="exportStudentListPDF()" class="btn btn-outline-danger me-2">
-                        <i class="bi bi-file-pdf"></i> Export as PDF
+                <div class="d-flex justify-content-center gap-2 flex-wrap">
+                    <a href="#" onclick="exportStudentListPDF(); return false;" class="btn btn-outline-danger">
+                        <i class="bi bi-file-pdf me-1"></i> Export as PDF
                     </a>
                     <button type="button" onclick="exportStudentListExcel()" class="btn btn-outline-primary">
+                        <i class="bi bi-file-earmark-spreadsheet me-1"></i> Export as Excel
+                    </button>
+                </div>
                         <i class="bi bi-file-earmark-spreadsheet"></i> Export as Excel
                     </button>
                 </div>
