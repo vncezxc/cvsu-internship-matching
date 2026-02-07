@@ -406,7 +406,7 @@
                 <div class="mt-4 p-3 rounded shadow-sm bg-light" style="border-left: 4px solid #6c757d;">
                     <h6 class="mb-2 text-muted"><i class="bi bi-building me-2"></i>Current Internship Placement</h6>
                     <p class="mb-2 text-muted">You haven't been accepted to any internship yet.</p>
-                    <a href="{% url 'internship:internships' %}" class="btn btn-sm btn-success">
+                    <a href="{% url 'internship:matches' %}" class="btn btn-sm btn-success">
                         <i class="bi bi-search me-1"></i>Browse Internships
                     </a>
                 </div>
@@ -496,7 +496,7 @@
                 {% else %}
                     <div class="alert alert-info">
                         You haven't applied to any internships yet. 
-                        <a href="{% url 'internship:internships' %}" class="alert-link">Browse internships</a> to get started.
+                        <a href="{% url 'internship:matches' %}" class="alert-link">Browse internships</a> to get started.
                     </div>
                 {% endif %}
             </div>
