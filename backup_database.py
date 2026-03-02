@@ -7,11 +7,11 @@ import subprocess
 import sys
 from datetime import datetime
 
-# Your Render database credentials
-POSTGRES_HOST = "dpg-d5vbkvggjchc7396h7dg-a"
-POSTGRES_DB = "cvsu_internship_n1ap"
+# Your Render database credentials - UPDATED March 2, 2026
+POSTGRES_HOST = "dpg-d6ig41pdrdic73d3r340-a.oregon-postgres.render.com"
+POSTGRES_DB = "cvsu_internship_cv8x"
 POSTGRES_USER = "cvsu_internship_user"
-POSTGRES_PASSWORD = "4g4yZ82vQDbwULfH7ymAAgvA5e7SGkI9"
+POSTGRES_PASSWORD = "uGw0hFJcwocAj2SUgS37JRnpBRDU60gh"
 POSTGRES_PORT = "5432"
 
 # Create backup filename with timestamp

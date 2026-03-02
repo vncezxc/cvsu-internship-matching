@@ -37,7 +37,7 @@ try:
         print(f"✅ Database already has {user_count} users, skipping restore...")
     else:
         # Database is empty, restore backup
-        backup_file = "database_backup_20260201_101803.json"
+        backup_file = "database_backup_20260302_111523.json"
         if os.path.exists(backup_file):
             print(f"📦 Restoring data from {backup_file}...")
             os.system(f"python manage.py loaddata {backup_file}")
