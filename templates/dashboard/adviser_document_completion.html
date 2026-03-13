@@ -57,6 +57,17 @@
         margin-bottom: 0;
     }
 
+    .table-fixed {
+        table-layout: fixed;
+        width: 100%;
+    }
+
+    .truncate-cell {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
     .table thead th {
         background: linear-gradient(135deg, var(--cvsu-green), var(--cvsu-green-light));
         color: var(--cvsu-white);
@@ -118,8 +129,8 @@
             <h5 class="mb-0">Student Document Completion</h5>
         </div>
         <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-bordered table-striped align-middle">
+            <div>
+                <table class="table table-bordered table-striped align-middle table-fixed">
                     <thead>
                         <tr>
                             <th>Student</th>
@@ -132,10 +143,10 @@
                     <tbody>
                         {% for entry in students_with_docs %}
                         <tr>
-                            <td>
-                                <strong class="d-inline-block text-truncate" style="max-width: 220px;" title="{{ entry.student.get_full_name }}">{{ entry.student.get_full_name }}</strong>
+                            <td class="truncate-cell">
+                                <strong class="d-inline-block truncate-cell" style="max-width: 220px;" title="{{ entry.student.get_full_name }}">{{ entry.student.get_full_name }}</strong>
                                 <br>
-                                <small class="text-muted d-inline-block text-truncate" style="max-width: 220px;" title="{{ entry.student.user.email }}">{{ entry.student.user.email }}</small>
+                                <small class="text-muted d-inline-block truncate-cell" style="max-width: 220px;" title="{{ entry.student.user.email }}">{{ entry.student.user.email }}</small>
                                 <br><small class="text-muted">{{ entry.student.course.name }} - {{ entry.student.section }}</small>
                             </td>
                             {% for doc in entry.doc_status %}

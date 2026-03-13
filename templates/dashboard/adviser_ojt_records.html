@@ -56,6 +56,17 @@
         margin-bottom: 0;
     }
 
+    .table-fixed {
+        table-layout: fixed;
+        width: 100%;
+    }
+
+    .truncate-cell {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
     .table thead th {
         background: linear-gradient(135deg, var(--cvsu-green), var(--cvsu-green-light));
         color: var(--cvsu-white);
@@ -109,8 +120,8 @@
             <h5 class="mb-0">Student OJT Records</h5>
         </div>
         <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-bordered table-striped align-middle">
+            <div>
+                <table class="table table-bordered table-striped align-middle table-fixed">
                     <thead>
                         <tr>
                             <th>Student No.</th>
@@ -131,33 +142,33 @@
                                     {% with internship=placement.internship company=placement.internship.company %}
                                     <tr>
                                         <td>{{ student.student_id|default:"-" }}</td>
-                                        <td>
-                                            <span class="d-inline-block text-truncate" style="max-width: 200px;" title="{{ student.get_full_name }}">{{ student.get_full_name }}</span>
+                                        <td class="truncate-cell">
+                                            <span class="d-inline-block truncate-cell" style="max-width: 200px;" title="{{ student.get_full_name }}">{{ student.get_full_name }}</span>
                                         </td>
                                         <td>{{ student.section|default:"-" }}</td>
-                                        <td>
-                                            <span class="d-inline-block text-truncate" style="max-width: 180px;" title="{{ company.name }}">{{ company.name }}</span>
+                                        <td class="truncate-cell">
+                                            <span class="d-inline-block truncate-cell" style="max-width: 180px;" title="{{ company.name }}">{{ company.name }}</span>
                                         </td>
-                                        <td>
-                                            <span class="d-inline-block text-truncate" style="max-width: 200px;" title="{{ company.company_email }}">{{ company.company_email }}</span>
+                                        <td class="truncate-cell">
+                                            <span class="d-inline-block truncate-cell" style="max-width: 200px;" title="{{ company.company_email }}">{{ company.company_email }}</span>
                                         </td>
-                                        <td>
-                                            <span class="d-inline-block text-truncate" style="max-width: 200px;" title="{{ company.hr_email }}">{{ company.hr_email }}</span>
+                                        <td class="truncate-cell">
+                                            <span class="d-inline-block truncate-cell" style="max-width: 200px;" title="{{ company.hr_email }}">{{ company.hr_email }}</span>
                                         </td>
                                         <td>{{ company.phone_number }}</td>
-                                        <td>
-                                            <span class="d-inline-block text-truncate" style="max-width: 220px;" title="{{ company.get_full_address }}">{{ company.get_full_address }}</span>
+                                        <td class="truncate-cell">
+                                            <span class="d-inline-block truncate-cell" style="max-width: 220px;" title="{{ company.get_full_address }}">{{ company.get_full_address }}</span>
                                         </td>
-                                        <td>
-                                            <span class="d-inline-block text-truncate" style="max-width: 160px;" title="{{ internship.title }}">{{ internship.title }}</span>
+                                        <td class="truncate-cell">
+                                            <span class="d-inline-block truncate-cell" style="max-width: 160px;" title="{{ internship.title }}">{{ internship.title }}</span>
                                         </td>
                                     </tr>
                                     {% endwith %}
                                 {% else %}
                                     <tr>
                                         <td>{{ student.student_id|default:"-" }}</td>
-                                        <td>
-                                            <span class="d-inline-block text-truncate" style="max-width: 200px;" title="{{ student.get_full_name }}">{{ student.get_full_name }}</span>
+                                        <td class="truncate-cell">
+                                            <span class="d-inline-block truncate-cell" style="max-width: 200px;" title="{{ student.get_full_name }}">{{ student.get_full_name }}</span>
                                         </td>
                                         <td>{{ student.section|default:"-" }}</td>
                                         <td colspan="6" class="text-muted">No current OJT placement</td>

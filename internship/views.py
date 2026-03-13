@@ -159,6 +159,15 @@ def submit_custom_internship(request):
     if request.method == 'POST':
         form = CustomCompanyInternshipForm(request.POST, request.FILES)
         if form.is_valid():
+            lat_val = (request.POST.get('latitude') or '').strip()
+            lng_val = (request.POST.get('longitude') or '').strip()
+            try:
+                latitude = float(lat_val) if lat_val else None
+                longitude = float(lng_val) if lng_val else None
+            except ValueError:
+                latitude = None
+                longitude = None
+
             company = Company.objects.create(
                 name=form.cleaned_data['company_name'],
                 description=form.cleaned_data['company_description'],
@@ -171,6 +180,8 @@ def submit_custom_internship(request):
                 city=form.cleaned_data['city'],
                 province=form.cleaned_data['province'],
                 location_link=form.cleaned_data.get('location_link') or '',
+                latitude=latitude,
+                longitude=longitude,
                 status=Company.Status.INACTIVE,
                 approval_status=Company.ApprovalStatus.PENDING,
                 added_by=request.user,
@@ -200,6 +211,7 @@ def submit_custom_internship(request):
 
     return render(request, 'internship/custom_submission.html', {
         'form': form,
+        'profile': profile,
         'submissions': submissions,
     })
 

@@ -111,6 +111,17 @@
         margin-bottom: 0;
     }
 
+    .table-fixed {
+        table-layout: fixed;
+        width: 100%;
+    }
+
+    .truncate-cell {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
     .table thead th {
         background: linear-gradient(135deg, var(--cvsu-green), var(--cvsu-green-light));
         color: var(--cvsu-white);
@@ -241,8 +252,8 @@
             <h5 class="mb-0"><i class="bi bi-clipboard-check me-2"></i>Student Submissions</h5>
         </div>
         <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-bordered align-middle">
+            <div>
+                <table class="table table-bordered align-middle table-fixed">
                     <thead class="table-light">
                         <tr>
                             <th>Student</th>
@@ -259,17 +270,17 @@
                             {% for doc in required_docs %}
                                 <tr {% if forloop.first %}class="student-name-row"{% endif %}>
                                     {% if forloop.first %}
-                                        <td rowspan="{{ required_docs|length }}">
-                                            <strong class="d-inline-block text-truncate" style="max-width: 220px;" title="{{ student.get_full_name }}">{{ student.get_full_name }}</strong>
+                                        <td rowspan="{{ required_docs|length }}" class="truncate-cell">
+                                            <strong class="d-inline-block truncate-cell" style="max-width: 220px;" title="{{ student.get_full_name }}">{{ student.get_full_name }}</strong>
                                             <br>
-                                            <small class="text-muted d-inline-block text-truncate" style="max-width: 220px;" title="{{ student.user.email }}">{{ student.user.email }}</small>
+                                            <small class="text-muted d-inline-block truncate-cell" style="max-width: 220px;" title="{{ student.user.email }}">{{ student.user.email }}</small>
                                             <br><small class="text-muted">{{ student.course.name }} - {{ student.section }}</small>
                                         </td>
                                     {% endif %}
                                     <td>
-                                        <strong>{{ doc.name }}</strong>
+                                        <strong class="d-inline-block truncate-cell" style="max-width: 180px;" title="{{ doc.name }}">{{ doc.name }}</strong>
                                         {% if doc.description %}
-                                            <br><small class="text-muted">{{ doc.description }}</small>
+                                            <br><small class="text-muted d-inline-block truncate-cell" style="max-width: 180px;" title="{{ doc.description }}">{{ doc.description }}</small>
                                         {% endif %}
                                     </td>
                                     <td>

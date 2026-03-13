@@ -68,6 +68,19 @@
         background-color: var(--gray-50);
     }
 
+    #company-map {
+        border-radius: var(--radius-sm);
+        border: 2px solid var(--gray-200);
+        min-height: 320px;
+        margin-bottom: 0.75rem;
+    }
+
+    .map-instructions {
+        color: var(--cvsu-light-gray);
+        font-size: 0.9rem;
+        margin-bottom: 1.25rem;
+    }
+
     @keyframes fadeIn {
         from { opacity: 0; transform: translateY(20px); }
         to { opacity: 1; transform: translateY(0); }
@@ -99,6 +112,15 @@
                         <div class="col-md-6 mb-3">{{ form.barangay.label_tag }}{{ form.barangay }}</div>
                         <div class="col-md-6 mb-3">{{ form.city.label_tag }}{{ form.city }}</div>
                         <div class="col-md-6 mb-3">{{ form.province.label_tag }}{{ form.province }}</div>
+                    </div>
+
+                    <input type="hidden" name="latitude" id="id_latitude" value="{{ profile.latitude|default_if_none:'' }}">
+                    <input type="hidden" name="longitude" id="id_longitude" value="{{ profile.longitude|default_if_none:'' }}">
+
+                    <div id="company-map"></div>
+                    <div class="map-instructions">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Click on the map to pin the company location, or drag the marker to adjust.
                     </div>
 
                     <h6 class="text-muted mt-4 mb-3">Internship Information</h6>
@@ -168,4 +190,47 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var latInput = document.getElementById('id_latitude');
+    var lngInput = document.getElementById('id_longitude');
+
+    var defaultLat = 14.1953;
+    var defaultLng = 120.8796;
+    var lat = parseFloat(latInput && latInput.value) || defaultLat;
+    var lng = parseFloat(lngInput && lngInput.value) || defaultLng;
+
+    var map = L.map('company-map').setView([lat, lng], 15);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '© OpenStreetMap'
+    }).addTo(map);
+
+    var marker = L.marker([lat, lng], {draggable: true}).addTo(map);
+
+    function updateInputs(latlng) {
+        if (latInput) latInput.value = latlng.lat.toFixed(6);
+        if (lngInput) lngInput.value = latlng.lng.toFixed(6);
+    }
+
+    marker.on('dragend', function(e) {
+        updateInputs(e.target.getLatLng());
+    });
+
+    map.on('click', function(e) {
+        marker.setLatLng(e.latlng);
+        updateInputs(e.latlng);
+    });
+
+    setTimeout(function() {
+        map.invalidateSize();
+    }, 100);
+});
+</script>
 {% endblock %}
