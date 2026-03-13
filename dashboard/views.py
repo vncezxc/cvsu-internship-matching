@@ -16,7 +16,7 @@ from reportlab.lib.pagesizes import letter, landscape
 from reportlab.pdfgen import canvas
 from reportlab.lib import colors
 from reportlab.platypus import Table, TableStyle
-from accounts.models import User, StudentProfile, Course, RequiredDocument, AdviserProfile, CoordinatorProfile, DTR, StudentDocument
+from accounts.models import User, StudentProfile, Course, RequiredDocument, AdviserProfile, CoordinatorProfile, DTR, StudentDocument, AdviserMasterListUpload, AdviserMasterListEntry
 from internship.models import Company, Internship, Application
 from .models import DashboardStatistics, Report
 from .forms import RequiredDocumentForm, StudentDocumentUploadForm, DTRSubmissionForm
@@ -698,6 +698,100 @@ def adviser_custom_submissions(request):
     return render(request, 'dashboard/adviser_custom_submissions.html', {
         'page_obj': page_obj,
         'query': query,
+    })
+
+
+@login_required
+def adviser_master_list_upload(request):
+    if not request.user.is_adviser:
+        messages.error(request, 'Only advisers can access this page.')
+        return redirect('dashboard:home')
+
+    adviser = request.user.adviser_profile
+
+    def normalize_header(value):
+        return ''.join(ch for ch in str(value or '').strip().lower() if ch.isalnum() or ch.isspace())
+
+    def normalize_name(value):
+        return ' '.join(str(value or '').strip().lower().split())
+
+    if request.method == 'POST':
+        upload_file = request.FILES.get('master_list')
+        if not upload_file:
+            messages.error(request, 'Please upload an Excel file.')
+            return redirect('dashboard:adviser_master_list')
+
+        try:
+            upload_file.seek(0)
+            workbook = openpyxl.load_workbook(upload_file, data_only=True)
+            sheet = workbook.active
+        except Exception:
+            messages.error(request, 'Unable to read the Excel file. Please use .xlsx or .xls format.')
+            return redirect('dashboard:adviser_master_list')
+
+        header_row = [normalize_header(cell.value) for cell in next(sheet.iter_rows(min_row=1, max_row=1))]
+        student_id_idx = None
+        full_name_idx = None
+        first_name_idx = None
+        last_name_idx = None
+
+        for idx, header in enumerate(header_row):
+            if header in ['student id', 'studentid', 'student number', 'studentno', 'student no', 'id']:
+                student_id_idx = idx
+            if header in ['full name', 'fullname', 'student name', 'name']:
+                full_name_idx = idx
+            if header in ['first name', 'firstname', 'fname']:
+                first_name_idx = idx
+            if header in ['last name', 'lastname', 'lname']:
+                last_name_idx = idx
+
+        if student_id_idx is None:
+            messages.error(request, 'Missing column: Student ID.')
+            return redirect('dashboard:adviser_master_list')
+
+        if full_name_idx is None and (first_name_idx is None or last_name_idx is None):
+            messages.error(request, 'Missing column: Full Name (or First Name and Last Name).')
+            return redirect('dashboard:adviser_master_list')
+
+        entries = []
+        for row in sheet.iter_rows(min_row=2, values_only=True):
+            student_id = str(row[student_id_idx]).strip() if row[student_id_idx] is not None else ''
+            if not student_id:
+                continue
+            if full_name_idx is not None:
+                full_name = str(row[full_name_idx]).strip()
+            else:
+                first_name = str(row[first_name_idx]).strip() if row[first_name_idx] is not None else ''
+                last_name = str(row[last_name_idx]).strip() if row[last_name_idx] is not None else ''
+                full_name = f"{first_name} {last_name}".strip()
+            if not full_name:
+                continue
+            entries.append({'student_id': student_id, 'full_name': full_name})
+
+        if not entries:
+            messages.error(request, 'No valid student records found in the file.')
+            return redirect('dashboard:adviser_master_list')
+
+        AdviserMasterListEntry.objects.filter(adviser=adviser).delete()
+
+        AdviserMasterListEntry.objects.bulk_create([
+            AdviserMasterListEntry(adviser=adviser, student_id=e['student_id'], full_name=e['full_name'])
+            for e in entries
+        ])
+
+        upload_file.seek(0)
+        AdviserMasterListUpload.objects.create(adviser=adviser, file=upload_file)
+
+        messages.success(request, f'Master list uploaded. {len(entries)} students loaded.')
+        return redirect('dashboard:adviser_master_list')
+
+    entries = AdviserMasterListEntry.objects.filter(adviser=adviser).order_by('full_name')[:50]
+    last_upload = AdviserMasterListUpload.objects.filter(adviser=adviser).order_by('-uploaded_at').first()
+
+    return render(request, 'dashboard/adviser_master_list.html', {
+        'entries': entries,
+        'last_upload': last_upload,
+        'entries_count': AdviserMasterListEntry.objects.filter(adviser=adviser).count(),
     })
 
 # Coordinator dashboard

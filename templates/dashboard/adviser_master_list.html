@@ -1,0 +1,134 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block dashboard_title %}Master List Upload{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --cvsu-dark-green: #030403;
+        --cvsu-light-gray: #787A66;
+        --cvsu-green: #064E07;
+        --cvsu-gold: #EFB60A;
+        --cvsu-red: #CF120F;
+        --cvsu-white: #FFFFFF;
+        --cvsu-green-light: #0a6d0b;
+        --gray-50: #f8f9fa;
+        --gray-100: #e9ecef;
+        --gray-200: #dee2e6;
+        --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
+        --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+        --shadow-lg: 0 10px 30px rgba(0,0,0,0.15);
+        --radius-sm: 0.5rem;
+        --radius-md: 1rem;
+        --radius-lg: 1.5rem;
+        --font-family: 'Nunito', Arial, sans-serif;
+        --font-weight-normal: 400;
+        --font-weight-medium: 600;
+        --font-weight-bold: 700;
+    }
+
+    .card {
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-md);
+        border: none;
+        font-family: var(--font-family);
+        animation: fadeIn 0.7s ease-out;
+        overflow: hidden;
+    }
+
+    .card-header {
+        background: linear-gradient(135deg, var(--cvsu-green), var(--cvsu-green-light)) !important;
+        color: var(--cvsu-white) !important;
+        border-radius: var(--radius-md) var(--radius-md) 0 0 !important;
+        padding: 1.25rem 1.5rem;
+        border: none;
+    }
+
+    .card-header h5 {
+        font-weight: var(--font-weight-bold);
+        margin: 0;
+    }
+
+    .table {
+        border-radius: var(--radius-md);
+        overflow: hidden;
+        box-shadow: var(--shadow-sm);
+        margin-bottom: 0;
+    }
+
+    .table thead th {
+        background: linear-gradient(135deg, var(--cvsu-green), var(--cvsu-green-light));
+        color: var(--cvsu-white);
+        font-weight: var(--font-weight-medium);
+        border: none;
+        padding: 1rem 0.75rem;
+    }
+
+    .table-striped tbody tr:nth-of-type(odd) {
+        background-color: var(--gray-50);
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="container py-4">
+    <div class="card shadow-sm mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">Upload Master List</h5>
+        </div>
+        <div class="card-body">
+            <p class="text-muted mb-3">
+                Upload an Excel file with <strong>Student ID</strong> and <strong>Full Name</strong> columns.
+                You may also use <strong>First Name</strong> and <strong>Last Name</strong> instead of Full Name.
+            </p>
+            <form method="post" enctype="multipart/form-data" class="row g-3 align-items-end">
+                {% csrf_token %}
+                <div class="col-md-8">
+                    <input type="file" name="master_list" class="form-control" accept=".xlsx,.xls" required>
+                </div>
+                <div class="col-md-4">
+                    <button type="submit" class="btn btn-primary w-100">Upload</button>
+                </div>
+            </form>
+            {% if last_upload %}
+                <p class="mt-3 mb-0 text-muted">Last upload: {{ last_upload.uploaded_at }}</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-header">
+            <h5 class="mb-0">Current Master List ({{ entries_count }})</h5>
+        </div>
+        <div class="card-body">
+            <div>
+                <table class="table table-bordered table-striped align-middle">
+                    <thead>
+                        <tr>
+                            <th>Student ID</th>
+                            <th>Full Name</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for entry in entries %}
+                        <tr>
+                            <td>{{ entry.student_id }}</td>
+                            <td>{{ entry.full_name }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="2" class="text-center text-muted">No master list entries uploaded yet.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

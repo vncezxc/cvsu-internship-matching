@@ -136,18 +136,6 @@ main {
             </a>
         </li>
         <li class="nav-item">
-            <a class="nav-link {% if request.resolver_match.url_name == 'submit_dtr' %}active{% endif %}"
-               href="{% url 'dashboard:submit_dtr' %}">
-                <i class="bi bi-clock-history"></i> Submit Weekly DTR
-            </a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link {% if request.resolver_match.url_name == 'student_dtr_list' %}active{% endif %}"
-               href="{% url 'dashboard:student_dtr_list' %}">
-                <i class="bi bi-list-check"></i> My DTR Submissions
-            </a>
-        </li>
-        <li class="nav-item">
             <a class="nav-link {% if request.resolver_match.url_name == 'profile' %}active{% endif %}"
                href="{% url 'accounts:profile' %}">
                 <i class="bi bi-person"></i> My Profile
@@ -171,6 +159,18 @@ main {
                 <i class="bi bi-clipboard-check"></i> My OJT Documents
             </a>
         </li>
+        <li class="nav-item">
+            <a class="nav-link {% if request.resolver_match.url_name == 'submit_dtr' %}active{% endif %}"
+               href="{% url 'dashboard:submit_dtr' %}">
+                <i class="bi bi-clock-history"></i> Submit Weekly DTR
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {% if request.resolver_match.url_name == 'student_dtr_list' %}active{% endif %}"
+               href="{% url 'dashboard:student_dtr_list' %}">
+                <i class="bi bi-list-check"></i> My DTR Submissions
+            </a>
+        </li>
 
         {% elif user.is_adviser %}
         <li class="nav-item">
@@ -180,15 +180,15 @@ main {
             </a>
         </li>
         <li class="nav-item">
-            <a class="nav-link {% if request.resolver_match.url_name == 'adviser_dtr_list' %}active{% endif %}"
-               href="{% url 'dashboard:adviser_dtr_list' %}">
-                <i class="bi bi-clock-history"></i> Review DTR Submissions
-            </a>
-        </li>
-        <li class="nav-item">
             <a class="nav-link {% if request.resolver_match.url_name == 'adviser_profile' %}active{% endif %}"
                href="{% url 'accounts:adviser_profile' %}">
                 <i class="bi bi-person"></i> My Profile
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {% if request.resolver_match.url_name == 'adviser_master_list' %}active{% endif %}"
+               href="{% url 'dashboard:adviser_master_list' %}">
+                <i class="bi bi-file-earmark-spreadsheet"></i> Master List Upload
             </a>
         </li>
         <li class="nav-item">
@@ -198,21 +198,15 @@ main {
             </a>
         </li>
         <li class="nav-item">
-            <a class="nav-link {% if request.resolver_match.url_name == 'reports' %}active{% endif %}"
-               href="{% url 'dashboard:reports' %}">
-                <i class="bi bi-file-earmark-bar-graph"></i> Reports
+            <a class="nav-link {% if request.resolver_match.url_name == 'adviser_document_completion' %}active{% endif %}"
+               href="{% url 'dashboard:adviser_document_completion' %}">
+                <i class="bi bi-list-check"></i> Student Document Completion
             </a>
         </li>
         <li class="nav-item">
             <a class="nav-link {% if request.resolver_match.url_name == 'adviser_documents_review' %}active{% endif %}"
                href="{% url 'dashboard:adviser_documents_review' %}">
                 <i class="bi bi-clipboard-check"></i> Review OJT Documents
-            </a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link {% if request.resolver_match.url_name == 'adviser_document_completion' %}active{% endif %}"
-               href="{% url 'dashboard:adviser_document_completion' %}">
-                <i class="bi bi-list-check"></i> Student Document Completion
             </a>
         </li>
         <li class="nav-item">
@@ -225,6 +219,18 @@ main {
             <a class="nav-link {% if request.resolver_match.url_name == 'adviser_custom_submissions' %}active{% endif %}"
                href="{% url 'dashboard:adviser_custom_submissions' %}">
                 <i class="bi bi-building"></i> Custom Company Requests
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {% if request.resolver_match.url_name == 'adviser_dtr_list' %}active{% endif %}"
+               href="{% url 'dashboard:adviser_dtr_list' %}">
+                <i class="bi bi-clock-history"></i> Review DTR Submissions
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {% if request.resolver_match.url_name == 'reports' %}active{% endif %}"
+               href="{% url 'dashboard:reports' %}">
+                <i class="bi bi-file-earmark-bar-graph"></i> Reports
             </a>
         </li>
         <li class="nav-item">
@@ -248,6 +254,12 @@ main {
             </a>
         </li>
         <li class="nav-item">
+            <a class="nav-link {% if request.resolver_match.url_name == 'required_documents_list' %}active{% endif %}"
+               href="{% url 'dashboard:required_documents_list' %}">
+                <i class="bi bi-clipboard-check"></i> Documents Center
+            </a>
+        </li>
+        <li class="nav-item">
             <a class="nav-link {% if request.resolver_match.url_name == 'pending_adviser_approvals' %}active{% endif %}"
                href="{% url 'accounts:pending_adviser_approvals' %}">
                 <i class="bi bi-person-check"></i> Pending Adviser Approvals
@@ -263,12 +275,6 @@ main {
             <a class="nav-link {% if request.resolver_match.url_name == 'reports' %}active{% endif %}"
                href="{% url 'dashboard:reports' %}">
                 <i class="bi bi-file-earmark-bar-graph"></i> Student Status Report
-            </a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link {% if request.resolver_match.url_name == 'required_documents_list' %}active{% endif %}"
-               href="{% url 'dashboard:required_documents_list' %}">
-                <i class="bi bi-clipboard-check"></i> Documents Center
             </a>
         </li>
         {% endif %}

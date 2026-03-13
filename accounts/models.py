@@ -265,6 +265,9 @@ class StudentProfile(models.Model):
     # OJT related fields
     ojt_status = models.CharField(max_length=20, choices=OJTStatus.choices, default=OJTStatus.LOOKING)
     ojt_hours_completed = models.PositiveIntegerField(default=0)
+
+    # Adviser master list verification
+    master_list_verified = models.BooleanField(default=False)
     
     # Current internship placement (set when application is ACCEPTED)
     current_internship = models.ForeignKey(
@@ -411,6 +414,31 @@ class AdviserProfile(models.Model):
             course__in=self.courses.all(),
             section__in=self.get_sections_list()
         ).count()
+
+
+class AdviserMasterListUpload(models.Model):
+    adviser = models.ForeignKey(AdviserProfile, on_delete=models.CASCADE, related_name='master_list_uploads')
+    file = models.FileField(
+        upload_to='adviser_master_lists/',
+        validators=[FileExtensionValidator(allowed_extensions=['xlsx', 'xls'])]
+    )
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Master list for {self.adviser.user.get_full_name()} ({self.uploaded_at:%Y-%m-%d})"
+
+
+class AdviserMasterListEntry(models.Model):
+    adviser = models.ForeignKey(AdviserProfile, on_delete=models.CASCADE, related_name='master_list_entries')
+    student_id = models.CharField(max_length=32)
+    full_name = models.CharField(max_length=255)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('adviser', 'student_id', 'full_name')
+
+    def __str__(self):
+        return f"{self.student_id} - {self.full_name}"
 
 class CoordinatorProfile(models.Model):
     """Extended profile for OJT Coordinator users."""

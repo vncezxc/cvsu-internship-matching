@@ -23,6 +23,7 @@ urlpatterns = [
     path('adviser/document-completion/', views.adviser_document_completion, name='adviser_document_completion'),
     path('adviser/ojt-records/', views.adviser_ojt_records, name='adviser_ojt_records'),
     path('adviser/custom-submissions/', views.adviser_custom_submissions, name='adviser_custom_submissions'),
+    path('adviser/master-list/', views.adviser_master_list_upload, name='adviser_master_list'),
 
     # DTR Submission and Review
     path('student/dtr/submit/', views.submit_dtr, name='submit_dtr'),

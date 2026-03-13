@@ -5,7 +5,7 @@ from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.forms import PasswordChangeForm
 from django.http import JsonResponse
 from django.conf import settings
-from .models import User, StudentProfile, Skill, RequiredDocument, StudentDocument, AdviserProfile, Course, CoordinatorProfile, EmailVerificationCode, DeactivationRequest
+from .models import User, StudentProfile, Skill, RequiredDocument, StudentDocument, AdviserProfile, Course, CoordinatorProfile, EmailVerificationCode, DeactivationRequest, AdviserMasterListEntry
 from .forms import StudentProfileForm, AdviserProfileForm, CoordinatorProfileForm, StudentDocumentUploadForm, StudentCVUploadForm, AddSkillForm, UpdateLocationForm, CourseChoices, CourseForm, SkillForm, StudentRegisterForm, AdviserRegisterForm, CoordinatorRegisterForm
 from django.contrib.auth import login
 from .models import DTR
@@ -132,6 +132,55 @@ def edit_profile(request):
                 skills_data = []
             
             if form.is_valid():
+                def normalize_name(value):
+                    return ' '.join(str(value or '').strip().lower().split())
+
+                student_id = (form.cleaned_data.get('student_id') or '').strip()
+                first_name = form.cleaned_data.get('first_name')
+                last_name = form.cleaned_data.get('last_name')
+                full_name = normalize_name(f"{first_name} {last_name}")
+                course = form.cleaned_data.get('course')
+                section = (form.cleaned_data.get('section') or '').strip()
+
+                if not student_id or not full_name or not course or not section:
+                    messages.error(request, 'Please complete Student ID, full name, course, and section before saving.')
+                    return render(request, 'accounts/edit_profile.html', {
+                        'form': form,
+                        'profile': profile,
+                        'course_skill_map': course_skill_map,
+                        'is_student': True,
+                        'is_adviser': False,
+                        'is_coordinator': False,
+                    })
+
+                advisers = AdviserProfile.objects.filter(courses=course)
+                matching_advisers = [a for a in advisers if section in a.get_sections_list()]
+
+                if not matching_advisers:
+                    messages.error(request, 'No adviser master list found for your course and section. Please contact your adviser.')
+                    return render(request, 'accounts/edit_profile.html', {
+                        'form': form,
+                        'profile': profile,
+                        'course_skill_map': course_skill_map,
+                        'is_student': True,
+                        'is_adviser': False,
+                        'is_coordinator': False,
+                    })
+
+                entries = AdviserMasterListEntry.objects.filter(adviser__in=matching_advisers, student_id=student_id)
+                matched = any(normalize_name(entry.full_name) == full_name for entry in entries)
+
+                if not matched:
+                    messages.error(request, 'Your information does not match the adviser master list. Please contact your adviser.')
+                    return render(request, 'accounts/edit_profile.html', {
+                        'form': form,
+                        'profile': profile,
+                        'course_skill_map': course_skill_map,
+                        'is_student': True,
+                        'is_adviser': False,
+                        'is_coordinator': False,
+                    })
+
                 # First save the User model fields
                 user.first_name = form.cleaned_data['first_name']
                 user.last_name = form.cleaned_data['last_name']
@@ -140,6 +189,8 @@ def edit_profile(request):
 
                 # Save the StudentProfile including student_id
                 profile = form.save(commit=True)
+                profile.master_list_verified = True
+                profile.save(update_fields=['master_list_verified'])
 
                 # Clear and set skills
                 profile.skills.clear()
