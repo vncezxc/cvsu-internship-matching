@@ -1,4 +1,5 @@
 from django import forms
+from django.core.validators import FileExtensionValidator
 from .models import Company, CompanyReview, Internship, Skill, Course, Application
 
 class CompanyForm(forms.ModelForm):
@@ -118,3 +119,37 @@ class ApplicationStatusUpdateForm(forms.ModelForm):
         widgets = {
             'status': forms.Select(attrs={'class': 'form-select'})
         }
+
+
+class CustomCompanyInternshipForm(forms.Form):
+    company_name = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control'}))
+    company_description = forms.CharField(widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 3}))
+    company_type = forms.ChoiceField(choices=Company.CompanyType.choices, widget=forms.Select(attrs={'class': 'form-select'}))
+    company_email = forms.EmailField(widget=forms.EmailInput(attrs={'class': 'form-control'}))
+    hr_email = forms.EmailField(widget=forms.EmailInput(attrs={'class': 'form-control'}))
+    phone_number = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control'}))
+    street = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control'}))
+    barangay = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control'}))
+    city = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control'}))
+    province = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control'}))
+    location_link = forms.URLField(required=False, widget=forms.URLInput(attrs={'class': 'form-control'}))
+
+    internship_title = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control'}))
+    internship_description = forms.CharField(widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 3}))
+
+    acceptance_letter = forms.FileField(
+        validators=[FileExtensionValidator(['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png'])],
+        widget=forms.ClearableFileInput(attrs={'class': 'form-control'})
+    )
+    job_description = forms.FileField(
+        validators=[FileExtensionValidator(['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png'])],
+        widget=forms.ClearableFileInput(attrs={'class': 'form-control'})
+    )
+
+    def clean_phone_number(self):
+        import re
+        phone_number = self.cleaned_data.get('phone_number', '')
+        digits_only = re.sub(r'[^0-9]', '', phone_number)
+        if len(digits_only) != 11:
+            raise forms.ValidationError('Phone number must be exactly 11 digits.')
+        return digits_only

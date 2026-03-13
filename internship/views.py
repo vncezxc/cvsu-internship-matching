@@ -8,7 +8,7 @@ from django.utils import timezone
 from .models import Company, Internship, Application, CompanyReview
 from accounts.models import StudentProfile, Skill, Course
 from .forms import InternshipForm
-from .forms import CompanyForm, CompanyReviewForm, ApplicationStatusUpdateForm
+from .forms import CompanyForm, CompanyReviewForm, ApplicationStatusUpdateForm, CustomCompanyInternshipForm
 from django.db import models
 
 # Create your views here.
@@ -36,8 +36,12 @@ def internship_matches(request):
             messages.warning(request, 'Please complete your profile before applying.')
             return redirect('accounts:edit_profile')
         
-        # Get all active internships
-        internships = Internship.objects.filter(is_active=True)
+        # Get all active and approved internships
+        internships = Internship.objects.filter(
+            is_active=True,
+            approval_status=Internship.ApprovalStatus.APPROVED,
+            company__approval_status=Company.ApprovalStatus.APPROVED
+        )
 
         # Filter by course if specified (recommended_courses is a M2M field)
         if profile.course:
@@ -104,20 +108,100 @@ def internship_matches(request):
 
         # Sort by match score (highest first)
         matches.sort(key=lambda x: x['score'], reverse=True)
-        
-        # Pagination
-        paginator = Paginator(matches, 10)  # Show 10 matches per page
+
+        best_match = matches[0] if matches else None
+        other_matches = matches[1:] if len(matches) > 1 else []
+
+        # Pagination for other matches
+        paginator = Paginator(other_matches, 10)  # Show 10 per page
         page_number = request.GET.get('page')
         page_obj = paginator.get_page(page_number)
-        
+
+        recommendations = []
+        if not matches:
+            recommendations = Internship.objects.filter(
+                is_active=True,
+                approval_status=Internship.ApprovalStatus.APPROVED,
+                company__approval_status=Company.ApprovalStatus.APPROVED
+            )
+            if profile.course:
+                recommendations = recommendations.filter(recommended_courses=profile.course)
+            recommendations = recommendations.exclude(
+                applications__student=profile
+            ).order_by('-created_at')[:3]
+
         context = {
+            'best_match': best_match,
             'matches': page_obj,
+            'matches_count': len(matches),
             'profile': profile,
+            'recommendations': recommendations,
         }
         return render(request, 'internship/matches.html', context)
     except StudentProfile.DoesNotExist:
         messages.warning(request, 'Please complete your profile first.')
         return redirect('accounts:edit_profile')
+
+
+@login_required
+def submit_custom_internship(request):
+    """Student submits a custom company and internship for adviser approval."""
+    if not request.user.is_student:
+        messages.error(request, 'Only students can submit custom internships.')
+        return redirect('dashboard:home')
+
+    try:
+        profile = request.user.student_profile
+    except StudentProfile.DoesNotExist:
+        messages.warning(request, 'Please complete your profile first.')
+        return redirect('accounts:edit_profile')
+
+    if request.method == 'POST':
+        form = CustomCompanyInternshipForm(request.POST, request.FILES)
+        if form.is_valid():
+            company = Company.objects.create(
+                name=form.cleaned_data['company_name'],
+                description=form.cleaned_data['company_description'],
+                company_type=form.cleaned_data['company_type'],
+                company_email=form.cleaned_data['company_email'],
+                hr_email=form.cleaned_data['hr_email'],
+                phone_number=form.cleaned_data['phone_number'],
+                street=form.cleaned_data['street'],
+                barangay=form.cleaned_data['barangay'],
+                city=form.cleaned_data['city'],
+                province=form.cleaned_data['province'],
+                location_link=form.cleaned_data.get('location_link') or '',
+                status=Company.Status.INACTIVE,
+                approval_status=Company.ApprovalStatus.PENDING,
+                added_by=request.user,
+            )
+
+            internship = Internship.objects.create(
+                company=company,
+                title=form.cleaned_data['internship_title'],
+                description=form.cleaned_data['internship_description'],
+                is_active=False,
+                slots_available=1,
+                approval_status=Internship.ApprovalStatus.PENDING,
+                submitted_by=profile,
+                acceptance_letter=form.cleaned_data['acceptance_letter'],
+                job_description=form.cleaned_data['job_description'],
+            )
+
+            if profile.course:
+                internship.recommended_courses.add(profile.course)
+
+            messages.success(request, 'Custom company and internship submitted for adviser review.')
+            return redirect('internship:custom_submission')
+    else:
+        form = CustomCompanyInternshipForm()
+
+    submissions = Internship.objects.filter(submitted_by=profile).select_related('company').order_by('-created_at')
+
+    return render(request, 'internship/custom_submission.html', {
+        'form': form,
+        'submissions': submissions,
+    })
 
 @login_required
 def application_history(request):
@@ -291,10 +375,17 @@ Best regards,
 @login_required
 def company_detail(request, company_id):
     """View company details."""
-    company = get_object_or_404(Company, id=company_id)
+    company_queryset = Company.objects.all()
+    if request.user.is_student:
+        company_queryset = company_queryset.filter(approval_status=Company.ApprovalStatus.APPROVED)
+    company = get_object_or_404(company_queryset, id=company_id)
     
     # Get active internships for this company
-    internships = Internship.objects.filter(company=company, is_active=True)
+    internships = Internship.objects.filter(
+        company=company,
+        is_active=True,
+        approval_status=Internship.ApprovalStatus.APPROVED
+    )
     
     # Get reviews for this company
     reviews = CompanyReview.objects.filter(company=company).order_by('-created_at')

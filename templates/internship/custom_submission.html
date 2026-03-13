@@ -1,0 +1,171 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block dashboard_title %}Custom Company & Internship{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --cvsu-dark-green: #030403;
+        --cvsu-light-gray: #787A66;
+        --cvsu-green: #064E07;
+        --cvsu-gold: #EFB60A;
+        --cvsu-red: #CF120F;
+        --cvsu-white: #FFFFFF;
+        --cvsu-green-light: #0a6d0b;
+        --gray-50: #f8f9fa;
+        --gray-100: #e9ecef;
+        --gray-200: #dee2e6;
+        --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
+        --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+        --shadow-lg: 0 10px 30px rgba(0,0,0,0.15);
+        --radius-sm: 0.5rem;
+        --radius-md: 1rem;
+        --radius-lg: 1.5rem;
+        --font-family: 'Nunito', Arial, sans-serif;
+        --font-weight-normal: 400;
+        --font-weight-medium: 600;
+        --font-weight-bold: 700;
+    }
+
+    .card {
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-md);
+        border: none;
+        font-family: var(--font-family);
+        animation: fadeIn 0.7s ease-out;
+        overflow: hidden;
+    }
+
+    .card-header {
+        background: linear-gradient(135deg, var(--cvsu-green), var(--cvsu-green-light)) !important;
+        color: var(--cvsu-white) !important;
+        border-radius: var(--radius-md) var(--radius-md) 0 0 !important;
+        padding: 1.25rem 1.5rem;
+        border: none;
+    }
+
+    .card-header h5 {
+        font-weight: var(--font-weight-bold);
+        margin: 0;
+    }
+
+    .table {
+        border-radius: var(--radius-md);
+        overflow: hidden;
+        box-shadow: var(--shadow-sm);
+        margin-bottom: 0;
+    }
+
+    .table thead th {
+        background: linear-gradient(135deg, var(--cvsu-green), var(--cvsu-green-light));
+        color: var(--cvsu-white);
+        font-weight: var(--font-weight-medium);
+        border: none;
+        padding: 1rem 0.75rem;
+    }
+
+    .table-striped tbody tr:nth-of-type(odd) {
+        background-color: var(--gray-50);
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="row">
+    <div class="col-lg-7">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Submit Custom Company and Internship</h5>
+            </div>
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+
+                    <h6 class="text-muted mb-3">Company Information</h6>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">{{ form.company_name.label_tag }}{{ form.company_name }}</div>
+                        <div class="col-md-6 mb-3">{{ form.company_type.label_tag }}{{ form.company_type }}</div>
+                        <div class="col-12 mb-3">{{ form.company_description.label_tag }}{{ form.company_description }}</div>
+                        <div class="col-md-6 mb-3">{{ form.company_email.label_tag }}{{ form.company_email }}</div>
+                        <div class="col-md-6 mb-3">{{ form.hr_email.label_tag }}{{ form.hr_email }}</div>
+                        <div class="col-md-6 mb-3">{{ form.phone_number.label_tag }}{{ form.phone_number }}</div>
+                        <div class="col-md-6 mb-3">{{ form.location_link.label_tag }}{{ form.location_link }}</div>
+                        <div class="col-md-6 mb-3">{{ form.street.label_tag }}{{ form.street }}</div>
+                        <div class="col-md-6 mb-3">{{ form.barangay.label_tag }}{{ form.barangay }}</div>
+                        <div class="col-md-6 mb-3">{{ form.city.label_tag }}{{ form.city }}</div>
+                        <div class="col-md-6 mb-3">{{ form.province.label_tag }}{{ form.province }}</div>
+                    </div>
+
+                    <h6 class="text-muted mt-4 mb-3">Internship Information</h6>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">{{ form.internship_title.label_tag }}{{ form.internship_title }}</div>
+                        <div class="col-12 mb-3">{{ form.internship_description.label_tag }}{{ form.internship_description }}</div>
+                        <div class="col-md-6 mb-3">{{ form.acceptance_letter.label_tag }}{{ form.acceptance_letter }}</div>
+                        <div class="col-md-6 mb-3">{{ form.job_description.label_tag }}{{ form.job_description }}</div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Submit for Adviser Review</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">My Submissions</h5>
+            </div>
+            <div class="card-body">
+                {% if submissions %}
+                    <div class="table-responsive">
+                        <table class="table table-sm table-striped align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Company</th>
+                                    <th>Role</th>
+                                    <th>Status</th>
+                                    <th>Adviser Remark</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for submission in submissions %}
+                                <tr>
+                                    <td title="{{ submission.company.name }}" class="text-truncate" style="max-width: 160px;">{{ submission.company.name }}</td>
+                                    <td title="{{ submission.title }}" class="text-truncate" style="max-width: 140px;">{{ submission.title }}</td>
+                                    <td>
+                                        {% if submission.approval_status == 'APPROVED' %}
+                                            <span class="badge bg-success">Approved</span>
+                                        {% elif submission.approval_status == 'REJECTED' %}
+                                            <span class="badge bg-danger">Rejected</span>
+                                        {% else %}
+                                            <span class="badge bg-warning text-dark">Pending</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if submission.adviser_remarks %}
+                                            <span class="d-inline-block text-truncate" style="max-width: 180px;" title="{{ submission.adviser_remarks }}">{{ submission.adviser_remarks }}</span>
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                        {% if submission.is_red_flag %}
+                                            <span class="badge bg-danger ms-2">Red flag</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-muted mb-0">No submissions yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

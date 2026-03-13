@@ -37,4 +37,3 @@ def resend_verification_public(request):
         })
     else:
         return JsonResponse({'success': False, 'message': 'Failed to send verification code. Please try again.'})
-

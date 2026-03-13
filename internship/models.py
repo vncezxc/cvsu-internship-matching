@@ -1,6 +1,6 @@
 from django.db import models
-from django.core.validators import MinValueValidator, MaxValueValidator
-from accounts.models import User, StudentProfile, Skill, Course
+from django.core.validators import MinValueValidator, MaxValueValidator, FileExtensionValidator
+from accounts.models import User, StudentProfile, Skill, Course, AdviserProfile
 
 class Company(models.Model):
     """Model for companies offering internships."""
@@ -8,6 +8,11 @@ class Company(models.Model):
     class Status(models.TextChoices):
         ACTIVE = 'ACTIVE', 'Active'
         INACTIVE = 'INACTIVE', 'Inactive'
+
+    class ApprovalStatus(models.TextChoices):
+        PENDING = 'PENDING', 'Pending'
+        APPROVED = 'APPROVED', 'Approved'
+        REJECTED = 'REJECTED', 'Rejected'
     
     name = models.CharField(max_length=255)
     description = models.TextField()
@@ -36,6 +41,11 @@ class Company(models.Model):
     
     # Company status
     status = models.CharField(max_length=10, choices=Status.choices, default=Status.ACTIVE)
+
+    # Adviser review status (for student-submitted companies)
+    approval_status = models.CharField(max_length=10, choices=ApprovalStatus.choices, default=ApprovalStatus.APPROVED)
+    adviser_remark = models.TextField(blank=True)
+    is_red_flag = models.BooleanField(default=False)
     
     # Company incentives
     has_incentives = models.BooleanField(default=False)
@@ -65,6 +75,11 @@ class Company(models.Model):
 
 class Internship(models.Model):
     """Model for internship opportunities."""
+
+    class ApprovalStatus(models.TextChoices):
+        PENDING = 'PENDING', 'Pending'
+        APPROVED = 'APPROVED', 'Approved'
+        REJECTED = 'REJECTED', 'Rejected'
     
     company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='internships')
     title = models.CharField(max_length=255)
@@ -77,6 +92,37 @@ class Internship(models.Model):
     # Internship details
     is_active = models.BooleanField(default=True)
     slots_available = models.PositiveIntegerField(default=1)
+    approval_status = models.CharField(max_length=10, choices=ApprovalStatus.choices, default=ApprovalStatus.APPROVED)
+
+    # Student-submitted internship fields
+    submitted_by = models.ForeignKey(
+        StudentProfile,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='custom_internship_submissions'
+    )
+    acceptance_letter = models.FileField(
+        upload_to='custom_submissions/acceptance_letters/',
+        null=True,
+        blank=True,
+        validators=[FileExtensionValidator(['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png'])]
+    )
+    job_description = models.FileField(
+        upload_to='custom_submissions/job_descriptions/',
+        null=True,
+        blank=True,
+        validators=[FileExtensionValidator(['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png'])]
+    )
+    adviser = models.ForeignKey(
+        AdviserProfile,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='reviewed_internships'
+    )
+    adviser_remarks = models.TextField(blank=True)
+    is_red_flag = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     

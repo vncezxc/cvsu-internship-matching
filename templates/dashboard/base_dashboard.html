@@ -160,6 +160,12 @@ main {
             </a>
         </li>
         <li class="nav-item">
+            <a class="nav-link {% if request.resolver_match.url_name == 'custom_submission' %}active{% endif %}"
+               href="{% url 'internship:custom_submission' %}">
+                <i class="bi bi-building-add"></i> Custom Company Submission
+            </a>
+        </li>
+        <li class="nav-item">
             <a class="nav-link {% if request.resolver_match.url_name == 'student_documents_view' %}active{% endif %}"
                href="{% url 'dashboard:student_documents_view' %}">
                 <i class="bi bi-clipboard-check"></i> My OJT Documents
@@ -201,6 +207,24 @@ main {
             <a class="nav-link {% if request.resolver_match.url_name == 'adviser_documents_review' %}active{% endif %}"
                href="{% url 'dashboard:adviser_documents_review' %}">
                 <i class="bi bi-clipboard-check"></i> Review OJT Documents
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {% if request.resolver_match.url_name == 'adviser_document_completion' %}active{% endif %}"
+               href="{% url 'dashboard:adviser_document_completion' %}">
+                <i class="bi bi-list-check"></i> Student Document Completion
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {% if request.resolver_match.url_name == 'adviser_ojt_records' %}active{% endif %}"
+               href="{% url 'dashboard:adviser_ojt_records' %}">
+                <i class="bi bi-briefcase"></i> OJT Records
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {% if request.resolver_match.url_name == 'adviser_custom_submissions' %}active{% endif %}"
+               href="{% url 'dashboard:adviser_custom_submissions' %}">
+                <i class="bi bi-building"></i> Custom Company Requests
             </a>
         </li>
         <li class="nav-item">

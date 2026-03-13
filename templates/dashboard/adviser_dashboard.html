@@ -533,62 +533,6 @@
     </div>
 </div>
 
-<div class="row mt-4">
-    <div class="col-12">
-        <div class="card hover-lift">
-            <div class="card-header">
-                <h5 class="card-title mb-0">Student Document Completion</h5>
-            </div>
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-bordered align-middle">
-                        <thead>
-                            <tr>
-                                <th>Student</th>
-                                {% for doc in required_documents %}
-                                    <th>{{ doc.name }}</th>
-                                {% endfor %}
-                                <th>Progress</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for entry in students_with_docs %}
-                            <tr>
-                                <td>{{ entry.student.user.get_full_name }}</td>
-                                {% for doc in entry.doc_status %}
-                                    <td>
-                                        {% if doc.uploaded %}
-                                            {% if doc.file|file_ext:'.jpg' or doc.file|file_ext:'.jpeg' or doc.file|file_ext:'.png' %}
-                                                <a href="{{ doc.file }}" target="_blank">
-                                                    <img src="{{ doc.file }}" alt="Preview" style="max-width: 60px; max-height: 60px; border-radius: 4px; border: 1px solid #ddd; margin-bottom: 4px;">
-                                                </a><br>
-                                            {% elif doc.file|file_ext:'.pdf' %}
-                                                <a href="{{ doc.file }}" target="_blank">
-                                                    <embed src="{{ doc.file }}" type="application/pdf" width="60" height="60" style="border-radius: 4px; border: 1px solid #ddd; margin-bottom: 4px;" />
-                                                </a><br>
-                                            {% elif doc.file|file_ext:'.xlsx' or doc.file|file_ext:'.xls' %}
-                                                <span class="badge bg-success"><i class="bi bi-file-earmark-excel"></i> Excel</span><br>
-                                            {% endif %}
-                                            <a href="{{ doc.file }}" class="btn btn-sm btn-outline-secondary" target="_blank">Download</a>
-                                        {% else %}
-                                            <span class="badge bg-danger">✗</span>
-                                        {% endif %}
-                                    </td>
-                                {% endfor %}
-                                <td style="min-width:120px;">
-                                    <div class="progress">
-                                        <div class="progress-bar bg-success" role="progressbar" style="width: {{ entry.progress }}%;" aria-valuenow="{{ entry.progress }}" aria-valuemin="0" aria-valuemax="100">{{ entry.progress }}%</div>
-                                    </div>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
 {% endblock dashboard_content %}
 
 {% block extra_js %}

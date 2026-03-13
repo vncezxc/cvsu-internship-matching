@@ -20,6 +20,9 @@ urlpatterns = [
 
     # Adviser document review
     path('adviser/documents/', views.adviser_documents_review, name='adviser_documents_review'),
+    path('adviser/document-completion/', views.adviser_document_completion, name='adviser_document_completion'),
+    path('adviser/ojt-records/', views.adviser_ojt_records, name='adviser_ojt_records'),
+    path('adviser/custom-submissions/', views.adviser_custom_submissions, name='adviser_custom_submissions'),
 
     # DTR Submission and Review
     path('student/dtr/submit/', views.submit_dtr, name='submit_dtr'),

@@ -214,6 +214,28 @@
 
 {% block dashboard_content %}
 <div class="container py-4">
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-2 align-items-end">
+                <div class="col-md-6">
+                    <label class="form-label">Search</label>
+                    <input type="text" name="q" class="form-control" value="{{ query }}" placeholder="Name, email, or student ID">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Document Status</label>
+                    <select name="status" class="form-select">
+                        <option value="all" {% if status_filter == 'all' %}selected{% endif %}>All</option>
+                        <option value="approved" {% if status_filter == 'approved' %}selected{% endif %}>All Approved</option>
+                        <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending Approval</option>
+                        <option value="missing" {% if status_filter == 'missing' %}selected{% endif %}>Missing Documents</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">Filter</button>
+                </div>
+            </form>
+        </div>
+    </div>
     <div class="card hover-lift document-review-card">
         <div class="card-header">
             <h5 class="mb-0"><i class="bi bi-clipboard-check me-2"></i>Student Submissions</h5>
@@ -228,6 +250,7 @@
                             <th>Template</th>
                             <th>Student Upload</th>
                             <th>Status</th>
+                            <th>Overall</th>
                             <th>Action</th>
                         </tr>
                     </thead>
@@ -237,7 +260,9 @@
                                 <tr {% if forloop.first %}class="student-name-row"{% endif %}>
                                     {% if forloop.first %}
                                         <td rowspan="{{ required_docs|length }}">
-                                            <strong>{{ student.get_full_name }}</strong>
+                                            <strong class="d-inline-block text-truncate" style="max-width: 220px;" title="{{ student.get_full_name }}">{{ student.get_full_name }}</strong>
+                                            <br>
+                                            <small class="text-muted d-inline-block text-truncate" style="max-width: 220px;" title="{{ student.user.email }}">{{ student.user.email }}</small>
                                             <br><small class="text-muted">{{ student.course.name }} - {{ student.section }}</small>
                                         </td>
                                     {% endif %}
@@ -268,6 +293,19 @@
                                             {% endif %}
                                         {% endwith %}
                                     </td>
+                                    {% if forloop.first %}
+                                        {% with summary=status_map|get_item:student.id %}
+                                        <td rowspan="{{ required_docs|length }}">
+                                            {% if summary.status == 'approved' %}
+                                                <span class="badge bg-success">Approved</span>
+                                            {% elif summary.status == 'pending' %}
+                                                <span class="badge bg-warning text-dark">Pending</span>
+                                            {% else %}
+                                                <span class="badge bg-danger">Missing</span>
+                                            {% endif %}
+                                        </td>
+                                        {% endwith %}
+                                    {% endif %}
                                     <td>
                                         {% with stu_doc=doc_map|get_item:student.id|get_item:doc.id %}
                                             {% if stu_doc %}
@@ -284,6 +322,21 @@
                                                 <span class="badge bg-secondary status-badge">N/A</span>
                                             {% endif %}
                                         {% endwith %}
+                                {% if page_obj.paginator.num_pages > 1 %}
+                                <nav class="mt-3">
+                                    <ul class="pagination justify-content-end">
+                                        <li class="page-item {% if not page_obj.has_previous %}disabled{% endif %}">
+                                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}&q={{ query|urlencode }}&status={{ status_filter }}">Previous</a>
+                                        </li>
+                                        <li class="page-item active">
+                                            <span class="page-link">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+                                        </li>
+                                        <li class="page-item {% if not page_obj.has_next %}disabled{% endif %}">
+                                            <a class="page-link" href="?page={{ page_obj.next_page_number }}&q={{ query|urlencode }}&status={{ status_filter }}">Next</a>
+                                        </li>
+                                    </ul>
+                                </nav>
+                                {% endif %}
                                     </td>
                                     <td>
                                         {% with stu_doc=doc_map|get_item:student.id|get_item:doc.id %}

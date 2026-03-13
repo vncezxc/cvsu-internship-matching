@@ -1,0 +1,194 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load file_extras %}
+
+{% block dashboard_title %}Student Document Completion{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --cvsu-dark-green: #030403;
+        --cvsu-light-gray: #787A66;
+        --cvsu-green: #064E07;
+        --cvsu-gold: #EFB60A;
+        --cvsu-red: #CF120F;
+        --cvsu-white: #FFFFFF;
+        --cvsu-green-light: #0a6d0b;
+        --gray-50: #f8f9fa;
+        --gray-100: #e9ecef;
+        --gray-200: #dee2e6;
+        --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
+        --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+        --shadow-lg: 0 10px 30px rgba(0,0,0,0.15);
+        --radius-sm: 0.5rem;
+        --radius-md: 1rem;
+        --radius-lg: 1.5rem;
+        --font-family: 'Nunito', Arial, sans-serif;
+        --font-weight-normal: 400;
+        --font-weight-medium: 600;
+        --font-weight-bold: 700;
+    }
+
+    .card {
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-md);
+        border: none;
+        font-family: var(--font-family);
+        animation: fadeIn 0.7s ease-out;
+        overflow: hidden;
+    }
+
+    .card-header {
+        background: linear-gradient(135deg, var(--cvsu-green), var(--cvsu-green-light)) !important;
+        color: var(--cvsu-white) !important;
+        border-radius: var(--radius-md) var(--radius-md) 0 0 !important;
+        padding: 1.25rem 1.5rem;
+        border: none;
+    }
+
+    .card-header h5 {
+        font-weight: var(--font-weight-bold);
+        margin: 0;
+    }
+
+    .table {
+        border-radius: var(--radius-md);
+        overflow: hidden;
+        box-shadow: var(--shadow-sm);
+        margin-bottom: 0;
+    }
+
+    .table thead th {
+        background: linear-gradient(135deg, var(--cvsu-green), var(--cvsu-green-light));
+        color: var(--cvsu-white);
+        font-weight: var(--font-weight-medium);
+        border: none;
+        padding: 1rem 0.75rem;
+    }
+
+    .table-striped tbody tr:nth-of-type(odd) {
+        background-color: var(--gray-50);
+    }
+
+    .progress {
+        border-radius: var(--radius-sm);
+        background-color: var(--gray-200);
+        height: 1.5rem;
+    }
+
+    .progress-bar {
+        background: linear-gradient(90deg, var(--cvsu-green) 80%, var(--cvsu-gold) 100%);
+        border-radius: var(--radius-sm);
+        font-weight: var(--font-weight-medium);
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="container py-4">
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-2 align-items-end">
+                <div class="col-md-6">
+                    <label class="form-label">Search</label>
+                    <input type="text" name="q" class="form-control" value="{{ query }}" placeholder="Name, email, or student ID">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Document Status</label>
+                    <select name="status" class="form-select">
+                        <option value="all" {% if status_filter == 'all' %}selected{% endif %}>All</option>
+                        <option value="approved" {% if status_filter == 'approved' %}selected{% endif %}>All Approved</option>
+                        <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending Approval</option>
+                        <option value="missing" {% if status_filter == 'missing' %}selected{% endif %}>Missing Documents</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">Filter</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-header">
+            <h5 class="mb-0">Student Document Completion</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered table-striped align-middle">
+                    <thead>
+                        <tr>
+                            <th>Student</th>
+                            {% for doc in required_documents %}
+                                <th>{{ doc.name }}</th>
+                            {% endfor %}
+                            <th>Progress</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for entry in students_with_docs %}
+                        <tr>
+                            <td>
+                                <strong class="d-inline-block text-truncate" style="max-width: 220px;" title="{{ entry.student.get_full_name }}">{{ entry.student.get_full_name }}</strong>
+                                <br>
+                                <small class="text-muted d-inline-block text-truncate" style="max-width: 220px;" title="{{ entry.student.user.email }}">{{ entry.student.user.email }}</small>
+                                <br><small class="text-muted">{{ entry.student.course.name }} - {{ entry.student.section }}</small>
+                            </td>
+                            {% for doc in entry.doc_status %}
+                                <td>
+                                    {% if doc.uploaded %}
+                                        {% if doc.file|file_ext:'.jpg' or doc.file|file_ext:'.jpeg' or doc.file|file_ext:'.png' %}
+                                            <a href="{{ doc.file }}" target="_blank">
+                                                <img src="{{ doc.file }}" alt="Preview" style="max-width: 60px; max-height: 60px; border-radius: 4px; border: 1px solid #ddd; margin-bottom: 4px;">
+                                            </a><br>
+                                        {% elif doc.file|file_ext:'.pdf' %}
+                                            <a href="{{ doc.file }}" target="_blank">
+                                                <embed src="{{ doc.file }}" type="application/pdf" width="60" height="60" style="border-radius: 4px; border: 1px solid #ddd; margin-bottom: 4px;" />
+                                            </a><br>
+                                        {% elif doc.file|file_ext:'.xlsx' or doc.file|file_ext:'.xls' %}
+                                            <span class="badge bg-success"><i class="bi bi-file-earmark-excel"></i> Excel</span><br>
+                                        {% endif %}
+                                        <a href="{{ doc.file }}" class="btn btn-sm btn-outline-secondary" target="_blank">Download</a>
+                                    {% else %}
+                                        <span class="badge bg-danger">✗</span>
+                                    {% endif %}
+                                </td>
+                            {% endfor %}
+                            <td style="min-width:120px;">
+                                <div class="progress">
+                                    <div class="progress-bar bg-success" role="progressbar" style="width: {{ entry.progress }}%;" aria-valuenow="{{ entry.progress }}" aria-valuemin="0" aria-valuemax="100">{{ entry.progress }}%</div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="{{ required_documents|length|add:2 }}" class="text-center text-muted">No students found.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {% if page_obj.paginator.num_pages > 1 %}
+            <nav class="mt-3">
+                <ul class="pagination justify-content-end">
+                    <li class="page-item {% if not page_obj.has_previous %}disabled{% endif %}">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}&q={{ query|urlencode }}&status={{ status_filter }}">Previous</a>
+                    </li>
+                    <li class="page-item active">
+                        <span class="page-link">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+                    </li>
+                    <li class="page-item {% if not page_obj.has_next %}disabled{% endif %}">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}&q={{ query|urlencode }}&status={{ status_filter }}">Next</a>
+                    </li>
+                </ul>
+            </nav>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

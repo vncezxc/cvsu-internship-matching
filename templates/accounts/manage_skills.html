@@ -185,6 +185,34 @@
         box-shadow: 0 0 0 0.25rem rgba(239, 182, 10, 0.25);
     }
 
+    .skill-suggestions {
+        background: var(--cvsu-white);
+        border: 1px solid var(--gray-200);
+        border-radius: var(--radius-sm);
+        box-shadow: var(--shadow-md);
+        margin-top: 0.5rem;
+        overflow: hidden;
+    }
+
+    .skill-suggestion-item {
+        width: 100%;
+        text-align: left;
+        padding: 0.6rem 0.9rem;
+        border: none;
+        background: transparent;
+        font-family: var(--font-family);
+    }
+
+    .skill-suggestion-item:hover {
+        background: var(--gray-50);
+    }
+
+    .skill-suggestion-empty {
+        padding: 0.6rem 0.9rem;
+        color: var(--cvsu-light-gray);
+        font-size: 0.9rem;
+    }
+
     .btn-outline-primary {
         color: var(--cvsu-green) !important;
         border-color: var(--cvsu-green) !important;
@@ -395,26 +423,17 @@
                     <h5 class="section-title">
                         <i class="fas fa-lightbulb me-2"></i>Suggested Skills for {{ selected_course_name }}
                     </h5>
-                    <div id="skill-chips" class="skill-chips-container">
-                        <p class="empty-skills">Loading suggested skills...</p>
-                    </div>
-                    <div class="skills-help">
-                        <i class="fas fa-info-circle me-1"></i>
-                        Click on the suggested skills above to add them to your profile
-                    </div>
-                </div>
-
-                <div class="custom-skills-section">
-                    <label for="custom-skill-input" class="form-label">
-                        <i class="fas fa-plus-circle me-2"></i>Add Custom Skill
+                    <label for="skill-search-input" class="form-label">
+                        <i class="fas fa-search me-2"></i>Search and add skills
                     </label>
                     <div class="input-group">
-                        <input type="text" id="custom-skill-input" class="form-control" 
-                               placeholder="Type a skill and press Enter or click Add">
+                        <input type="text" id="skill-search-input" class="form-control" 
+                               placeholder="Start typing a skill">
                         <button type="button" id="add-custom-skill" class="btn btn-outline-primary">
                             <i class="fas fa-plus me-1"></i>Add Skill
                         </button>
                     </div>
+                    <div id="skill-suggestions" class="skill-suggestions"></div>
                 </div>
 
                 <div class="selected-skills-section">

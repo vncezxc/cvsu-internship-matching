@@ -4,6 +4,7 @@ from django.contrib import messages
 from django.http import JsonResponse, HttpResponse
 from django.utils import timezone
 from django.db.models import Count, Q
+from django.core.paginator import Paginator
 from django.core.mail import send_mail
 import json
 import csv
@@ -62,12 +63,68 @@ def adviser_documents_review(request):
         course__in=adviser.courses.all(),
         section__in=adviser.get_sections_list()
     )
-    required_docs = RequiredDocument.objects.all()
-    student_docs = StudentDocument.objects.filter(student__in=advisees)
+    query = request.GET.get('q', '').strip()
+    status_filter = request.GET.get('status', 'all')
+
+    if query:
+        advisees = advisees.filter(
+            Q(user__first_name__icontains=query)
+            | Q(user__last_name__icontains=query)
+            | Q(user__email__icontains=query)
+            | Q(student_id__icontains=query)
+        )
+
+    required_docs = list(RequiredDocument.objects.all())
+    required_ids = [doc.id for doc in required_docs]
+    required_total = len(required_docs)
+
+    doc_counts = StudentDocument.objects.filter(
+        student__in=advisees,
+        document_type_id__in=required_ids
+    ).values('student_id').annotate(
+        uploaded_count=Count('document_type', distinct=True),
+        approved_count=Count('document_type', distinct=True, filter=Q(approved=True))
+    )
+    counts_map = {c['student_id']: c for c in doc_counts}
+
+    def student_status(student_id):
+        counts = counts_map.get(student_id, {})
+        uploaded = counts.get('uploaded_count', 0)
+        approved = counts.get('approved_count', 0)
+        if required_total == 0:
+            return 'approved'
+        if uploaded < required_total:
+            return 'missing'
+        if approved == required_total:
+            return 'approved'
+        return 'pending'
+
+    if status_filter in ['missing', 'pending', 'approved']:
+        matching_ids = [s.id for s in advisees if student_status(s.id) == status_filter]
+        advisees = advisees.filter(id__in=matching_ids)
+
+    advisees = advisees.order_by('user__last_name', 'user__first_name')
+    paginator = Paginator(advisees, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    page_student_ids = [student.id for student in page_obj]
+    student_docs = StudentDocument.objects.filter(student_id__in=page_student_ids, document_type_id__in=required_ids)
     # Map: {student_id: {doc_id: StudentDocument}}
     doc_map = {}
     for doc in student_docs:
         doc_map.setdefault(doc.student_id, {})[doc.document_type_id] = doc
+
+    status_map = {}
+    for student in page_obj:
+        counts = counts_map.get(student.id, {})
+        uploaded = counts.get('uploaded_count', 0)
+        approved = counts.get('approved_count', 0)
+        status_map[student.id] = {
+            'uploaded': uploaded,
+            'approved': approved,
+            'status': student_status(student.id),
+        }
     if request.method == 'POST':
         # Approve a document
         doc_id = request.POST.get('doc_id')
@@ -78,9 +135,13 @@ def adviser_documents_review(request):
             messages.success(request, f"Document '{stu_doc.document_type.name}' for {stu_doc.student.get_full_name()} approved.")
         return redirect('dashboard:adviser_documents_review')
     return render(request, 'dashboard/adviser_documents_review.html', {
-        'advisees': advisees,
+        'advisees': page_obj,
+        'page_obj': page_obj,
         'required_docs': required_docs,
         'doc_map': doc_map,
+        'query': query,
+        'status_filter': status_filter,
+        'status_map': status_map,
     })
 
 # --- Coordinator: Upload/Update student document ---
@@ -432,6 +493,212 @@ def adviser_dashboard(request):
         'required_documents': required_documents,
     }
     return render(request, 'dashboard/adviser_dashboard.html', context)
+
+
+@login_required
+def adviser_document_completion(request):
+    if not request.user.is_adviser:
+        messages.error(request, 'Only advisers can access this page.')
+        return redirect('dashboard:home')
+
+    adviser = request.user.adviser_profile
+    advisees = StudentProfile.objects.filter(
+        course__in=adviser.courses.all(),
+        section__in=adviser.get_sections_list()
+    ).select_related('user', 'course')
+
+    query = request.GET.get('q', '').strip()
+    status_filter = request.GET.get('status', 'all')
+
+    if query:
+        advisees = advisees.filter(
+            Q(user__first_name__icontains=query)
+            | Q(user__last_name__icontains=query)
+            | Q(user__email__icontains=query)
+            | Q(student_id__icontains=query)
+        )
+
+    required_documents = list(RequiredDocument.objects.all())
+    required_ids = [doc.id for doc in required_documents]
+    required_total = len(required_documents)
+
+    doc_counts = StudentDocument.objects.filter(
+        student__in=advisees,
+        document_type_id__in=required_ids
+    ).values('student_id').annotate(
+        uploaded_count=Count('document_type', distinct=True),
+        approved_count=Count('document_type', distinct=True, filter=Q(approved=True))
+    )
+    counts_map = {c['student_id']: c for c in doc_counts}
+
+    def student_status(student_id):
+        counts = counts_map.get(student_id, {})
+        uploaded = counts.get('uploaded_count', 0)
+        approved = counts.get('approved_count', 0)
+        if required_total == 0:
+            return 'approved'
+        if uploaded < required_total:
+            return 'missing'
+        if approved == required_total:
+            return 'approved'
+        return 'pending'
+
+    if status_filter in ['missing', 'pending', 'approved']:
+        matching_ids = [s.id for s in advisees if student_status(s.id) == status_filter]
+        advisees = advisees.filter(id__in=matching_ids)
+
+    advisees = advisees.order_by('user__last_name', 'user__first_name')
+    paginator = Paginator(advisees, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    students_with_docs = []
+    for student in page_obj:
+        uploaded_docs = {doc.document_type_id: doc for doc in student.documents.all()}
+        doc_status = []
+        for req_doc in required_documents:
+            doc = uploaded_docs.get(req_doc.id)
+            doc_status.append({
+                'required': req_doc,
+                'uploaded': doc is not None,
+                'file': doc.file.url if doc else None,
+            })
+        total = len(required_documents)
+        completed = sum(1 for d in doc_status if d['uploaded'])
+        progress = int((completed / total) * 100) if total > 0 else 0
+        students_with_docs.append({
+            'student': student,
+            'doc_status': doc_status,
+            'progress': progress,
+            'status': student_status(student.id),
+        })
+
+    return render(request, 'dashboard/adviser_document_completion.html', {
+        'page_obj': page_obj,
+        'students_with_docs': students_with_docs,
+        'required_documents': required_documents,
+        'query': query,
+        'status_filter': status_filter,
+    })
+
+
+@login_required
+def adviser_ojt_records(request):
+    if not request.user.is_adviser:
+        messages.error(request, 'Only advisers can access this page.')
+        return redirect('dashboard:home')
+
+    adviser = request.user.adviser_profile
+    students = StudentProfile.objects.filter(
+        course__in=adviser.courses.all(),
+        section__in=adviser.get_sections_list()
+    ).select_related('user', 'course', 'current_internship__internship__company')
+
+    query = request.GET.get('q', '').strip()
+    section_filter = request.GET.get('section', '').strip()
+    company_filter = request.GET.get('company', '').strip()
+
+    if query:
+        students = students.filter(
+            Q(user__first_name__icontains=query)
+            | Q(user__last_name__icontains=query)
+            | Q(student_id__icontains=query)
+        )
+    if section_filter:
+        students = students.filter(section__iexact=section_filter)
+    if company_filter:
+        students = students.filter(current_internship__internship__company__name__icontains=company_filter)
+
+    students = students.order_by('user__last_name', 'user__first_name')
+    paginator = Paginator(students, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, 'dashboard/adviser_ojt_records.html', {
+        'page_obj': page_obj,
+        'query': query,
+        'section_filter': section_filter,
+        'company_filter': company_filter,
+        'sections': adviser.get_sections_list(),
+    })
+
+
+@login_required
+def adviser_custom_submissions(request):
+    if not request.user.is_adviser:
+        messages.error(request, 'Only advisers can access this page.')
+        return redirect('dashboard:home')
+
+    adviser = request.user.adviser_profile
+    submissions = Internship.objects.filter(
+        approval_status=Internship.ApprovalStatus.PENDING,
+        submitted_by__course__in=adviser.courses.all(),
+        submitted_by__section__in=adviser.get_sections_list()
+    ).select_related('company', 'submitted_by__user')
+
+    query = request.GET.get('q', '').strip()
+    if query:
+        submissions = submissions.filter(
+            Q(submitted_by__user__first_name__icontains=query)
+            | Q(submitted_by__user__last_name__icontains=query)
+            | Q(submitted_by__student_id__icontains=query)
+            | Q(company__name__icontains=query)
+            | Q(title__icontains=query)
+        )
+
+    if request.method == 'POST':
+        submission_id = request.POST.get('submission_id')
+        action = request.POST.get('action')
+        remarks = request.POST.get('remarks', '').strip()
+        is_red_flag = request.POST.get('is_red_flag') == 'on'
+
+        submission = get_object_or_404(submissions, id=submission_id)
+        submission.adviser = adviser
+        submission.adviser_remarks = remarks
+        submission.is_red_flag = is_red_flag
+
+        company = submission.company
+        company.is_red_flag = is_red_flag
+        company.adviser_remark = remarks
+
+        if action == 'accept':
+            submission.approval_status = Internship.ApprovalStatus.APPROVED
+            submission.is_active = True
+            company.approval_status = Company.ApprovalStatus.APPROVED
+            company.status = Company.Status.ACTIVE
+
+            application, created = Application.objects.get_or_create(
+                student=submission.submitted_by,
+                internship=submission,
+                defaults={'status': Application.Status.ACCEPTED, 'match_score': 0}
+            )
+            if not created and application.status != Application.Status.ACCEPTED:
+                application.status = Application.Status.ACCEPTED
+                application.save(update_fields=['status'])
+
+            messages.success(request, 'Custom submission approved and assigned to student.')
+        elif action == 'reject':
+            submission.approval_status = Internship.ApprovalStatus.REJECTED
+            submission.is_active = False
+            company.approval_status = Company.ApprovalStatus.REJECTED
+            company.status = Company.Status.INACTIVE
+            messages.info(request, 'Custom submission rejected.')
+        else:
+            messages.error(request, 'Invalid action.')
+
+        submission.save()
+        company.save()
+        return redirect('dashboard:adviser_custom_submissions')
+
+    submissions = submissions.order_by('-created_at')
+    paginator = Paginator(submissions, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, 'dashboard/adviser_custom_submissions.html', {
+        'page_obj': page_obj,
+        'query': query,
+    })
 
 # Coordinator dashboard
 @login_required
@@ -1112,6 +1379,23 @@ def edit_coordinator_profile(request):
         return redirect('dashboard:coordinator_dashboard')
     return render(request, 'dashboard/edit_coordinator_profile.html', {'profile': profile})
 
+
+def _draw_report_header(canvas_obj, title, request):
+    """Draw a consistent header on PDF reports."""
+    generated_at = timezone.now().strftime('%Y-%m-%d %H:%M')
+    role = request.user.get_user_type_display() if hasattr(request.user, 'get_user_type_display') else 'User'
+
+    canvas_obj.setFillColor(colors.HexColor('#064E07'))
+    canvas_obj.setFont('Helvetica-Bold', 14)
+    canvas_obj.drawString(40, 560, 'CVSU Internship Matching')
+
+    canvas_obj.setFillColor(colors.black)
+    canvas_obj.setFont('Helvetica-Bold', 12)
+    canvas_obj.drawString(40, 540, title)
+
+    canvas_obj.setFont('Helvetica', 9)
+    canvas_obj.drawString(40, 525, f'Generated: {generated_at} | Role: {role}')
+
 @login_required
 def generate_student_list_pdf(request):
     """Generate student list report as PDF."""
@@ -1147,6 +1431,7 @@ def generate_student_list_pdf(request):
     from reportlab.lib.pagesizes import A4
     buffer = BytesIO()
     p = canvas.Canvas(buffer, pagesize=landscape(A4))
+    _draw_report_header(p, 'Student List Report', request)
     data = [['Student ID', 'Name', 'Email', 'Course', 'Section', 'Year Level', 'OJT Status', 'OJT Hours', 'Company', 'Company Email', 'HR Email', 'Internship Title']]
     # Store OJT status for color coding
     student_statuses = []
@@ -1241,7 +1526,7 @@ def generate_student_list_pdf(request):
     table_width, table_height = table.wrapOn(p, 0, 0)
     page_width, page_height = landscape(A4)
     x = (page_width - table_width) / 2
-    y = page_height - table_height - 80
+    y = page_height - table_height - 110
     table.drawOn(p, x, y)
     p.showPage()
     p.save()
@@ -1257,6 +1542,7 @@ def generate_ojt_tracking_pdf(request):
     students = StudentProfile.objects.all().select_related('user', 'course')
     buffer = BytesIO()
     p = canvas.Canvas(buffer, pagesize=landscape(letter))
+    _draw_report_header(p, 'OJT Tracking Report', request)
     data = [['Name', 'Course', 'Section', 'OJT Status', 'OJT Hours Completed', 'OJT Hours Required']]
     for s in students:
         data.append([
@@ -1278,7 +1564,7 @@ def generate_ojt_tracking_pdf(request):
         ('GRID', (0,0), (-1,-1), 1, colors.black),
     ]))
     table.wrapOn(p, 800, 600)
-    table.drawOn(p, 30, 500 - 20 * len(data))
+    table.drawOn(p, 30, 470 - 20 * len(data))
     p.showPage()
     p.save()
     buffer.seek(0)
@@ -1293,6 +1579,7 @@ def generate_company_list_pdf(request):
     companies = Company.objects.all()
     buffer = BytesIO()
     p = canvas.Canvas(buffer, pagesize=landscape(letter))
+    _draw_report_header(p, 'Company List Report', request)
     data = [['Name', 'Email', 'HR Email', 'Phone', 'Status', 'City', 'Province']]
     for c in companies:
         data.append([
@@ -1315,7 +1602,7 @@ def generate_company_list_pdf(request):
         ('GRID', (0,0), (-1,-1), 1, colors.black),
     ]))
     table.wrapOn(p, 800, 600)
-    table.drawOn(p, 30, 500 - 20 * len(data))
+    table.drawOn(p, 30, 470 - 20 * len(data))
     p.showPage()
     p.save()
     buffer.seek(0)
@@ -1330,6 +1617,7 @@ def generate_application_summary_pdf(request):
     applications = Application.objects.select_related('student', 'internship')
     buffer = BytesIO()
     p = canvas.Canvas(buffer, pagesize=landscape(letter))
+    _draw_report_header(p, 'Application Summary Report', request)
     data = [['Student', 'Internship', 'Company', 'Status', 'Applied At']]
     for a in applications:
         data.append([
@@ -1350,7 +1638,7 @@ def generate_application_summary_pdf(request):
         ('GRID', (0,0), (-1,-1), 1, colors.black),
     ]))
     table.wrapOn(p, 800, 600)
-    table.drawOn(p, 30, 500 - 20 * len(data))
+    table.drawOn(p, 30, 470 - 20 * len(data))
     p.showPage()
     p.save()
     buffer.seek(0)

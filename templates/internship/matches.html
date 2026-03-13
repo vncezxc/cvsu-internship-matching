@@ -276,16 +276,137 @@
             <p>Internship opportunities matched to your profile and skills</p>
         </div>
 
-        {% if matches %}
+        {% if matches_count %}
             <div class="row mb-4">
                 <div class="col">
                     <div class="info-alert d-flex align-items-center">
                         <i class="fas fa-info-circle me-2 fs-5"></i>
-                        <span>We found <strong>{{ matches.paginator.count }}</strong> internship opportunities that match your profile. Matches are sorted by relevance to your skills and course.</span>
+                        <span>We found <strong>{{ matches_count }}</strong> internship opportunities that match your profile. Matches are sorted by relevance to your skills and course.</span>
                     </div>
                 </div>
             </div>
             
+            {% if best_match %}
+            <div class="row mb-4">
+                <div class="col">
+                    <h4 class="mb-3">Best Match for You</h4>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-lg-6 mb-4">
+                    <div class="match-card card h-100">
+                        <div class="card-header d-flex align-items-center">
+                            {% if best_match.internship.company.logo %}
+                                <img src="{{ best_match.internship.company.logo.url }}" alt="{{ best_match.internship.company.name }}" class="me-2 rounded" style="max-height: 40px;">
+                            {% else %}
+                                <div class="company-avatar me-2">
+                                    <i class="fas fa-building"></i>
+                                </div>
+                            {% endif %}
+                            <h5 class="card-title mb-0 text-truncate">{{ best_match.internship.title }}</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="company-info mb-2">
+                                <i class="fas fa-building me-1"></i> {{ best_match.internship.company.name }}
+                            </div>
+                            <div class="company-info mb-3">
+                                <i class="fas fa-map-marker-alt me-1"></i> {{ best_match.internship.company.get_full_address }}
+                            </div>
+                        {% if best_match.internship.company.latitude and best_match.internship.company.longitude and profile.latitude and profile.longitude %}
+                        <div class="map-container" id="map-{{ best_match.internship.id }}" style="height: 220px;"></div>
+                        <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+                        <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+                        <script>
+                          document.addEventListener('DOMContentLoaded', function() {
+                            var map = L.map('map-{{ best_match.internship.id }}').setView([
+                              {{ best_match.internship.company.latitude }},
+                              {{ best_match.internship.company.longitude }}
+                            ], 13);
+                            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                              maxZoom: 19,
+                              attribution: '© OpenStreetMap'
+                            }).addTo(map);
+                            L.marker([
+                              {{ best_match.internship.company.latitude }},
+                              {{ best_match.internship.company.longitude }}
+                            ]).addTo(map).bindPopup('Company: {{ best_match.internship.company.name|escapejs }}');
+                            L.marker([
+                              {{ profile.latitude }},
+                              {{ profile.longitude }}
+                            ], {icon: L.icon({iconUrl: 'https://cdn-icons-png.flaticon.com/512/149/149071.png', iconSize: [32,32]})}).addTo(map).bindPopup('You (Student)');
+                            var latlngs = [
+                              [{{ profile.latitude }}, {{ profile.longitude }}],
+                              [{{ best_match.internship.company.latitude }}, {{ best_match.internship.company.longitude }}]
+                            ];
+                            var polyline = L.polyline(latlngs, {color: '#064E07', weight: 3, dashArray: '6, 8'}).addTo(map);
+                            map.fitBounds(polyline.getBounds(), {padding: [30, 30]});
+                          });
+                        </script>
+                        <div class="mb-3">
+                            <span class="distance-badge"><i class="fas fa-route me-1"></i>Distance: {{ best_match.distance_km }} km</span>
+                        </div>
+                        {% elif best_match.internship.company.latitude and best_match.internship.company.longitude %}
+                        <div class="map-container" id="map-{{ best_match.internship.id }}" style="height: 180px;"></div>
+                        <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+                        <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+                        <script>
+                          document.addEventListener('DOMContentLoaded', function() {
+                            var map = L.map('map-{{ best_match.internship.id }}').setView([
+                              {{ best_match.internship.company.latitude }},
+                              {{ best_match.internship.company.longitude }}
+                            ], 15);
+                            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                              maxZoom: 19,
+                              attribution: '© OpenStreetMap'
+                            }).addTo(map);
+                            L.marker([
+                              {{ best_match.internship.company.latitude }},
+                              {{ best_match.internship.company.longitude }}
+                            ]).addTo(map);
+                          });
+                        </script>
+                        {% endif %}
+                        <div class="mb-3 d-flex flex-wrap gap-2">
+                            <span class="match-score-badge"><i class="fas fa-chart-line me-1"></i>Match: {{ best_match.score }}%</span>
+                            <span class="slots-badge"><i class="fas fa-users me-1"></i>{{ best_match.internship.slots_available }} slots</span>
+                        </div>
+                        <div class="mb-3">
+                            <small class="text-muted d-block mb-2">Match breakdown:</small>
+                            <div class="d-flex flex-wrap gap-1">
+                                <span class="breakdown-badge breakdown-skill"><i class="fas fa-tools me-1"></i>Skills: {{ best_match.skill_pct }}%</span>
+                                <span class="breakdown-badge breakdown-course"><i class="fas fa-graduation-cap me-1"></i>Course: {{ best_match.course_pct }}%</span>
+                                <span class="breakdown-badge breakdown-location"><i class="fas fa-map-marker-alt me-1"></i>Location: {{ best_match.map_pct }}%</span>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <strong class="d-block mb-2"><i class="fas fa-tools text-muted me-1"></i>Required Skills:</strong>
+                            <div class="d-flex flex-wrap gap-1">
+                                {% for skill in best_match.internship.required_skills.all %}
+                                    <span class="skill-badge {% if skill in profile.skills.all %}skill-matched{% else %}skill-unmatched{% endif %}">{{ skill.name }}</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <p class="card-text text-truncate text-muted small">{{ best_match.internship.description }}</p>
+                    </div>
+                    <div class="card-footer border-0">
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'internship:company_detail' best_match.internship.company.id %}" class="btn btn-sm btn-outline-secondary">
+                                <i class="fas fa-building me-1"></i> Company
+                            </a>
+                            <a href="{% url 'internship:apply' best_match.internship.id %}" class="btn btn-sm btn-primary">
+                                <i class="fas fa-paper-plane me-1"></i> Apply Now
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="row mb-2">
+                <div class="col">
+                    <h4 class="mb-3">Other Matches</h4>
+                </div>
+            </div>
             <div class="row">
                 {% for match in matches %}
                     <div class="col-md-6 col-lg-4 mb-4">
@@ -321,17 +442,14 @@
                                   maxZoom: 19,
                                   attribution: '© OpenStreetMap'
                                 }).addTo(map);
-                                // Company marker
                                 var companyMarker = L.marker([
                                   {{ match.internship.company.latitude }},
                                   {{ match.internship.company.longitude }}
                                 ]).addTo(map).bindPopup('Company: {{ match.internship.company.name|escapejs }}');
-                                // Student marker
                                 var studentMarker = L.marker([
                                   {{ profile.latitude }},
                                   {{ profile.longitude }}
                                 ], {icon: L.icon({iconUrl: 'https://cdn-icons-png.flaticon.com/512/149/149071.png', iconSize: [32,32]})}).addTo(map).bindPopup('You (Student)');
-                                // Draw line between student and company
                                 var latlngs = [
                                   [{{ profile.latitude }}, {{ profile.longitude }}],
                                   [{{ match.internship.company.latitude }}, {{ match.internship.company.longitude }}]
@@ -398,8 +516,15 @@
                         </div>
                     </div>
                 </div>
-            {% endfor %}
-        </div>
+                {% empty %}
+                    <div class="col">
+                        <div class="info-alert d-flex align-items-center">
+                            <i class="fas fa-info-circle me-2 fs-5"></i>
+                            <span>No other matches found yet. Check back after updating your profile or skills.</span>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
         
         {% if matches.has_other_pages %}
         <div class="row mt-4">
@@ -465,6 +590,50 @@
                 </div>
             </div>
         </div>
+        {% if recommendations %}
+        <div class="row mt-4">
+            <div class="col">
+                <h4 class="mb-3">Internships You Might Like</h4>
+            </div>
+        </div>
+        <div class="row">
+            {% for internship in recommendations %}
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="match-card card h-100">
+                    <div class="card-header d-flex align-items-center">
+                        {% if internship.company.logo %}
+                            <img src="{{ internship.company.logo.url }}" alt="{{ internship.company.name }}" class="me-2 rounded" style="max-height: 40px;">
+                        {% else %}
+                            <div class="company-avatar me-2">
+                                <i class="fas fa-building"></i>
+                            </div>
+                        {% endif %}
+                        <h5 class="card-title mb-0 text-truncate">{{ internship.title }}</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="company-info mb-2">
+                            <i class="fas fa-building me-1"></i> {{ internship.company.name }}
+                        </div>
+                        <div class="company-info mb-3">
+                            <i class="fas fa-map-marker-alt me-1"></i> {{ internship.company.get_full_address }}
+                        </div>
+                        <p class="card-text text-truncate text-muted small">{{ internship.description }}</p>
+                    </div>
+                    <div class="card-footer border-0">
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'internship:company_detail' internship.company.id %}" class="btn btn-sm btn-outline-secondary">
+                                <i class="fas fa-building me-1"></i> Company
+                            </a>
+                            <a href="{% url 'internship:apply' internship.id %}" class="btn btn-sm btn-primary">
+                                <i class="fas fa-paper-plane me-1"></i> Apply Now
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
     {% endif %}
     </div>
 </div>

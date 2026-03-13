@@ -7,6 +7,7 @@ urlpatterns = [
     # Student views
     path('matches/', views.internship_matches, name='matches'),
     path('applications/', views.application_history, name='applications'),
+    path('custom-submission/', views.submit_custom_internship, name='custom_submission'),
     path('apply/<int:internship_id>/', views.apply_internship, name='apply'),
     path('company/<int:company_id>/', views.company_detail, name='company_detail'),
     path('company/<int:company_id>/review/', views.add_company_review, name='add_review'),
