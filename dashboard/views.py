@@ -519,6 +519,30 @@ def adviser_document_completion(request):
         )
 
     required_documents = list(RequiredDocument.objects.all())
+
+    acronym_map = {
+        'MOA': 'MOA',
+        'Endorsement Letter': 'EL',
+        'Recommendation Letter': 'RL',
+        'Trainee Industry Agreement Liability Waiver': 'TIALW',
+        'Parents Certification': 'PC',
+        'Student Evaluation Form': 'SEF',
+        'Placement': 'PL',
+        'Training Schedule Form': 'TSF',
+        'Approval Sheet': 'AS',
+    }
+
+    def make_acronym(name):
+        clean = (name or '').strip()
+        if clean in acronym_map:
+            return acronym_map[clean]
+        words = [w for w in clean.replace('-', ' ').split() if w]
+        if not words:
+            return clean
+        return ''.join(w[0].upper() for w in words[:6])
+
+    for req_doc in required_documents:
+        req_doc.short_label = make_acronym(req_doc.name)
     required_ids = [doc.id for doc in required_documents]
     required_total = len(required_documents)
 
@@ -609,6 +633,17 @@ def adviser_ojt_records(request):
     if company_filter:
         students = students.filter(current_internship__internship__company__name__icontains=company_filter)
 
+    company_suggestions = list(
+        StudentProfile.objects.filter(
+            course__in=adviser.courses.all(),
+            section__in=adviser.get_sections_list(),
+            current_internship__isnull=False
+        )
+        .values_list('current_internship__internship__company__name', flat=True)
+        .distinct()
+    )
+    company_suggestions = [c for c in company_suggestions if c]
+
     students = students.order_by('user__last_name', 'user__first_name')
     paginator = Paginator(students, 10)
     page_number = request.GET.get('page')
@@ -619,8 +654,96 @@ def adviser_ojt_records(request):
         'query': query,
         'section_filter': section_filter,
         'company_filter': company_filter,
+        'company_suggestions': company_suggestions,
         'sections': adviser.get_sections_list(),
     })
+
+
+@login_required
+def adviser_ojt_records_pdf(request):
+    if not request.user.is_adviser:
+        messages.error(request, 'Only advisers can access this report.')
+        return redirect('dashboard:home')
+
+    adviser = request.user.adviser_profile
+    students = StudentProfile.objects.filter(
+        course__in=adviser.courses.all(),
+        section__in=adviser.get_sections_list()
+    ).select_related('user', 'course', 'current_internship__internship__company')
+
+    query = request.GET.get('q', '').strip()
+    section_filter = request.GET.get('section', '').strip()
+    company_filter = request.GET.get('company', '').strip()
+
+    if query:
+        students = students.filter(
+            Q(user__first_name__icontains=query)
+            | Q(user__last_name__icontains=query)
+            | Q(student_id__icontains=query)
+        )
+    if section_filter:
+        students = students.filter(section__iexact=section_filter)
+    if company_filter:
+        students = students.filter(current_internship__internship__company__name__icontains=company_filter)
+
+    from reportlab.lib.pagesizes import A4
+    buffer = BytesIO()
+    p = canvas.Canvas(buffer, pagesize=landscape(A4))
+    _draw_report_header(p, 'OJT Records Report', request)
+
+    data = [[
+        'Student No.', 'Name', 'Section', 'Company', 'Company Email', 'HR Email',
+        'Contact No.', 'Address', 'Role'
+    ]]
+
+    for student in students.order_by('user__last_name', 'user__first_name'):
+        placement = student.current_internship
+        if placement and placement.internship and placement.internship.company:
+            company = placement.internship.company
+            internship = placement.internship
+            data.append([
+                student.student_id or '-',
+                student.get_full_name(),
+                student.section or '-',
+                company.name,
+                company.company_email,
+                company.hr_email,
+                company.phone_number,
+                company.get_full_address(),
+                internship.title,
+            ])
+        else:
+            data.append([
+                student.student_id or '-',
+                student.get_full_name(),
+                student.section or '-',
+                '-', '-', '-', '-', '-', '-',
+            ])
+
+    table = Table(data, repeatRows=1, colWidths=[55, 90, 45, 85, 95, 95, 65, 110, 80])
+    table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#064E07')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
+        ('ALIGN', (0, 1), (-1, -1), 'LEFT'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, 0), 7),
+        ('FONTSIZE', (0, 1), (-1, -1), 6),
+        ('TOPPADDING', (0, 0), (-1, -1), 3),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 3),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+    ]))
+
+    page_width, page_height = landscape(A4)
+    table_width, table_height = table.wrapOn(p, 0, 0)
+    x = max(30, (page_width - table_width) / 2)
+    y = page_height - table_height - 110
+    table.drawOn(p, x, max(40, y))
+
+    p.showPage()
+    p.save()
+    buffer.seek(0)
+    return HttpResponse(buffer, content_type='application/pdf')
 
 
 @login_required
@@ -715,6 +838,88 @@ def adviser_master_list_upload(request):
     def normalize_name(value):
         return ' '.join(str(value or '').strip().lower().split())
 
+    if request.method == 'POST' and request.POST.get('review_action'):
+        review_action = request.POST.get('review_action')
+        profile_id = request.POST.get('profile_id')
+        remarks = (request.POST.get('review_remarks') or '').strip()
+
+        pending_queryset = StudentProfile.objects.filter(
+            course__in=adviser.courses.all(),
+            section__in=adviser.get_sections_list(),
+            master_list_verification_status=StudentProfile.MasterListVerificationStatus.PENDING,
+        )
+        student_profile = get_object_or_404(pending_queryset, id=profile_id)
+
+        if review_action == 'approve':
+            student_profile.master_list_verified = True
+            student_profile.master_list_verification_status = StudentProfile.MasterListVerificationStatus.APPROVED
+            student_profile.master_list_reviewed_by = adviser
+            student_profile.master_list_reviewed_at = timezone.now()
+            student_profile.master_list_review_remarks = remarks or 'Approved by adviser review.'
+            student_profile.user.is_active = True
+            student_profile.user.save(update_fields=['is_active'])
+            student_profile.save(update_fields=[
+                'master_list_verified',
+                'master_list_verification_status',
+                'master_list_reviewed_by',
+                'master_list_reviewed_at',
+                'master_list_review_remarks',
+            ])
+            try:
+                login_url = request.build_absolute_uri('/accounts/login/')
+                send_mail(
+                    subject='Profile Verification Approved',
+                    message=(
+                        f"Hello {student_profile.get_full_name()},\n\n"
+                        "Your profile verification has been approved by your OJT adviser.\n"
+                        f"Remarks: {student_profile.master_list_review_remarks}\n\n"
+                        f"You may now log in here: {login_url}\n\n"
+                        "Thank you."
+                    ),
+                    from_email=None,
+                    recipient_list=[student_profile.user.email],
+                    fail_silently=True,
+                )
+            except Exception:
+                pass
+            messages.success(request, f"Approved profile for {student_profile.get_full_name()}.")
+        elif review_action == 'reject':
+            student_profile.master_list_verified = False
+            student_profile.master_list_verification_status = StudentProfile.MasterListVerificationStatus.REJECTED
+            student_profile.master_list_reviewed_by = adviser
+            student_profile.master_list_reviewed_at = timezone.now()
+            student_profile.master_list_review_remarks = remarks or 'Rejected by adviser review.'
+            student_profile.user.is_active = False
+            student_profile.user.save(update_fields=['is_active'])
+            student_profile.save(update_fields=[
+                'master_list_verified',
+                'master_list_verification_status',
+                'master_list_reviewed_by',
+                'master_list_reviewed_at',
+                'master_list_review_remarks',
+            ])
+            try:
+                send_mail(
+                    subject='Profile Verification Rejected',
+                    message=(
+                        f"Hello {student_profile.get_full_name()},\n\n"
+                        "Your profile verification was not approved by your OJT adviser.\n"
+                        f"Remarks: {student_profile.master_list_review_remarks}\n\n"
+                        "Please contact your adviser to update your information or master list details.\n\n"
+                        "Thank you."
+                    ),
+                    from_email=None,
+                    recipient_list=[student_profile.user.email],
+                    fail_silently=True,
+                )
+            except Exception:
+                pass
+            messages.info(request, f"Rejected profile for {student_profile.get_full_name()}.")
+        else:
+            messages.error(request, 'Invalid review action.')
+
+        return redirect('dashboard:adviser_master_list')
+
     if request.method == 'POST':
         upload_file = request.FILES.get('master_list')
         if not upload_file:
@@ -787,11 +992,17 @@ def adviser_master_list_upload(request):
 
     entries = AdviserMasterListEntry.objects.filter(adviser=adviser).order_by('full_name')[:50]
     last_upload = AdviserMasterListUpload.objects.filter(adviser=adviser).order_by('-uploaded_at').first()
+    pending_reviews = StudentProfile.objects.filter(
+        course__in=adviser.courses.all(),
+        section__in=adviser.get_sections_list(),
+        master_list_verification_status=StudentProfile.MasterListVerificationStatus.PENDING,
+    ).select_related('user', 'course').order_by('user__last_name', 'user__first_name')
 
     return render(request, 'dashboard/adviser_master_list.html', {
         'entries': entries,
         'last_upload': last_upload,
         'entries_count': AdviserMasterListEntry.objects.filter(adviser=adviser).count(),
+        'pending_reviews': pending_reviews,
     })
 
 # Coordinator dashboard
@@ -1477,18 +1688,15 @@ def edit_coordinator_profile(request):
 def _draw_report_header(canvas_obj, title, request):
     """Draw a consistent header on PDF reports."""
     generated_at = timezone.now().strftime('%Y-%m-%d %H:%M')
-    role = request.user.get_user_type_display() if hasattr(request.user, 'get_user_type_display') else 'User'
-
-    canvas_obj.setFillColor(colors.HexColor('#064E07'))
-    canvas_obj.setFont('Helvetica-Bold', 14)
-    canvas_obj.drawString(40, 560, 'CVSU Internship Matching')
+    generated_by = request.user.get_full_name() or request.user.username
 
     canvas_obj.setFillColor(colors.black)
-    canvas_obj.setFont('Helvetica-Bold', 12)
-    canvas_obj.drawString(40, 540, title)
+    canvas_obj.setFont('Helvetica-Bold', 14)
+    canvas_obj.drawString(40, 560, title)
 
     canvas_obj.setFont('Helvetica', 9)
-    canvas_obj.drawString(40, 525, f'Generated: {generated_at} | Role: {role}')
+    canvas_obj.drawString(40, 542, f'Generated: {generated_at}')
+    canvas_obj.drawString(40, 528, f'Generated by: {generated_by}')
 
 @login_required
 def generate_student_list_pdf(request):

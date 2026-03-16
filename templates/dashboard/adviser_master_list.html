@@ -131,4 +131,54 @@
         </div>
     </div>
 </div>
+
+<div class="container py-2">
+    <div class="card shadow-sm mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">Pending Student Profile Reviews</h5>
+        </div>
+        <div class="card-body">
+            <div>
+                <table class="table table-bordered table-striped align-middle">
+                    <thead>
+                        <tr>
+                            <th>Student ID</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Course</th>
+                            <th>Section</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for student in pending_reviews %}
+                        <tr>
+                            <td>{{ student.student_id|default:'-' }}</td>
+                            <td>{{ student.get_full_name }}</td>
+                            <td>{{ student.user.email }}</td>
+                            <td>{{ student.course.name|default:'-' }}</td>
+                            <td>{{ student.section|default:'-' }}</td>
+                            <td>
+                                <form method="post" class="d-flex flex-column gap-2">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="profile_id" value="{{ student.id }}">
+                                    <textarea name="review_remarks" class="form-control form-control-sm" rows="2" placeholder="Remarks (optional)"></textarea>
+                                    <div class="d-flex gap-2">
+                                        <button type="submit" name="review_action" value="approve" class="btn btn-sm btn-success">Approve</button>
+                                        <button type="submit" name="review_action" value="reject" class="btn btn-sm btn-outline-danger">Reject</button>
+                                    </div>
+                                </form>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center text-muted">No pending student profile reviews.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}

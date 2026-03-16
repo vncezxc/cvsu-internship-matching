@@ -106,13 +106,24 @@
                 </div>
                 <div class="col-md-3">
                     <label class="form-label">Company</label>
-                    <input type="text" name="company" class="form-control" value="{{ company_filter }}" placeholder="Company name">
+                    <input type="text" name="company" class="form-control" id="company-search" value="{{ company_filter }}" placeholder="Company name" list="company-suggestions" autocomplete="off">
+                    <datalist id="company-suggestions">
+                        {% for company_name in company_suggestions %}
+                            <option value="{{ company_name }}"></option>
+                        {% endfor %}
+                    </datalist>
                 </div>
                 <div class="col-md-1">
                     <button type="submit" class="btn btn-primary w-100">Go</button>
                 </div>
             </form>
         </div>
+    </div>
+
+    <div class="d-flex justify-content-end mb-3">
+        <a class="btn btn-outline-primary" href="{% url 'dashboard:adviser_ojt_records_pdf' %}?q={{ query|urlencode }}&section={{ section_filter|urlencode }}&company={{ company_filter|urlencode }}">
+            <i class="bi bi-file-earmark-pdf"></i> Export PDF
+        </a>
     </div>
 
     <div class="card shadow-sm">
@@ -202,4 +213,22 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const form = document.querySelector('form[method="get"]');
+    const companyInput = document.getElementById('company-search');
+    if (!form || !companyInput) return;
+
+    let timer = null;
+    companyInput.addEventListener('input', function () {
+        clearTimeout(timer);
+        timer = setTimeout(function () {
+            form.submit();
+        }, 350);
+    });
+});
+</script>
 {% endblock %}

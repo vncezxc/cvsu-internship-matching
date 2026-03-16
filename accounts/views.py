@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.contrib.auth import update_session_auth_hash
+from django.contrib.auth import update_session_auth_hash, logout
 from django.contrib.auth.forms import PasswordChangeForm
 from django.http import JsonResponse
 from django.conf import settings
@@ -135,6 +135,26 @@ def edit_profile(request):
                 def normalize_name(value):
                     return ' '.join(str(value or '').strip().lower().split())
 
+                def save_profile_and_skills(form_obj, user_obj, skills_payload):
+                    user_obj.first_name = form_obj.cleaned_data['first_name']
+                    user_obj.last_name = form_obj.cleaned_data['last_name']
+                    user_obj.email = form_obj.cleaned_data['email']
+                    user_obj.save()
+
+                    saved_profile = form_obj.save(commit=True)
+                    saved_profile.skills.clear()
+                    for skill_item in skills_payload:
+                        if skill_item.get('custom'):
+                            obj, _ = Skill.objects.get_or_create(name=skill_item['name'])
+                            saved_profile.skills.add(obj)
+                        else:
+                            try:
+                                obj = Skill.objects.get(id=skill_item['id'])
+                                saved_profile.skills.add(obj)
+                            except Skill.DoesNotExist:
+                                pass
+                    return saved_profile
+
                 student_id = (form.cleaned_data.get('student_id') or '').strip()
                 first_name = form.cleaned_data.get('first_name')
                 last_name = form.cleaned_data.get('last_name')
@@ -157,58 +177,60 @@ def edit_profile(request):
                 matching_advisers = [a for a in advisers if section in a.get_sections_list()]
 
                 if not matching_advisers:
-                    messages.error(request, 'No adviser master list found for your course and section. Please contact your adviser.')
-                    return render(request, 'accounts/edit_profile.html', {
-                        'form': form,
-                        'profile': profile,
-                        'course_skill_map': course_skill_map,
-                        'is_student': True,
-                        'is_adviser': False,
-                        'is_coordinator': False,
-                    })
+                    profile = save_profile_and_skills(form, user, skills_data)
+                    profile.master_list_verified = False
+                    profile.master_list_verification_status = StudentProfile.MasterListVerificationStatus.PENDING
+                    profile.master_list_reviewed_by = None
+                    profile.master_list_reviewed_at = None
+                    profile.master_list_review_remarks = 'Pending adviser review. No adviser master list found for your course/section yet.'
+                    profile.save(update_fields=[
+                        'master_list_verified',
+                        'master_list_verification_status',
+                        'master_list_reviewed_by',
+                        'master_list_reviewed_at',
+                        'master_list_review_remarks',
+                    ])
+                    update_session_auth_hash(request, user)
+                    messages.warning(request, 'Your profile was saved, but verification is pending adviser review because the master list is not yet available.')
+                    return redirect('accounts:profile')
 
                 entries = AdviserMasterListEntry.objects.filter(adviser__in=matching_advisers, student_id=student_id)
                 matched = any(normalize_name(entry.full_name) == full_name for entry in entries)
 
                 if not matched:
-                    messages.error(request, 'Your information does not match the adviser master list. Please contact your adviser.')
-                    return render(request, 'accounts/edit_profile.html', {
-                        'form': form,
-                        'profile': profile,
-                        'course_skill_map': course_skill_map,
-                        'is_student': True,
-                        'is_adviser': False,
-                        'is_coordinator': False,
-                    })
+                    profile = save_profile_and_skills(form, user, skills_data)
+                    profile.master_list_verified = False
+                    profile.master_list_verification_status = StudentProfile.MasterListVerificationStatus.PENDING
+                    profile.master_list_reviewed_by = None
+                    profile.master_list_reviewed_at = None
+                    profile.master_list_review_remarks = 'Pending adviser review. Student information does not match current master list.'
+                    profile.save(update_fields=[
+                        'master_list_verified',
+                        'master_list_verification_status',
+                        'master_list_reviewed_by',
+                        'master_list_reviewed_at',
+                        'master_list_review_remarks',
+                    ])
+                    update_session_auth_hash(request, user)
+                    messages.warning(request, 'Your profile was saved and sent for adviser review because your details are not yet in the master list.')
+                    return redirect('accounts:profile')
 
-                # First save the User model fields
-                user.first_name = form.cleaned_data['first_name']
-                user.last_name = form.cleaned_data['last_name']
-                user.email = form.cleaned_data['email']
-                user.save()
-
-                # Save the StudentProfile including student_id
-                profile = form.save(commit=True)
+                profile = save_profile_and_skills(form, user, skills_data)
                 profile.master_list_verified = True
-                profile.save(update_fields=['master_list_verified'])
+                profile.master_list_verification_status = StudentProfile.MasterListVerificationStatus.APPROVED
+                profile.master_list_reviewed_by = None
+                profile.master_list_reviewed_at = None
+                profile.master_list_review_remarks = ''
+                profile.save(update_fields=[
+                    'master_list_verified',
+                    'master_list_verification_status',
+                    'master_list_reviewed_by',
+                    'master_list_reviewed_at',
+                    'master_list_review_remarks',
+                ])
 
-                # Clear and set skills
-                profile.skills.clear()
-                for skill in skills_data:
-                    if skill.get('custom'):
-                        obj, _ = Skill.objects.get_or_create(name=skill['name'])
-                        profile.skills.add(obj)
-                    else:
-                        try:
-                            obj = Skill.objects.get(id=skill['id'])
-                            profile.skills.add(obj)
-                        except Skill.DoesNotExist:
-                            pass
-
-                # Refresh session user data
-                from django.contrib.auth import update_session_auth_hash
                 update_session_auth_hash(request, user)
-                messages.success(request, 'Profile updated successfully.')
+                messages.success(request, 'Profile updated and automatically verified from adviser master list.')
                 return redirect('accounts:profile')
         else:
             form = StudentProfileForm(instance=profile)

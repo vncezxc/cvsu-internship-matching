@@ -22,6 +22,7 @@ urlpatterns = [
     path('adviser/documents/', views.adviser_documents_review, name='adviser_documents_review'),
     path('adviser/document-completion/', views.adviser_document_completion, name='adviser_document_completion'),
     path('adviser/ojt-records/', views.adviser_ojt_records, name='adviser_ojt_records'),
+    path('adviser/ojt-records/pdf/', views.adviser_ojt_records_pdf, name='adviser_ojt_records_pdf'),
     path('adviser/custom-submissions/', views.adviser_custom_submissions, name='adviser_custom_submissions'),
     path('adviser/master-list/', views.adviser_master_list_upload, name='adviser_master_list'),
 

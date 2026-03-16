@@ -135,7 +135,7 @@
                         <tr>
                             <th>Student</th>
                             {% for doc in required_documents %}
-                                <th>{{ doc.name }}</th>
+                                <th title="{{ doc.name }}">{{ doc.short_label|default:doc.name }}</th>
                             {% endfor %}
                             <th>Progress</th>
                         </tr>

@@ -235,6 +235,12 @@ class StudentProfile(models.Model):
         ONGOING = 'ONGOING', _('Currently Undergoing OJT')
         REJECTED = 'REJECTED', _('All Applications Rejected')
         COMPLETED = 'COMPLETED', _('Completed')
+
+    class MasterListVerificationStatus(models.TextChoices):
+        UNVERIFIED = 'UNVERIFIED', _('Unverified')
+        PENDING = 'PENDING', _('Pending Review')
+        APPROVED = 'APPROVED', _('Approved')
+        REJECTED = 'REJECTED', _('Rejected')
     def can_update_ojt_hours(self, acting_user):
         """
         Only advisers can update OJT hours, and only if status is 'Currently Undergoing OJT'.
@@ -268,6 +274,20 @@ class StudentProfile(models.Model):
 
     # Adviser master list verification
     master_list_verified = models.BooleanField(default=False)
+    master_list_verification_status = models.CharField(
+        max_length=12,
+        choices=MasterListVerificationStatus.choices,
+        default=MasterListVerificationStatus.UNVERIFIED,
+    )
+    master_list_reviewed_by = models.ForeignKey(
+        'AdviserProfile',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='reviewed_master_list_students',
+    )
+    master_list_reviewed_at = models.DateTimeField(null=True, blank=True)
+    master_list_review_remarks = models.TextField(blank=True)
     
     # Current internship placement (set when application is ACCEPTED)
     current_internship = models.ForeignKey(
