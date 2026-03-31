@@ -1,6 +1,7 @@
 import os
 import sys
 import subprocess
+import glob
 
 print("🚀 Running deployment tasks...")
 
@@ -36,14 +37,15 @@ try:
     if user_count > 0:
         print(f"✅ Database already has {user_count} users, skipping restore...")
     else:
-        # Database is empty, restore backup
-        backup_file = "database_backup_20260302_111523.json"
-        if os.path.exists(backup_file):
+        # Database is empty, restore the latest available backup file.
+        backup_files = sorted(glob.glob("database_backup_*.json"))
+        if backup_files:
+            backup_file = backup_files[-1]
             print(f"📦 Restoring data from {backup_file}...")
             os.system(f"python manage.py loaddata {backup_file}")
             print("✅ Data restored successfully!")
         else:
-            print(f"⚠️ No backup file found, skipping data restore")
+            print("⚠️ No backup file found, skipping data restore")
 except:
     print("⚠️ Could not check database status, skipping restore...")
 

@@ -41,16 +41,6 @@
 },
 {
   "model": "accounts.emailverificationcode",
-  "pk": 27,
-  "fields": {
-    "user": 43,
-    "code": "373408",
-    "created_at": "2026-01-22T06:04:21.631Z",
-    "is_used": true
-  }
-},
-{
-  "model": "accounts.emailverificationcode",
   "pk": 28,
   "fields": {
     "user": 44,
@@ -90,11 +80,31 @@
   }
 },
 {
+  "model": "accounts.emailverificationcode",
+  "pk": 43,
+  "fields": {
+    "user": 52,
+    "code": "917213",
+    "created_at": "2026-03-09T08:14:54.936Z",
+    "is_used": true
+  }
+},
+{
+  "model": "accounts.emailverificationcode",
+  "pk": 44,
+  "fields": {
+    "user": 53,
+    "code": "579169",
+    "created_at": "2026-03-16T09:14:17.076Z",
+    "is_used": true
+  }
+},
+{
   "model": "accounts.user",
   "pk": 1,
   "fields": {
     "password": "pbkdf2_sha256$600000$dSpp5jE8Ao9vGnuFzRyozP$UZ+x+DIBg984bzzVOLYZCCswSbMFgiR0ZwKr5+XtqcM=",
-    "last_login": "2026-02-07T02:28:34.859Z",
+    "last_login": "2026-03-09T05:35:12.174Z",
     "is_superuser": true,
     "username": "vince",
     "first_name": "",
@@ -154,7 +164,7 @@
   "pk": 4,
   "fields": {
     "password": "pbkdf2_sha256$600000$DP2rWfgPoTIMpbp1EAtSiQ$8J5GUljIk+uHbwirLry919QlC4tOP9yUeSPAK/VRCRg=",
-    "last_login": "2026-02-07T02:54:19.978Z",
+    "last_login": "2026-03-30T03:33:23.011Z",
     "is_superuser": true,
     "username": "coordinator",
     "first_name": "Ojt",
@@ -174,7 +184,7 @@
   "pk": 5,
   "fields": {
     "password": "pbkdf2_sha256$600000$NPWsCncahBDVEHT3IPPJDb$HrGiAXJ34RWthgiL7YhZOoZ036gt3H1OtrfhB7ZymLo=",
-    "last_login": "2026-02-07T02:47:33.165Z",
+    "last_login": "2026-03-30T03:54:08.578Z",
     "is_superuser": false,
     "username": "adviser",
     "first_name": "OJT",
@@ -491,26 +501,6 @@
 },
 {
   "model": "accounts.user",
-  "pk": 43,
-  "fields": {
-    "password": "pbkdf2_sha256$600000$Ck8FoVyLH6wQZN2nvJxojJ$CGTkvxQoen+AzNxasdZXVSHV5TvSSWAdhnOTfxtoWqQ=",
-    "last_login": "2026-01-22T06:05:29.324Z",
-    "is_superuser": false,
-    "username": "@Jhyra_Española",
-    "first_name": "Jhyra",
-    "last_name": "Española",
-    "is_staff": false,
-    "is_active": true,
-    "date_joined": "2026-01-22T06:04:20.777Z",
-    "email": "bc.jhyra.espanola@cvsu.edu.ph",
-    "user_type": "STUDENT",
-    "is_approved": true,
-    "groups": [],
-    "user_permissions": []
-  }
-},
-{
-  "model": "accounts.user",
   "pk": 44,
   "fields": {
     "password": "pbkdf2_sha256$600000$zhuvO8jCGBQbidnO8rgv5I$bwGjuNicDSxML0lAkIuKVqDy6cxzGMODXz1GTTpwYY0=",
@@ -534,7 +524,7 @@
   "pk": 51,
   "fields": {
     "password": "pbkdf2_sha256$600000$8DFeZ5YKlpjNuothpQnNKz$lLj1F1pbGYrm0WF2V0Ci8zpVdOgepaFZi1L7aMWYuG4=",
-    "last_login": "2026-02-24T02:11:12.628Z",
+    "last_login": "2026-03-30T03:51:00.175Z",
     "is_superuser": false,
     "username": "kousaki_15",
     "first_name": "Vince Henry",
@@ -550,12 +540,52 @@
   }
 },
 {
+  "model": "accounts.user",
+  "pk": 52,
+  "fields": {
+    "password": "pbkdf2_sha256$600000$EpllkBuUTQq6rJ51UfN3uR$cuDZwJHhvCLkk9ypkTzkUA4prqbTHGwrS6dKKLPIt0E=",
+    "last_login": "2026-03-29T15:38:35.506Z",
+    "is_superuser": false,
+    "username": "Jhyra",
+    "first_name": "Jhyra",
+    "last_name": "Española",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2026-03-09T08:14:54.066Z",
+    "email": "bc.jhyra.espanola@cvsu.edu.ph",
+    "user_type": "STUDENT",
+    "is_approved": true,
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "accounts.user",
+  "pk": 53,
+  "fields": {
+    "password": "pbkdf2_sha256$600000$sLrwzmHJxakYXIjiuafwIi$dyXM0sTfNlRAtT9HXQzofVf7wY7sxSxnx0EZ9R9/w7w=",
+    "last_login": "2026-03-16T09:15:17.054Z",
+    "is_superuser": false,
+    "username": "Wakin30",
+    "first_name": "Joaquin Carlos",
+    "last_name": "Casares",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2026-03-16T09:14:16.167Z",
+    "email": "bc.joaquincarlos.casares@cvsu.edu.ph",
+    "user_type": "STUDENT",
+    "is_approved": true,
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
   "model": "accounts.course",
   "pk": 10,
   "fields": {
     "code": "BSIT",
     "name": "Bachelor of Science in Information Technology",
-    "required_ojt_hours": 488,
+    "required_ojt_hours": 486,
     "description": ""
   }
 },
@@ -565,7 +595,7 @@
   "fields": {
     "code": "BSCS",
     "name": "Bachelor of Science in Computer Science",
-    "required_ojt_hours": 300,
+    "required_ojt_hours": 260,
     "description": ""
   }
 },
@@ -2881,6 +2911,11 @@
     "longitude": "120.889043",
     "ojt_status": "LOOKING",
     "ojt_hours_completed": 0,
+    "master_list_verified": false,
+    "master_list_verification_status": "UNVERIFIED",
+    "master_list_reviewed_by": null,
+    "master_list_reviewed_at": null,
+    "master_list_review_remarks": "",
     "current_internship": null,
     "cv": "",
     "is_profile_complete": false,
@@ -2911,6 +2946,11 @@
     "longitude": null,
     "ojt_status": "LOOKING",
     "ojt_hours_completed": 0,
+    "master_list_verified": false,
+    "master_list_verification_status": "UNVERIFIED",
+    "master_list_reviewed_by": null,
+    "master_list_reviewed_at": null,
+    "master_list_review_remarks": "",
     "current_internship": null,
     "cv": "",
     "is_profile_complete": false,
@@ -2936,6 +2976,11 @@
     "longitude": null,
     "ojt_status": "LOOKING",
     "ojt_hours_completed": 0,
+    "master_list_verified": false,
+    "master_list_verification_status": "UNVERIFIED",
+    "master_list_reviewed_by": null,
+    "master_list_reviewed_at": null,
+    "master_list_review_remarks": "",
     "current_internship": null,
     "cv": "",
     "is_profile_complete": false,
@@ -2961,40 +3006,20 @@
     "longitude": "121.032702",
     "ojt_status": "ONGOING",
     "ojt_hours_completed": 0,
+    "master_list_verified": false,
+    "master_list_verification_status": "UNVERIFIED",
+    "master_list_reviewed_by": null,
+    "master_list_reviewed_at": null,
+    "master_list_review_remarks": "",
     "current_internship": null,
     "cv": "",
     "is_profile_complete": false,
     "profile_image": "",
     "skills": [
+      737,
       726,
-      727,
-      737
+      727
     ]
-  }
-},
-{
-  "model": "accounts.studentprofile",
-  "pk": 15,
-  "fields": {
-    "user": 43,
-    "student_id": "202211490",
-    "course": 10,
-    "year_level": "4",
-    "section": "4-1",
-    "street": "Armenia St.",
-    "barangay": "Pasong Kawayan II",
-    "city": "General Trias",
-    "province": "Cavite",
-    "phone_number": "09567439499",
-    "latitude": null,
-    "longitude": null,
-    "ojt_status": "LOOKING",
-    "ojt_hours_completed": 0,
-    "current_internship": null,
-    "cv": "",
-    "is_profile_complete": false,
-    "profile_image": "student_profiles/1x1_Picture__Española.png",
-    "skills": []
   }
 },
 {
@@ -3015,6 +3040,11 @@
     "longitude": null,
     "ojt_status": "LOOKING",
     "ojt_hours_completed": 0,
+    "master_list_verified": false,
+    "master_list_verification_status": "UNVERIFIED",
+    "master_list_reviewed_by": null,
+    "master_list_reviewed_at": null,
+    "master_list_review_remarks": "",
     "current_internship": null,
     "cv": "",
     "is_profile_complete": false,
@@ -3040,10 +3070,55 @@
     "longitude": "120.994912",
     "ojt_status": "ONGOING",
     "ojt_hours_completed": 0,
+    "master_list_verified": false,
+    "master_list_verification_status": "UNVERIFIED",
+    "master_list_reviewed_by": null,
+    "master_list_reviewed_at": null,
+    "master_list_review_remarks": "",
     "current_internship": 9,
     "cv": "user_51/cv/vince_henry_blanquera_deres.pdf",
     "is_profile_complete": false,
     "profile_image": "student_profiles/okita.jpg",
+    "skills": [
+      740,
+      1003,
+      726,
+      727,
+      728,
+      729,
+      730,
+      731,
+      733
+    ]
+  }
+},
+{
+  "model": "accounts.studentprofile",
+  "pk": 18,
+  "fields": {
+    "user": 52,
+    "student_id": "202211490",
+    "course": 10,
+    "year_level": "4",
+    "section": "4-1",
+    "street": "Blk 1 Lot 17 Armenia St.",
+    "barangay": "Pasong Kawayan II",
+    "city": "General Trias",
+    "province": "Cavite",
+    "phone_number": "09567439499",
+    "latitude": "14.198317",
+    "longitude": "120.871737",
+    "ojt_status": "LOOKING",
+    "ojt_hours_completed": 0,
+    "master_list_verified": false,
+    "master_list_verification_status": "UNVERIFIED",
+    "master_list_reviewed_by": null,
+    "master_list_reviewed_at": null,
+    "master_list_review_remarks": "",
+    "current_internship": null,
+    "cv": "user_52/cv/vince_henry_blanquera_deres.pdf",
+    "is_profile_complete": false,
+    "profile_image": "",
     "skills": [
       726,
       727,
@@ -3051,10 +3126,41 @@
       729,
       730,
       731,
-      733,
-      740,
-      1003
+      732,
+      734,
+      737,
+      738
     ]
+  }
+},
+{
+  "model": "accounts.studentprofile",
+  "pk": 19,
+  "fields": {
+    "user": 53,
+    "student_id": null,
+    "course": null,
+    "year_level": "1",
+    "section": "",
+    "street": "",
+    "barangay": "",
+    "city": "",
+    "province": "",
+    "phone_number": "",
+    "latitude": null,
+    "longitude": null,
+    "ojt_status": "LOOKING",
+    "ojt_hours_completed": 0,
+    "master_list_verified": false,
+    "master_list_verification_status": "UNVERIFIED",
+    "master_list_reviewed_by": null,
+    "master_list_reviewed_at": null,
+    "master_list_review_remarks": "",
+    "current_internship": null,
+    "cv": "",
+    "is_profile_complete": false,
+    "profile_image": "",
+    "skills": []
   }
 },
 {
@@ -3160,8 +3266,7 @@
     "year_levels": "2",
     "courses": [
       10,
-      11,
-      15
+      11
     ]
   }
 },
@@ -3354,6 +3459,9 @@
     "latitude": "14.229400",
     "longitude": "120.936700",
     "status": "ACTIVE",
+    "approval_status": "APPROVED",
+    "adviser_remark": "",
+    "is_red_flag": false,
     "has_incentives": true,
     "incentives_details": "Allowance, Certificate",
     "logo": "",
@@ -3381,6 +3489,9 @@
     "latitude": "14.404584",
     "longitude": "120.928996",
     "status": "ACTIVE",
+    "approval_status": "APPROVED",
+    "adviser_remark": "",
+    "is_red_flag": false,
     "has_incentives": true,
     "incentives_details": "what what",
     "logo": "",
@@ -3408,6 +3519,9 @@
     "latitude": null,
     "longitude": null,
     "status": "ACTIVE",
+    "approval_status": "APPROVED",
+    "adviser_remark": "",
+    "is_red_flag": false,
     "has_incentives": true,
     "incentives_details": "",
     "logo": "",
@@ -3427,6 +3541,13 @@
     "description": "IT OJT",
     "is_active": true,
     "slots_available": 1,
+    "approval_status": "APPROVED",
+    "submitted_by": null,
+    "acceptance_letter": "",
+    "job_description": "",
+    "adviser": null,
+    "adviser_remarks": "",
+    "is_red_flag": false,
     "created_at": "2025-06-24T03:47:28.720Z",
     "updated_at": "2025-06-24T03:47:29.131Z",
     "recommended_courses": [
@@ -3444,6 +3565,13 @@
     "description": "fsafasgasgasgas",
     "is_active": true,
     "slots_available": 3,
+    "approval_status": "APPROVED",
+    "submitted_by": null,
+    "acceptance_letter": "",
+    "job_description": "",
+    "adviser": null,
+    "adviser_remarks": "",
+    "is_red_flag": false,
     "created_at": "2025-08-02T05:04:59.871Z",
     "updated_at": "2025-08-02T05:04:59.871Z",
     "recommended_courses": [
@@ -3474,6 +3602,13 @@
     "description": "sadasdasdsa",
     "is_active": false,
     "slots_available": 2,
+    "approval_status": "APPROVED",
+    "submitted_by": null,
+    "acceptance_letter": "",
+    "job_description": "",
+    "adviser": null,
+    "adviser_remarks": "",
+    "is_red_flag": false,
     "created_at": "2025-11-01T02:41:34.032Z",
     "updated_at": "2026-01-08T11:10:13.136Z",
     "recommended_courses": [
@@ -3504,6 +3639,13 @@
     "description": "Need python developer",
     "is_active": true,
     "slots_available": 3,
+    "approval_status": "APPROVED",
+    "submitted_by": null,
+    "acceptance_letter": "",
+    "job_description": "",
+    "adviser": null,
+    "adviser_remarks": "",
+    "is_red_flag": false,
     "created_at": "2026-01-07T09:13:02.656Z",
     "updated_at": "2026-01-17T06:36:44.052Z",
     "recommended_courses": [
@@ -3736,6 +3878,18 @@
   }
 },
 {
+  "model": "chat.chatroom",
+  "pk": 23,
+  "fields": {
+    "name": "private_5_44",
+    "created_at": "2026-03-09T08:45:39.148Z",
+    "participants": [
+      5,
+      44
+    ]
+  }
+},
+{
   "model": "chat.message",
   "pk": 1,
   "fields": {
@@ -3822,8 +3976,8 @@
     "content": "bro",
     "timestamp": "2025-06-27T06:18:02.815Z",
     "read_by": [
-      5,
-      4
+      4,
+      5
     ]
   }
 },
@@ -3836,8 +3990,8 @@
     "content": "yoo",
     "timestamp": "2025-06-27T06:18:07.963Z",
     "read_by": [
-      5,
-      4
+      4,
+      5
     ]
   }
 },
@@ -3850,8 +4004,8 @@
     "content": "pogi ni vince henry deres",
     "timestamp": "2025-06-27T06:18:16.555Z",
     "read_by": [
-      5,
-      4
+      4,
+      5
     ]
   }
 },
@@ -3864,8 +4018,8 @@
     "content": "may iisue po ako ang hirap mag code bwhahahaha",
     "timestamp": "2025-06-27T06:18:41.774Z",
     "read_by": [
-      5,
-      4
+      4,
+      5
     ]
   }
 },
@@ -3878,8 +4032,8 @@
     "content": "yow",
     "timestamp": "2025-06-27T06:20:57.303Z",
     "read_by": [
-      5,
-      4
+      4,
+      5
     ]
   }
 },
@@ -4216,6 +4370,110 @@
     "sender": 51,
     "content": "Hellooo",
     "timestamp": "2026-02-16T11:24:46.063Z",
+    "read_by": [
+      51
+    ]
+  }
+},
+{
+  "model": "chat.message",
+  "pk": 96,
+  "fields": {
+    "room": 21,
+    "sender": 5,
+    "content": "hoy aron",
+    "timestamp": "2026-03-09T04:30:18.097Z",
+    "read_by": [
+      5
+    ]
+  }
+},
+{
+  "model": "chat.message",
+  "pk": 97,
+  "fields": {
+    "room": 21,
+    "sender": 5,
+    "content": "hoy",
+    "timestamp": "2026-03-09T04:31:12.036Z",
+    "read_by": [
+      5
+    ]
+  }
+},
+{
+  "model": "chat.message",
+  "pk": 98,
+  "fields": {
+    "room": 21,
+    "sender": 5,
+    "content": "penge ako ssd ng laptop",
+    "timestamp": "2026-03-09T04:31:49.090Z",
+    "read_by": [
+      5
+    ]
+  }
+},
+{
+  "model": "chat.message",
+  "pk": 99,
+  "fields": {
+    "room": 21,
+    "sender": 5,
+    "content": "penge ako ssd",
+    "timestamp": "2026-03-09T04:32:06.311Z",
+    "read_by": [
+      5
+    ]
+  }
+},
+{
+  "model": "chat.message",
+  "pk": 100,
+  "fields": {
+    "room": 22,
+    "sender": 51,
+    "content": "hello",
+    "timestamp": "2026-03-16T09:12:04.544Z",
+    "read_by": [
+      51
+    ]
+  }
+},
+{
+  "model": "chat.message",
+  "pk": 101,
+  "fields": {
+    "room": 22,
+    "sender": 51,
+    "content": "pogi mo",
+    "timestamp": "2026-03-16T09:12:35.940Z",
+    "read_by": [
+      51
+    ]
+  }
+},
+{
+  "model": "chat.message",
+  "pk": 102,
+  "fields": {
+    "room": 22,
+    "sender": 51,
+    "content": "Yoo",
+    "timestamp": "2026-03-29T03:16:16.593Z",
+    "read_by": [
+      51
+    ]
+  }
+},
+{
+  "model": "chat.message",
+  "pk": 103,
+  "fields": {
+    "room": 22,
+    "sender": 51,
+    "content": "Yoo",
+    "timestamp": "2026-03-29T03:16:22.277Z",
     "read_by": [
       51
     ]
@@ -5108,6 +5366,66 @@
     "date": "2026-02-07",
     "total_students": 7,
     "students_looking": 5,
+    "students_waiting": 0,
+    "students_ongoing": 2,
+    "students_completed": 0,
+    "total_companies": 3,
+    "active_companies": 3,
+    "total_internships": 4,
+    "active_internships": 3,
+    "total_applications": 1,
+    "pending_applications": 0,
+    "accepted_applications": 1,
+    "rejected_applications": 0
+  }
+},
+{
+  "model": "dashboard.dashboardstatistics",
+  "pk": 47,
+  "fields": {
+    "date": "2026-03-09",
+    "total_students": 7,
+    "students_looking": 5,
+    "students_waiting": 0,
+    "students_ongoing": 2,
+    "students_completed": 0,
+    "total_companies": 3,
+    "active_companies": 3,
+    "total_internships": 4,
+    "active_internships": 3,
+    "total_applications": 1,
+    "pending_applications": 0,
+    "accepted_applications": 1,
+    "rejected_applications": 0
+  }
+},
+{
+  "model": "dashboard.dashboardstatistics",
+  "pk": 48,
+  "fields": {
+    "date": "2026-03-29",
+    "total_students": 8,
+    "students_looking": 6,
+    "students_waiting": 0,
+    "students_ongoing": 2,
+    "students_completed": 0,
+    "total_companies": 3,
+    "active_companies": 3,
+    "total_internships": 4,
+    "active_internships": 3,
+    "total_applications": 1,
+    "pending_applications": 0,
+    "accepted_applications": 1,
+    "rejected_applications": 0
+  }
+},
+{
+  "model": "dashboard.dashboardstatistics",
+  "pk": 49,
+  "fields": {
+    "date": "2026-03-30",
+    "total_students": 8,
+    "students_looking": 6,
     "students_waiting": 0,
     "students_ongoing": 2,
     "students_completed": 0,
