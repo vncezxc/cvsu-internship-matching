@@ -38,7 +38,7 @@ try:
         print(f"✅ Database already has {user_count} users, skipping restore...")
     else:
         # Database is empty, restore the latest available backup file.
-        backup_files = sorted(glob.glob("database_backup_*.json"))
+        backup_files = sorted(glob.glob("database_backup_20260331_203829.json"))
         if backup_files:
             backup_file = backup_files[-1]
             print(f"📦 Restoring data from {backup_file}...")
