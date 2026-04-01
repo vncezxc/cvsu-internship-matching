@@ -1,4 +1,5 @@
 {% extends 'dashboard/base_dashboard.html' %}
+{% load static %}
 {% load dashboard_extras %}
 {% block dashboard_title %}Coordinator Dashboard{% endblock %}
 
@@ -56,6 +57,36 @@
         font-weight: var(--font-weight-bold);
         margin: 0;
         font-size: 1.1rem;
+    }
+
+    .program-card-header {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .program-logo {
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px solid var(--cvsu-gold);
+        background: var(--cvsu-white);
+        flex-shrink: 0;
+    }
+
+    .program-meta {
+        min-width: 0;
+    }
+
+    .program-meta .card-title {
+        line-height: 1.2;
+    }
+
+    .program-meta small {
+        display: block;
+        line-height: 1.2;
+        opacity: 0.95;
     }
 
     .btn {
@@ -230,8 +261,33 @@
     <div class="col-md-4 mb-3">
         <div class="card h-100 hover-lift">
             <div class="card-header">
-                <h6 class="card-title mb-0">{{ program.course.name }}</h6>
-                <small>{{ program.course.code }}</small>
+                <div class="program-card-header">
+                    {% with course_name=program.course.name|lower course_code=program.course.code|lower %}
+                        {% if 'information technology' in course_name or 'bsit' in course_code or course_code == 'it' %}
+                            <img src="{% static 'images/IT.jpg' %}" alt="Information Technology Logo" class="program-logo">
+                        {% elif 'computer science' in course_name or 'bscs' in course_code or course_code == 'cs' %}
+                            <img src="{% static 'images/CS.jpg' %}" alt="Computer Science Logo" class="program-logo">
+                        {% elif 'hospitality' in course_name or 'bshm' in course_code or course_code == 'hm' %}
+                            <img src="{% static 'images/HM.jpg' %}" alt="Hospitality Management Logo" class="program-logo">
+                        {% elif 'psychology' in course_name or 'bspsych' in course_code or course_code == 'psych' %}
+                            <img src="{% static 'images/PSYCH.jpg' %}" alt="Psychology Logo" class="program-logo">
+                        {% elif 'criminology' in course_name or 'bscrim' in course_code or course_code == 'crim' %}
+                            <img src="{% static 'images/CRIM.jpg' %}" alt="Criminology Logo" class="program-logo">
+                        {% elif 'human resource' in course_name or 'hrm' in course_code %}
+                            <img src="{% static 'images/HR.jpg' %}" alt="Human Resource Management Logo" class="program-logo">
+                        {% elif 'marketing' in course_name or 'bsba-m' in course_code or 'mkt' in course_code %}
+                            <img src="{% static 'images/MARKETING.jpg' %}" alt="Marketing Management Logo" class="program-logo">
+                        {% elif 'education' in course_name or 'english' in course_name or 'mathematics' in course_name or 'math' in course_name or 'bse' in course_code or 'educ' in course_code or 'beed' in course_code or 'bsed' in course_code or 'eng' in course_code or 'math' in course_code %}
+                            <img src="{% static 'images/EDUC.jpg' %}" alt="Education Logo" class="program-logo">
+                        {% else %}
+                            <img src="{% static 'images/cvsu.png' %}" alt="CVSU Logo" class="program-logo">
+                        {% endif %}
+                    {% endwith %}
+                    <div class="program-meta">
+                        <h6 class="card-title mb-0">{{ program.course.name }}</h6>
+                        <small>{{ program.course.code }}</small>
+                    </div>
+                </div>
             </div>
             <div class="card-body">
                 <div class="chart-container">
