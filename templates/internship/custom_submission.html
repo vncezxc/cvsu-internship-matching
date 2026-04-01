@@ -221,19 +221,39 @@ document.addEventListener('DOMContentLoaded', function() {
     var marker = L.marker([lat, lng], {draggable: true}).addTo(map);
 
     function ensureMapSize() {
-        map.invalidateSize();
+        if (!map) return;
+        map.invalidateSize({pan: false, animate: false});
     }
 
-    map.whenReady(ensureMapSize);
-    requestAnimationFrame(ensureMapSize);
-    setTimeout(ensureMapSize, 120);
-    setTimeout(ensureMapSize, 450);
-    window.addEventListener('resize', ensureMapSize);
+    function refreshMapForLayoutChanges() {
+        ensureMapSize();
+        var retryDelays = [50, 120, 240, 420, 700, 1100, 1600, 2200];
+        retryDelays.forEach(function(delay) {
+            setTimeout(ensureMapSize, delay);
+        });
+    }
+
+    map.whenReady(refreshMapForLayoutChanges);
+    requestAnimationFrame(refreshMapForLayoutChanges);
+    setTimeout(refreshMapForLayoutChanges, 100);
+    window.addEventListener('load', refreshMapForLayoutChanges);
+    window.addEventListener('resize', refreshMapForLayoutChanges);
+    document.addEventListener('visibilitychange', function() {
+        if (!document.hidden) {
+            refreshMapForLayoutChanges();
+        }
+    });
+
+    var animatedCard = document.querySelector('.card');
+    if (animatedCard) {
+        animatedCard.addEventListener('animationend', refreshMapForLayoutChanges);
+        animatedCard.addEventListener('transitionend', refreshMapForLayoutChanges);
+    }
 
     var mapElement = document.getElementById('company-map');
     if (window.ResizeObserver && mapElement) {
         var resizeObserver = new ResizeObserver(function() {
-            ensureMapSize();
+            refreshMapForLayoutChanges();
         });
         resizeObserver.observe(mapElement);
     }
