@@ -107,7 +107,12 @@
                         <div class="col-md-6 mb-3">{{ form.company_email.label_tag }}{{ form.company_email }}</div>
                         <div class="col-md-6 mb-3">{{ form.hr_email.label_tag }}{{ form.hr_email }}</div>
                         <div class="col-md-6 mb-3">{{ form.phone_number.label_tag }}{{ form.phone_number }}</div>
-                        <div class="col-md-6 mb-3">{{ form.location_link.label_tag }}{{ form.location_link }}</div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.location_link.label_tag }}{{ form.location_link }}
+                            <div class="form-text">
+                                Paste Google Maps, short links, OpenStreetMap, Waze, Bing, Apple Maps, or plain coordinates (lat, lng). The map pin updates automatically.
+                            </div>
+                        </div>
                         <div class="col-md-6 mb-3">{{ form.street.label_tag }}{{ form.street }}</div>
                         <div class="col-md-6 mb-3">{{ form.barangay.label_tag }}{{ form.barangay }}</div>
                         <div class="col-md-6 mb-3">{{ form.city.label_tag }}{{ form.city }}</div>
@@ -199,6 +204,7 @@
 document.addEventListener('DOMContentLoaded', function() {
     var latInput = document.getElementById('id_latitude');
     var lngInput = document.getElementById('id_longitude');
+    var linkInput = document.getElementById('id_location_link');
 
     var defaultLat = 14.1953;
     var defaultLng = 120.8796;
@@ -214,9 +220,105 @@ document.addEventListener('DOMContentLoaded', function() {
 
     var marker = L.marker([lat, lng], {draggable: true}).addTo(map);
 
+    function ensureMapSize() {
+        map.invalidateSize();
+    }
+
+    map.whenReady(ensureMapSize);
+    requestAnimationFrame(ensureMapSize);
+    setTimeout(ensureMapSize, 120);
+    setTimeout(ensureMapSize, 450);
+    window.addEventListener('resize', ensureMapSize);
+
+    var mapElement = document.getElementById('company-map');
+    if (window.ResizeObserver && mapElement) {
+        var resizeObserver = new ResizeObserver(function() {
+            ensureMapSize();
+        });
+        resizeObserver.observe(mapElement);
+    }
+
+    function normalizeCoordinatePair(lat, lng) {
+        var parsedLat = parseFloat(lat);
+        var parsedLng = parseFloat(lng);
+        if (isNaN(parsedLat) || isNaN(parsedLng)) return null;
+        if (parsedLat < -90 || parsedLat > 90) return null;
+        if (parsedLng < -180 || parsedLng > 180) return null;
+        return [parsedLat, parsedLng];
+    }
+
+    function extractLatLngFromLink(rawValue) {
+        var value = (rawValue || '').trim();
+        if (!value) return null;
+
+        try {
+            value = decodeURIComponent(value);
+        } catch (e) {
+            // Keep original string when decode fails.
+        }
+
+        var patterns = [
+            /^([\-\d.]+)\s*,\s*([\-\d.]+)$/,
+            /@([\-\d.]+),([\-\d.]+),/,
+            /!3d([\-\d.]+)!4d([\-\d.]+)/,
+            /!2d([\-\d.]+)!3d([\-\d.]+)/,
+            /[?&]center=([\-\d.]+),([\-\d.]+)/,
+            /[?&]destination=([\-\d.]+),([\-\d.]+)/,
+            /[?&]origin=([\-\d.]+),([\-\d.]+)/,
+            /[?&]point=([\-\d.]+),([\-\d.]+)/,
+            /[?&]q=([\-\d.]+),([\-\d.]+)/,
+            /[?&]query=([\-\d.]+),([\-\d.]+)/,
+            /[?&]ll=([\-\d.]+),([\-\d.]+)/,
+            /[?&]cp=([\-\d.]+)~([\-\d.]+)/,
+            /#map=\d+\/([\-\d.]+)\/([\-\d.]+)/,
+            /mlat=([\-\d.]+)&mlon=([\-\d.]+)/,
+        ];
+
+        for (var i = 0; i < patterns.length; i += 1) {
+            var match = value.match(patterns[i]);
+            if (match) {
+                // !2d is longitude then latitude in Google Maps links.
+                if (patterns[i].source.indexOf('!2d') !== -1) {
+                    var reversed = normalizeCoordinatePair(match[2], match[1]);
+                    if (reversed) {
+                        return reversed;
+                    }
+                } else {
+                    var normalized = normalizeCoordinatePair(match[1], match[2]);
+                    if (normalized) {
+                        return normalized;
+                    }
+                }
+            }
+        }
+
+        // Fallback: extract the first valid adjacent decimal pair from any text or URL.
+        var numericValues = value.match(/[\-+]?\d{1,3}(?:\.\d+)?/g) || [];
+        for (var j = 0; j < numericValues.length - 1; j += 1) {
+            var fallback = normalizeCoordinatePair(numericValues[j], numericValues[j + 1]);
+            if (fallback) {
+                return fallback;
+            }
+        }
+
+        return null;
+    }
+
+    function setMapPosition(latlng) {
+        if (!latlng) return;
+        if (latInput) latInput.value = latlng[0].toFixed(6);
+        if (lngInput) lngInput.value = latlng[1].toFixed(6);
+        marker.setLatLng(latlng);
+        map.setView(latlng, 15);
+        ensureMapSize();
+    }
+
     function updateInputs(latlng) {
         if (latInput) latInput.value = latlng.lat.toFixed(6);
         if (lngInput) lngInput.value = latlng.lng.toFixed(6);
+        if (linkInput) {
+            linkInput.value = `https://www.openstreetmap.org/?mlat=${latlng.lat.toFixed(6)}&mlon=${latlng.lng.toFixed(6)}#map=18/${latlng.lat.toFixed(6)}/${latlng.lng.toFixed(6)}`;
+        }
     }
 
     marker.on('dragend', function(e) {
@@ -228,9 +330,24 @@ document.addEventListener('DOMContentLoaded', function() {
         updateInputs(e.latlng);
     });
 
-    setTimeout(function() {
-        map.invalidateSize();
-    }, 100);
+    if (linkInput) {
+        function updateMapFromLink() {
+            var latlng = extractLatLngFromLink(linkInput.value);
+            if (latlng) {
+                setMapPosition(latlng);
+            }
+        }
+
+        linkInput.addEventListener('input', updateMapFromLink);
+        linkInput.addEventListener('change', updateMapFromLink);
+        linkInput.addEventListener('paste', function() {
+            setTimeout(updateMapFromLink, 0);
+        });
+
+        if (linkInput.value && linkInput.value.trim()) {
+            updateMapFromLink();
+        }
+    }
 });
 </script>
 {% endblock %}

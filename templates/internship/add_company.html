@@ -115,6 +115,32 @@
         margin-bottom: 0.5rem;
     }
 
+        .company-form-card .form-check {
+            display: flex;
+            align-items: center;
+            min-height: 48px;
+            margin-top: 0.5rem;
+            padding-left: 0;
+            gap: 0.5rem;
+        }
+
+        .company-form-card .form-check .form-check-input {
+            width: 1.1rem;
+            height: 1.1rem;
+            margin: 0;
+            float: none;
+            flex-shrink: 0;
+        }
+
+        .company-form-card .form-check .form-check-label {
+            margin-bottom: 0;
+            line-height: 1.2;
+        }
+
+        #id_incentives_details {
+            min-height: 96px;
+            resize: vertical;
+        }
     .section-divider {
         background: linear-gradient(135deg, var(--cvsu-gold), var(--cvsu-gold-light));
         color: var(--cvsu-dark-green);
@@ -362,6 +388,9 @@
                                 {% if form.location_link.errors %}
                                     <div class="text-danger small">{% for error in form.location_link.errors %}{{ error }}<br>{% endfor %}</div>
                                 {% endif %}
+                                <div class="form-text">
+                                    Paste Google Maps, short links, OpenStreetMap, Waze, Bing, Apple Maps, or plain coordinates (lat, lng). The map pin updates automatically.
+                                </div>
                             </div>
                             <input type="hidden" name="latitude" id="id_latitude" value="{{ form.latitude.value|default_if_none:'' }}">
                             <input type="hidden" name="longitude" id="id_longitude" value="{{ form.longitude.value|default_if_none:'' }}">
@@ -450,10 +479,89 @@
     }).addTo(map);
     var marker = L.marker([lat, lng], {draggable:true}).addTo(map);
 
-    // Fix for map not rendering at full width
-    setTimeout(function() {
-      map.invalidateSize();
-    }, 100);
+        function ensureMapSize() {
+            map.invalidateSize();
+        }
+
+        map.whenReady(ensureMapSize);
+        requestAnimationFrame(ensureMapSize);
+        setTimeout(ensureMapSize, 120);
+        setTimeout(ensureMapSize, 450);
+        window.addEventListener('resize', ensureMapSize);
+
+        var mapContainer = document.querySelector('.map-container');
+        if (window.ResizeObserver && mapContainer) {
+            var resizeObserver = new ResizeObserver(function() {
+                ensureMapSize();
+            });
+            resizeObserver.observe(mapContainer);
+        }
+
+        function normalizeCoordinatePair(lat, lng) {
+            var parsedLat = parseFloat(lat);
+            var parsedLng = parseFloat(lng);
+            if (isNaN(parsedLat) || isNaN(parsedLng)) return null;
+            if (parsedLat < -90 || parsedLat > 90) return null;
+            if (parsedLng < -180 || parsedLng > 180) return null;
+            return [parsedLat, parsedLng];
+        }
+
+        function extractLatLngFromLink(rawValue) {
+            var value = (rawValue || '').trim();
+            if (!value) return null;
+
+            try {
+                value = decodeURIComponent(value);
+            } catch (e) {
+                // Keep original string when decode fails.
+            }
+
+            var patterns = [
+                /^([\-\d.]+)\s*,\s*([\-\d.]+)$/,
+                /@([\-\d.]+),([\-\d.]+),/,
+                /!3d([\-\d.]+)!4d([\-\d.]+)/,
+                /!2d([\-\d.]+)!3d([\-\d.]+)/,
+                /[?&]center=([\-\d.]+),([\-\d.]+)/,
+                /[?&]destination=([\-\d.]+),([\-\d.]+)/,
+                /[?&]origin=([\-\d.]+),([\-\d.]+)/,
+                /[?&]point=([\-\d.]+),([\-\d.]+)/,
+                /[?&]q=([\-\d.]+),([\-\d.]+)/,
+                /[?&]query=([\-\d.]+),([\-\d.]+)/,
+                /[?&]ll=([\-\d.]+),([\-\d.]+)/,
+                /[?&]cp=([\-\d.]+)~([\-\d.]+)/,
+                /#map=\d+\/([\-\d.]+)\/([\-\d.]+)/,
+                /mlat=([\-\d.]+)&mlon=([\-\d.]+)/,
+            ];
+
+            for (var i = 0; i < patterns.length; i += 1) {
+                var match = value.match(patterns[i]);
+                if (match) {
+                    // !2d is longitude then latitude in Google Maps links.
+                    if (patterns[i].source.indexOf('!2d') !== -1) {
+                        var reversed = normalizeCoordinatePair(match[2], match[1]);
+                        if (reversed) {
+                            return reversed;
+                        }
+                    } else {
+                        var normalized = normalizeCoordinatePair(match[1], match[2]);
+                        if (normalized) {
+                            return normalized;
+                        }
+                    }
+                }
+            }
+
+            // Fallback: extract the first valid adjacent decimal pair from any text or URL.
+            var numericValues = value.match(/[\-+]?\d{1,3}(?:\.\d+)?/g) || [];
+            for (var j = 0; j < numericValues.length - 1; j += 1) {
+                var fallback = normalizeCoordinatePair(numericValues[j], numericValues[j + 1]);
+                if (fallback) {
+                    return fallback;
+                }
+            }
+
+            return null;
+        }
 
     function updateInputs(e) {
       var pos = e.latlng || marker.getLatLng();
@@ -485,34 +593,24 @@
     // Listen for manual changes to location_link field
     if (linkInput) {
       function updateMapFromLink() {
-        var val = linkInput.value.trim();
-        var latlng = null;
-        // Accept plain lat,lng (with or without spaces)
-        var plainMatch = val.match(/^([-\d.]+)\s*,\s*([-\d.]+)$/);
-        if (plainMatch) {
-          latlng = [parseFloat(plainMatch[1]), parseFloat(plainMatch[2])];
-        } else {
-          // OpenStreetMap
-          var osmMatch = val.match(/mlat=([-\d.]+)&mlon=([-\d.]+)/);
-          if (osmMatch) {
-            latlng = [parseFloat(osmMatch[1]), parseFloat(osmMatch[2])];
-          } else {
-            // Google Maps: @lat,lng,zoomz
-            var gmapsMatch = val.match(/@([-\d.]+),([-\d.]+),/);
-            if (gmapsMatch) {
-              latlng = [parseFloat(gmapsMatch[1]), parseFloat(gmapsMatch[2])];
-            }
-          }
-        }
+                var latlng = extractLatLngFromLink(linkInput.value);
         if (latlng && !isNaN(latlng[0]) && !isNaN(latlng[1])) {
           if (latInput) latInput.value = latlng[0].toFixed(6);
           if (lngInput) lngInput.value = latlng[1].toFixed(6);
           map.setView(latlng, 15);
           marker.setLatLng(latlng);
+                    ensureMapSize();
         }
       }
       linkInput.addEventListener('input', updateMapFromLink);
       linkInput.addEventListener('change', updateMapFromLink);
+            linkInput.addEventListener('paste', function() {
+                setTimeout(updateMapFromLink, 0);
+            });
+
+            if (linkInput.value && linkInput.value.trim()) {
+                updateMapFromLink();
+            }
     }
 
     map.on('click', updateInputs);

@@ -24,7 +24,7 @@ class CompanyForm(forms.ModelForm):
             'province': forms.TextInput(attrs={'class': 'form-control'}),
             'status': forms.Select(attrs={'class': 'form-select'}),
             'has_incentives': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
-            'incentives_details': forms.Textarea(attrs={'class': 'form-control'}),
+            'incentives_details': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
             'logo': forms.ClearableFileInput(attrs={'class': 'form-control'}),
             'location_link': forms.URLInput(attrs={'class': 'form-control', 'placeholder': 'Paste or auto-generate a map link'}),
             'banner_image': forms.ClearableFileInput(attrs={'class': 'form-control'}),

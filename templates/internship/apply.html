@@ -313,6 +313,39 @@
                                 </p>
                             </div>
                         </div>
+
+                        <div class="info-section">
+                            <strong><i class="fas fa-address-card me-2"></i>Company Contact Information</strong>
+                            <ul class="list-unstyled mb-0">
+                                <li class="mb-1">
+                                    <i class="fas fa-user-tie me-2 text-muted"></i>
+                                    <strong class="d-inline">HR Email:</strong>
+                                    {% if internship.company.hr_email %}
+                                        <a href="mailto:{{ internship.company.hr_email }}">{{ internship.company.hr_email }}</a>
+                                    {% else %}
+                                        <span class="text-muted">Not provided</span>
+                                    {% endif %}
+                                </li>
+                                <li class="mb-1">
+                                    <i class="fas fa-envelope me-2 text-muted"></i>
+                                    <strong class="d-inline">Company Email:</strong>
+                                    {% if internship.company.company_email %}
+                                        <a href="mailto:{{ internship.company.company_email }}">{{ internship.company.company_email }}</a>
+                                    {% else %}
+                                        <span class="text-muted">Not provided</span>
+                                    {% endif %}
+                                </li>
+                                <li class="mb-0">
+                                    <i class="fas fa-phone me-2 text-muted"></i>
+                                    <strong class="d-inline">Phone Number:</strong>
+                                    {% if internship.company.phone_number %}
+                                        <a href="tel:{{ internship.company.phone_number }}">{{ internship.company.phone_number }}</a>
+                                    {% else %}
+                                        <span class="text-muted">Not provided</span>
+                                    {% endif %}
+                                </li>
+                            </ul>
+                        </div>
                         
                         <div class="info-section">
                             <strong><i class="fas fa-file-alt me-2"></i>Description</strong>
@@ -407,11 +440,23 @@
                             ];
                             var polyline = L.polyline(latlngs, {color: '#064E07', weight: 3, dashArray: '6, 8'}).addTo(map);
                             map.fitBounds(polyline.getBounds(), {padding: [30, 30]});
-                            
-                            // Force map to resize properly
-                            setTimeout(function() {
-                              map.invalidateSize();
-                            }, 100);
+
+                                                        function ensureMapSize() {
+                                                            map.invalidateSize();
+                                                        }
+
+                                                        map.whenReady(ensureMapSize);
+                                                        requestAnimationFrame(ensureMapSize);
+                                                        setTimeout(ensureMapSize, 120);
+                                                        setTimeout(ensureMapSize, 450);
+                                                        window.addEventListener('resize', ensureMapSize);
+
+                                                        if (window.ResizeObserver) {
+                                                            var resizeObserver = new ResizeObserver(function() {
+                                                                ensureMapSize();
+                                                            });
+                                                            resizeObserver.observe(mapContainer);
+                                                        }
                           });
                         </script>
                         {% endif %}
