@@ -244,13 +244,13 @@ main {
         <li class="nav-item">
             <a class="nav-link {% if request.resolver_match.url_name == 'companies' %}active{% endif %}"
                href="{% url 'internship:companies' %}">
-                <i class="bi bi-building"></i> Company Listing
+                <i class="bi bi-building"></i> Company Management
             </a>
         </li>
         <li class="nav-item">
             <a class="nav-link {% if request.resolver_match.url_name == 'internships' %}active{% endif %}"
                href="{% url 'internship:internships' %}">
-                <i class="bi bi-briefcase"></i> Internship Placement Status
+                <i class="bi bi-briefcase"></i> Internship Management
             </a>
         </li>
         <li class="nav-item">
@@ -274,7 +274,7 @@ main {
         <li class="nav-item">
             <a class="nav-link {% if request.resolver_match.url_name == 'reports' %}active{% endif %}"
                href="{% url 'dashboard:reports' %}">
-                <i class="bi bi-file-earmark-bar-graph"></i> Student Status Report
+                <i class="bi bi-file-earmark-bar-graph"></i> Reports
             </a>
         </li>
         {% endif %}
