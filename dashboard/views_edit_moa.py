@@ -298,7 +298,7 @@ def edit_moa_view(request, doc_id):
 
     required_doc = get_object_or_404(RequiredDocument, id=doc_id)
     if not required_doc.template_file:
-        messages.error(request, "No MOA template available.")
+        messages.error(request, "No document template available.")
         return redirect('dashboard:student_documents')
 
     document_file = get_or_create_editable_document(required_doc, request.user)

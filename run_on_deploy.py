@@ -5,6 +5,13 @@ import glob
 
 print("Running deployment tasks...")
 
+
+def env_bool(name, default=False):
+    value = os.getenv(name)
+    if value is None:
+        return default
+    return value.strip().lower() in ("1", "true", "yes", "on")
+
 def run_cmd(args, error_message):
     result = subprocess.run(args)
     if result.returncode != 0:
@@ -26,6 +33,7 @@ result = subprocess.run(
     text=True
 )
 
+user_count = None
 try:
     user_count = int(result.stdout.strip().splitlines()[-1])
     if user_count > 0:
@@ -42,5 +50,35 @@ try:
             print("No backup file found, skipping data restore")
 except Exception:
     print("Could not check database status, skipping restore...")
+
+
+# Optional demo data seeding for staging/production demonstrations.
+# Disabled by default for safety.
+if env_bool("DEMO_SEED_ON_DEPLOY", default=False):
+    seed_only_when_empty = env_bool("DEMO_SEED_ONLY_WHEN_EMPTY", default=True)
+    should_seed = (user_count == 0) if seed_only_when_empty else True
+
+    if should_seed:
+        students_per_course = os.getenv("DEMO_SEED_STUDENTS_PER_COURSE", "2")
+        print(
+            "DEMO_SEED_ON_DEPLOY enabled. "
+            f"Seeding demo data (students per course: {students_per_course})..."
+        )
+        run_cmd(
+            [
+                "python",
+                "manage.py",
+                "seed_demo_data",
+                "--students-per-course",
+                students_per_course,
+            ],
+            "Demo data seeding failed!",
+        )
+        print("Demo data seeded successfully.")
+    else:
+        print(
+            "DEMO_SEED_ON_DEPLOY enabled but skipped because database is not empty "
+            "(DEMO_SEED_ONLY_WHEN_EMPTY=true)."
+        )
 
 print("Deployment complete!")

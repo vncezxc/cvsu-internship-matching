@@ -1,5 +1,5 @@
 {% extends "dashboard/base_dashboard.html" %}
-{% block dashboard_title %}Edit MOA{% endblock %}
+{% block dashboard_title %}Edit Required Document{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -167,7 +167,7 @@
 {% block dashboard_content %}
 <div class="moa-editor-card">
     <div class="moa-editor-header">
-        <span class="moa-editor-title">Edit MOA Document: {{ required_doc.name }}</span>
+        <span class="moa-editor-title">Edit Required Document: {{ required_doc.name }}</span>
         {% if connection_status %}
             <span class="moa-editor-status">Status: <span style="font-size:1.2em;">{% if 'Connected' in connection_status %}✅{% else %}❌{% endif %}</span> {{ connection_status }}</span>
         {% endif %}
