@@ -1,4 +1,6 @@
 from django.urls import reverse
+from django.shortcuts import redirect
+from django.contrib import messages
 from allauth.account.adapter import DefaultAccountAdapter
 from accounts.models import StudentProfile
 
@@ -45,3 +47,14 @@ class CustomAccountAdapter(DefaultAccountAdapter):
             except Exception:
                 return reverse('accounts:edit_profile')
         return super().get_login_redirect_url(request)
+
+    def respond_user_inactive(self, request, user):
+        if getattr(user, 'is_student', False):
+            try:
+                profile = user.student_profile
+                if profile.master_list_verification_status == StudentProfile.MasterListVerificationStatus.PENDING:
+                    messages.error(request, 'Your account is pending adviser approval. You can log in after approval.')
+                    return redirect('account_login')
+            except StudentProfile.DoesNotExist:
+                pass
+        return super().respond_user_inactive(request, user)
