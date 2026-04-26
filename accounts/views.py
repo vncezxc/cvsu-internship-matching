@@ -190,9 +190,11 @@ def edit_profile(request):
                         'master_list_reviewed_at',
                         'master_list_review_remarks',
                     ])
-                    update_session_auth_hash(request, user)
-                    messages.warning(request, 'Your profile was saved, but verification is pending adviser review because the master list is not yet available.')
-                    return redirect('accounts:profile')
+                    user.is_active = False
+                    user.save(update_fields=['is_active'])
+                    logout(request)
+                    messages.warning(request, 'Your profile was saved, but verification is pending adviser review. You will be able to log in after approval.')
+                    return redirect('account_login')
 
                 entries = AdviserMasterListEntry.objects.filter(adviser__in=matching_advisers, student_id=student_id)
                 matched = any(normalize_name(entry.full_name) == full_name for entry in entries)
@@ -211,9 +213,11 @@ def edit_profile(request):
                         'master_list_reviewed_at',
                         'master_list_review_remarks',
                     ])
-                    update_session_auth_hash(request, user)
-                    messages.warning(request, 'Your profile was saved and sent for adviser review because your details are not yet in the master list.')
-                    return redirect('accounts:profile')
+                    user.is_active = False
+                    user.save(update_fields=['is_active'])
+                    logout(request)
+                    messages.warning(request, 'Your profile was saved and sent for adviser review. You will be able to log in after approval.')
+                    return redirect('account_login')
 
                 profile = save_profile_and_skills(form, user, skills_data)
                 profile.master_list_verified = True

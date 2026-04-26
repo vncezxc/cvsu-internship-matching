@@ -1,7 +1,20 @@
 from django.urls import reverse
 from allauth.account.adapter import DefaultAccountAdapter
+from accounts.models import StudentProfile
 
 class CustomAccountAdapter(DefaultAccountAdapter):
+    def is_login_allowed(self, user):
+        if not super().is_login_allowed(user):
+            return False
+        if getattr(user, 'is_student', False):
+            try:
+                profile = user.student_profile
+                if profile.master_list_verification_status == StudentProfile.MasterListVerificationStatus.PENDING:
+                    return False
+            except StudentProfile.DoesNotExist:
+                pass
+        return True
+
     def get_login_redirect_url(self, request):
         user = request.user
         # Student
