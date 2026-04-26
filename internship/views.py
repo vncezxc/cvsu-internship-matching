@@ -623,11 +623,12 @@ def add_internship(request):
             return redirect('/internship/internships/')
     else:
         form = InternshipForm()
-    # Build course_skill_map for JS
+    # Build course_skill_map for JS (include global skills)
     course_skill_map = {}
+    global_skills = list(Skill.objects.filter(course__isnull=True).values('id', 'name'))
     for course in Course.objects.all():
         skills = Skill.objects.filter(course=course).values('id', 'name')
-        course_skill_map[str(course.id)] = list(skills)
+        course_skill_map[str(course.id)] = list(skills) + global_skills
     context = {
         'form': form,
         'companies': Company.objects.filter(status=Company.Status.ACTIVE),
@@ -690,11 +691,12 @@ def edit_internship(request, internship_id):
             return redirect('/internship/internships/')
     else:
         form = InternshipForm(instance=internship)
-    # Build course_skill_map for JS
+    # Build course_skill_map for JS (include global skills)
     course_skill_map = {}
+    global_skills = list(Skill.objects.filter(course__isnull=True).values('id', 'name'))
     for course in Course.objects.all():
         skills = Skill.objects.filter(course=course).values('id', 'name')
-        course_skill_map[str(course.id)] = list(skills)
+        course_skill_map[str(course.id)] = list(skills) + global_skills
     context = {
         'form': form,
         'internship': internship,

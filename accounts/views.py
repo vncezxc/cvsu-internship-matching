@@ -115,12 +115,13 @@ def edit_profile(request):
             profile.save()
             messages.info(request, 'Please complete your new profile.')
         
-        # Build course-skill map for JS
+        # Build course-skill map for JS (include global skills)
         from .models import Skill, Course
         course_skill_map = {}
+        global_skills = list(Skill.objects.filter(course__isnull=True).values('id', 'name'))
         for course in Course.objects.all():
             skills = Skill.objects.filter(course=course).values('id', 'name')[:30]
-            course_skill_map[course.id] = list(skills)
+            course_skill_map[course.id] = list(skills) + global_skills
         
         if request.method == 'POST':
             form = StudentProfileForm(request.POST, request.FILES, instance=profile)
