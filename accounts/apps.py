@@ -133,7 +133,7 @@ def seed_soft_skills(sender, **kwargs):
         if not course:
             continue
         for name in skills:
-            Skill.objects.get_or_create(name=name, course=course)
+            Skill.objects.get_or_create(name=name)
 
 
 class AccountsConfig(AppConfig):
