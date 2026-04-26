@@ -269,7 +269,6 @@ def edit_profile(request):
                 profile.year_levels = form.cleaned_data.get('year_levels', '')
                 profile.save()
                 form.save_m2m()
-                from django.contrib.auth import update_session_auth_hash, logout
                 update_session_auth_hash(request, user)
                 
                 # If adviser is not approved, log them out and redirect to login
