@@ -2,7 +2,7 @@ from django.urls import reverse
 from django.shortcuts import redirect
 from django.contrib import messages
 from allauth.account.adapter import DefaultAccountAdapter
-from accounts.models import StudentProfile
+from accounts.models import StudentProfile, AdviserProfile
 
 class CustomAccountAdapter(DefaultAccountAdapter):
     def is_login_allowed(self, user):
@@ -53,7 +53,16 @@ class CustomAccountAdapter(DefaultAccountAdapter):
             try:
                 profile = user.student_profile
                 if profile.master_list_verification_status == StudentProfile.MasterListVerificationStatus.PENDING:
-                    messages.error(request, 'Your account is pending adviser approval. You can log in after approval.')
+                    has_course = profile.course is not None
+                    has_section = bool((profile.section or '').strip())
+                    has_adviser = False
+                    if has_course and has_section:
+                        advisers = AdviserProfile.objects.filter(courses=profile.course)
+                        has_adviser = any(profile.section in adviser.get_sections_list() for adviser in advisers)
+                    if has_adviser:
+                        messages.error(request, 'Your account is pending adviser approval. You can log in after approval.')
+                    else:
+                        messages.error(request, 'No adviser is assigned for your course/section yet. You can log in after an adviser uploads the master list.')
                     return redirect('account_login')
             except StudentProfile.DoesNotExist:
                 pass
