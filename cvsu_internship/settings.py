@@ -28,8 +28,16 @@ def get_config(key, default='', cast_func=None):
     2. .env file via python-decouple (local development)
     3. Default value
     """
+    def normalize_env_value(raw_value):
+        if isinstance(raw_value, str):
+            cleaned = raw_value.strip()
+            if (cleaned.startswith('"') and cleaned.endswith('"')) or (cleaned.startswith("'") and cleaned.endswith("'")):
+                cleaned = cleaned[1:-1]
+            return cleaned
+        return raw_value
+
     # 1. First check system environment (Render production)
-    value = os.environ.get(key)
+    value = normalize_env_value(os.environ.get(key))
     
     # 2. If not in system env, try .env file (local development)
     if value is None:
@@ -37,9 +45,9 @@ def get_config(key, default='', cast_func=None):
             from decouple import config as decouple_config
             # Use decouple's config with casting if needed
             if cast_func:
-                value = decouple_config(key, default=default, cast=cast_func)
+                value = normalize_env_value(decouple_config(key, default=default, cast=cast_func))
             else:
-                value = decouple_config(key, default=default)
+                value = normalize_env_value(decouple_config(key, default=default))
         except:
             value = default
     
@@ -573,10 +581,6 @@ if REDIS_URL:
                 }
             }
         }
-        
-        SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
-        SESSION_CACHE_ALIAS = 'default'
-        
     except ImportError:
         # Fallback to Django's built-in Redis cache
         CACHES = {
@@ -585,9 +589,9 @@ if REDIS_URL:
                 'LOCATION': REDIS_URL,
             }
         }
-        
-        SESSION_ENGINE = 'django.contrib.sessions.backends.db'
-        
+    # Always keep sessions in the database to avoid login failures
+    # when Redis is unavailable.
+    SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 else:
     # Development or no Redis
     CACHES = {
