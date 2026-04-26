@@ -441,24 +441,6 @@ SENDGRID_API_KEY = get_config('SENDGRID_API_KEY', default='')
 SENDGRID_SANDBOX_MODE = get_config('SENDGRID_SANDBOX_MODE_IN_DEBUG', default=True, cast_func=bool)
 BREVO_API_KEY = get_config('BREVO_API_KEY', default='')
 
-# Determine email backend
-if EMAIL_BACKEND_CONFIG:
-    EMAIL_BACKEND = EMAIL_BACKEND_CONFIG
-elif DEBUG and SENDGRID_SANDBOX_MODE and not BREVO_API_KEY:
-    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-elif BREVO_API_KEY:
-    EMAIL_BACKEND = 'anymail.backends.sendinblue.EmailBackend'
-elif SENDGRID_API_KEY:
-    EMAIL_BACKEND = 'sendgrid_backend.SendgridBackend'
-else:
-    # Fallback to SMTP
-    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-
-# Anymail (Brevo) configuration
-ANYMAIL = {
-    'SENDINBLUE_API_KEY': BREVO_API_KEY,
-}
-
 # SMTP configuration (fallback)
 EMAIL_HOST = get_config('EMAIL_HOST', default='smtp.sendgrid.net')
 EMAIL_PORT = get_config('EMAIL_PORT', default=587, cast_func=int)
@@ -469,23 +451,55 @@ EMAIL_HOST_PASSWORD = SENDGRID_API_KEY if SENDGRID_API_KEY else get_config('EMAI
 DEFAULT_FROM_EMAIL = get_config('DEFAULT_FROM_EMAIL', default='internmatchingcvsu@gmail.com')
 SERVER_EMAIL = DEFAULT_FROM_EMAIL
 EMAIL_SUBJECT_PREFIX = '[CVSU Internship] '
-EMAIL_TIMEOUT = 30
+EMAIL_TIMEOUT = get_config('EMAIL_TIMEOUT', default=10, cast_func=int)
+
+# Determine email backend
+if EMAIL_BACKEND_CONFIG:
+    EMAIL_BACKEND = EMAIL_BACKEND_CONFIG
+elif DEBUG and SENDGRID_SANDBOX_MODE and not BREVO_API_KEY:
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+elif BREVO_API_KEY:
+    EMAIL_BACKEND = 'anymail.backends.sendinblue.EmailBackend'
+elif SENDGRID_API_KEY:
+    EMAIL_BACKEND = 'sendgrid_backend.SendgridBackend'
+elif not EMAIL_HOST_PASSWORD:
+    # Avoid blocking SMTP calls if no credentials are configured.
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+else:
+    # Fallback to SMTP
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+
+# Anymail (Brevo) configuration
+ANYMAIL = {
+    'SENDINBLUE_API_KEY': BREVO_API_KEY,
+}
 
 # ---------------------------------------
 # Channels & WebSockets Configuration
 # ---------------------------------------
 ASGI_APPLICATION = 'cvsu_internship.asgi.application'
 
-CHANNEL_LAYERS = {
-    'default': {
-        'BACKEND': 'channels_redis.core.RedisChannelLayer',
-        'CONFIG': {
-            'hosts': [(get_config('REDIS_URL', default='rediss://localhost:6379'))],
-            'capacity': 1500,  # default 100
-            'expiry': 10,  # default 60
+# Get Redis URL for channels and cache
+REDIS_URL = get_config('REDIS_URL', default='')
+
+if REDIS_URL:
+    CHANNEL_LAYERS = {
+        'default': {
+            'BACKEND': 'channels_redis.core.RedisChannelLayer',
+            'CONFIG': {
+                'hosts': [REDIS_URL],
+                'capacity': 1500,  # default 100
+                'expiry': 10,  # default 60
+            },
         },
-    },
-}
+    }
+else:
+    # Avoid connection delays when Redis is not configured.
+    CHANNEL_LAYERS = {
+        'default': {
+            'BACKEND': 'channels.layers.InMemoryChannelLayer',
+        },
+    }
 
 # ---------------------------------------
 # Crispy Forms Configuration
@@ -541,9 +555,9 @@ LOGGING = {
 # ---------------------------------------
 
 # Get Redis URL
-REDIS_URL = get_config('REDIS_URL', default=None)
+REDIS_URL = get_config('REDIS_URL', default='')
 
-if REDIS_URL and REDIS_URL != 'rediss://localhost:6379':
+if REDIS_URL:
     # Only use Redis if a real URL is provided (not default)
     try:
         # Try django-redis first
