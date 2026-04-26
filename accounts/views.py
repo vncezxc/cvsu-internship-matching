@@ -460,6 +460,14 @@ def delete_cv(request):
 @login_required
 def manage_skills(request, course_id=None):
     from .models import Course as CourseModel, Skill as SkillModel
+    def build_course_skill_map():
+        course_skill_map = {}
+        global_skills = list(SkillModel.objects.filter(course__isnull=True).values('id', 'name'))
+        for c in CourseModel.objects.all():
+            course_skills = list(SkillModel.objects.filter(course=c).values('id', 'name'))
+            course_skill_map[c.id] = course_skills + global_skills
+        return course_skill_map
+
     if request.user.is_adviser:
         adviser = request.user.adviser_profile
         if course_id:
@@ -473,9 +481,7 @@ def manage_skills(request, course_id=None):
             course_id_for_suggestions = None
             course_name_for_suggestions = ''
         # Build course_skill_map for JS
-        course_skill_map = {}
-        for c in CourseModel.objects.all():
-            course_skill_map[c.id] = list(SkillModel.objects.filter(course=c).values('id', 'name'))
+        course_skill_map = build_course_skill_map()
         return render(request, 'accounts/manage_skills.html', {
             'course': course,
             'skills': skills,
@@ -510,10 +516,7 @@ def manage_skills(request, course_id=None):
             return redirect('accounts:profile')
         skills = profile.skills.all()
         # Build course_skill_map for JS
-        course_skill_map = {}
-        from .models import Course as CourseModel, Skill as SkillModel
-        for c in CourseModel.objects.all():
-            course_skill_map[c.id] = list(SkillModel.objects.filter(course=c).values('id', 'name'))
+        course_skill_map = build_course_skill_map()
         selected_course_id = profile.course.id if profile.course else ''
         selected_course_name = profile.course.name if profile.course else ''
         return render(request, 'accounts/manage_skills.html', {

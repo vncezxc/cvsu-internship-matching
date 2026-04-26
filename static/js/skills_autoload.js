@@ -118,7 +118,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 return !(s.id === skill.id && !s.custom);
             }
         });
-        renderSkillChips();
         renderSelectedSkills();
     }
 
