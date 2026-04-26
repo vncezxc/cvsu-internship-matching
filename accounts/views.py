@@ -174,6 +174,12 @@ def edit_profile(request):
                         'is_coordinator': False,
                     })
 
+                if profile.master_list_verification_status == StudentProfile.MasterListVerificationStatus.APPROVED:
+                    profile = save_profile_and_skills(form, user, skills_data)
+                    update_session_auth_hash(request, user)
+                    messages.success(request, 'Profile updated successfully.')
+                    return redirect('accounts:profile')
+
                 advisers = AdviserProfile.objects.filter(courses=course)
                 matching_advisers = [a for a in advisers if section in a.get_sections_list()]
 
