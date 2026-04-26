@@ -38,7 +38,7 @@ def get_config(key, default='', cast_func=None):
 
     # 1. First check system environment (Render production)
     value = normalize_env_value(os.environ.get(key))
-    
+
     # 2. If not in system env, try .env file (local development)
     if value is None:
         try:
@@ -48,9 +48,9 @@ def get_config(key, default='', cast_func=None):
                 value = normalize_env_value(decouple_config(key, default=default, cast=cast_func))
             else:
                 value = normalize_env_value(decouple_config(key, default=default))
-        except:
+        except Exception:
             value = default
-    
+
     # 3. Apply casting for booleans, integers, etc.
     if cast_func and value is not None and value != '':
         if cast_func == bool:
@@ -58,14 +58,12 @@ def get_config(key, default='', cast_func=None):
             if isinstance(value, str):
                 value = value.lower() in ('true', 'yes', '1', 't', 'y')
             return value
-        else:
-            try:
-                return cast_func(value)
-            except (ValueError, TypeError):
-                return default
-    
-    return value
+        try:
+            return cast_func(value)
+        except (ValueError, TypeError):
+            return default
 
+    return value
 # Import decouple for any remaining direct usage
 from decouple import config
 
