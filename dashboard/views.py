@@ -185,6 +185,10 @@ def submit_dtr(request):
     if request.method == 'POST':
         form = DTRSubmissionForm(request.POST, request.FILES)
         if form.is_valid():
+            week_start = form.cleaned_data.get('week_start')
+            if DTR.objects.filter(student=profile, week_start=week_start).exists():
+                messages.error(request, 'A DTR for this week has already been submitted.')
+                return redirect('dashboard:student_dtr_list')
             dtr = form.save(commit=False)
             dtr.student = profile
             dtr.adviser = profile.course.advisers.first() if profile.course else None
