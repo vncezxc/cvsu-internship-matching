@@ -666,6 +666,13 @@ def get_absolute_media_url(relative_url):
     return f"http://localhost:8000/media/{relative_url}"
 
 # ---------------------------------------
+# File Upload Size Limits (Revision #16)
+# ---------------------------------------
+FILE_UPLOAD_MAX_MEMORY_SIZE = 10485760  # 10MB
+DATA_UPLOAD_MAX_MEMORY_SIZE = 10485760  # 10MB
+MAX_UPLOAD_SIZE = 10 * 1024 * 1024  # 10MB
+
+# ---------------------------------------
 # Debug Output
 # ---------------------------------------
 

@@ -477,29 +477,33 @@ def send_message_with_attachment(request, room_id):
         
         # Handle attachment if provided
         if attachment:
-            # Save attachment to media folder
-            import os
-            from django.conf import settings
+            # Check file size (10MB limit)
+            from django.conf import settings as app_settings
+            max_size = getattr(app_settings, 'MAX_UPLOAD_SIZE', 10 * 1024 * 1024)
+            if attachment.size > max_size:
+                message.delete()
+                return JsonResponse({'error': 'File exceeds 10MB size limit'}, status=400)
             
-            # Create chat_attachments folder if it doesn't exist
-            attachments_dir = os.path.join(settings.MEDIA_ROOT, 'chat_attachments')
-            os.makedirs(attachments_dir, exist_ok=True)
+            # Save attachment using the model's FileField
+            message.attachment = attachment
+            message.save()
             
-            # Generate unique filename
-            filename = f"chat_{room_id}_{message.id}_{attachment.name}"
-            filepath = os.path.join(attachments_dir, filename)
+            # Update message content to include image/file display
+            attachment_url = message.attachment.url
+            file_ext = attachment.name.rsplit('.', 1)[-1].lower() if '.' in attachment.name else ''
             
-            # Save the file
-            with open(filepath, 'wb+') as destination:
-                for chunk in attachment.chunks():
-                    destination.write(chunk)
-            
-            # Update message content to include image
-            attachment_url = f"{settings.MEDIA_URL}chat_attachments/{filename}"
-            if content:
-                message.content = f'{content}<br><img src="{attachment_url}" class="chat-attachment-img" style="max-width: 200px; border-radius: 8px; margin-top: 0.5rem;">'
+            if file_ext in ('jpg', 'jpeg', 'png', 'gif', 'webp'):
+                img_html = f'<img src="{attachment_url}" class="chat-attachment-img" style="max-width: 200px; border-radius: 8px; margin-top: 0.5rem; cursor: pointer;" onclick="window.open(this.src)">'
+                if content:
+                    message.content = f'{content}<br>{img_html}'
+                else:
+                    message.content = img_html
             else:
-                message.content = f'<img src="{attachment_url}" class="chat-attachment-img" style="max-width: 200px; border-radius: 8px;">'
+                file_html = f'<a href="{attachment_url}" target="_blank" class="btn btn-sm btn-outline-primary mt-1"><i class="bi bi-file-earmark me-1"></i>{attachment.name}</a>'
+                if content:
+                    message.content = f'{content}<br>{file_html}'
+                else:
+                    message.content = file_html
             message.save()
         
         return JsonResponse({

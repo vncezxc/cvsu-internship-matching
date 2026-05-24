@@ -129,6 +129,14 @@
             <h5 class="mb-0">Student Document Completion</h5>
         </div>
         <div class="card-body">
+            <div class="alert alert-info mb-4">
+                <strong><i class="bi bi-info-circle"></i> Document Acronym Legend:</strong>
+                <div class="d-flex flex-wrap gap-3 mt-2">
+                    {% for doc in required_documents %}
+                    <div><strong>{{ doc.short_label|default:doc.name }}</strong>: {{ doc.name }}</div>
+                    {% endfor %}
+                </div>
+            </div>
             <div>
                 <table class="table table-bordered table-striped align-middle table-fixed">
                     <thead>
@@ -148,6 +156,10 @@
                                 <br>
                                 <small class="text-muted d-inline-block truncate-cell" style="max-width: 220px;" title="{{ entry.student.user.email }}">{{ entry.student.user.email }}</small>
                                 <br><small class="text-muted">{{ entry.student.course.name }} - {{ entry.student.section }}</small>
+                                <br>
+                                <a href="{% url 'dashboard:download_all_student_documents' entry.student.id %}" class="btn btn-sm btn-outline-primary mt-2">
+                                    <i class="fas fa-file-archive"></i> Download ZIP
+                                </a>
                             </td>
                             {% for doc in entry.doc_status %}
                                 <td>
@@ -164,6 +176,9 @@
                                             <span class="badge bg-success"><i class="bi bi-file-earmark-excel"></i> Excel</span><br>
                                         {% endif %}
                                         <a href="{{ doc.file }}" class="btn btn-sm btn-outline-secondary" target="_blank">Download</a>
+                                        {% if doc.uploaded_at %}
+                                        <br><small class="text-muted" style="font-size: 0.7rem;">{{ doc.uploaded_at|date:"M d, Y" }}</small>
+                                        {% endif %}
                                     {% else %}
                                         <span class="badge bg-danger">✗</span>
                                     {% endif %}

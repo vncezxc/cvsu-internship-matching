@@ -158,7 +158,47 @@
                                         </td>
                                         <td>{{ student.section|default:"-" }}</td>
                                         <td class="truncate-cell">
-                                            <span class="d-inline-block truncate-cell" style="max-width: 180px;" title="{{ company.name }}">{{ company.name }}</span>
+                                            <span class="d-inline-block truncate-cell" style="max-width: 140px;" title="{{ company.name }}">{{ company.name }}</span>
+                                            <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-1 float-end" data-bs-toggle="modal" data-bs-target="#editCompanyModal{{ company.id }}">
+                                                <i class="bi bi-pencil" style="font-size: 0.75rem;"></i>
+                                            </button>
+                                            
+                                            <!-- Modal -->
+                                            <div class="modal fade" id="editCompanyModal{{ company.id }}" tabindex="-1" aria-labelledby="editCompanyModalLabel{{ company.id }}" aria-hidden="true">
+                                                <div class="modal-dialog">
+                                                    <div class="modal-content text-start">
+                                                        <div class="modal-header">
+                                                            <h5 class="modal-title" id="editCompanyModalLabel{{ company.id }}">Edit Contact - {{ company.name }}</h5>
+                                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                        </div>
+                                                        <form method="post" action="{% url 'dashboard:edit_ojt_company_contact' company.id %}">
+                                                            {% csrf_token %}
+                                                            <div class="modal-body">
+                                                                <div class="mb-3">
+                                                                    <label class="form-label">Company Email</label>
+                                                                    <input type="email" class="form-control" name="company_email" value="{{ company.company_email }}" required>
+                                                                </div>
+                                                                <div class="mb-3">
+                                                                    <label class="form-label">HR Email</label>
+                                                                    <input type="email" class="form-control" name="hr_email" value="{{ company.hr_email }}" required>
+                                                                </div>
+                                                                <div class="mb-3">
+                                                                    <label class="form-label">Phone Number</label>
+                                                                    <input type="text" class="form-control" name="phone_number" value="{{ company.phone_number }}" required>
+                                                                </div>
+                                                                <div class="mb-3">
+                                                                    <label class="form-label">Street / Building</label>
+                                                                    <input type="text" class="form-control" name="street" value="{{ company.street }}" required>
+                                                                </div>
+                                                            </div>
+                                                            <div class="modal-footer">
+                                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                                                <button type="submit" class="btn btn-primary">Save changes</button>
+                                                            </div>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </td>
                                         <td class="truncate-cell">
                                             <span class="d-inline-block truncate-cell" style="max-width: 200px;" title="{{ company.company_email }}">{{ company.company_email }}</span>

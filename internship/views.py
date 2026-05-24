@@ -55,13 +55,15 @@ def internship_matches(request):
                 continue
 
 
-            # Skill match: percent of required_skills that student has
-            required_skills = set(internship.required_skills.values_list('id', flat=True))
-            student_skills = set(profile.skills.values_list('id', flat=True))
-            if required_skills:
-                skill_match = len(required_skills & student_skills) / len(required_skills)
-            else:
-                skill_match = 1.0
+            # Technical Skill match
+            req_tech_skills = set(internship.required_skills.filter(skill_type='TECHNICAL').values_list('id', flat=True))
+            stu_tech_skills = set(profile.skills.filter(skill_type='TECHNICAL').values_list('id', flat=True))
+            tech_match = len(req_tech_skills & stu_tech_skills) / len(req_tech_skills) if req_tech_skills else 1.0
+
+            # Soft Skill match
+            req_soft_skills = set(internship.required_skills.filter(skill_type='SOFT').values_list('id', flat=True))
+            stu_soft_skills = set(profile.skills.filter(skill_type='SOFT').values_list('id', flat=True))
+            soft_match = len(req_soft_skills & stu_soft_skills) / len(req_soft_skills) if req_soft_skills else 1.0
 
             # Course match: 1.0 if course matches, else 0.0
             course_match = 1.0 if profile.course in internship.recommended_courses.all() else 0.0
@@ -78,6 +80,7 @@ def internship_matches(request):
 
             company = internship.company
             map_match = 0.0
+            dist = None
             if (company.latitude and company.longitude and profile.latitude and profile.longitude):
                 try:
                     dist = haversine(float(company.latitude), float(company.longitude), float(profile.latitude), float(profile.longitude))
@@ -88,11 +91,12 @@ def internship_matches(request):
                 except Exception:
                     map_match = 0.0
 
-            # Softer matching: 40% skills, 30% course, 30% map
-            match_score = round(skill_match * 40 + course_match * 30 + map_match * 30)
+            # Softer matching: 50% tech skills, 20% soft skills, 20% course, 10% map
+            match_score = round(tech_match * 50 + soft_match * 20 + course_match * 20 + map_match * 10)
 
             # Provide breakdown percentages for template display
-            skill_pct = int(round(skill_match * 100))
+            tech_pct = int(round(tech_match * 100))
+            soft_pct = int(round(soft_match * 100))
             course_pct = int(round(course_match * 100))
             map_pct = int(round(map_match * 100))
 
@@ -100,8 +104,9 @@ def internship_matches(request):
                 matches.append({
                     'internship': internship,
                     'score': match_score,
-                    'distance_km': round(dist, 1) if map_match > 0 else None,
-                    'skill_pct': skill_pct,
+                    'distance_km': round(dist, 1) if dist is not None and map_match > 0 else None,
+                    'tech_pct': tech_pct,
+                    'soft_pct': soft_pct,
                     'course_pct': course_pct,
                     'map_pct': map_pct,
                 })

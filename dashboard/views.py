@@ -9,6 +9,8 @@ from django.core.mail import send_mail
 import json
 import csv
 import openpyxl
+import os
+import zipfile
 from django.core.files.base import ContentFile
 from io import BytesIO
 from datetime import datetime, timedelta
@@ -213,8 +215,45 @@ def adviser_dtr_list(request):
         messages.error(request, 'Only advisers can view DTRs.')
         return redirect('dashboard:home')
     adviser = request.user.adviser_profile
-    dtrs = DTR.objects.filter(adviser=adviser).order_by('-week_start')
-    return render(request, 'dashboard/adviser_dtr_list.html', {'dtrs': dtrs})
+    dtrs = DTR.objects.filter(adviser=adviser)
+    
+    # Search
+    q = request.GET.get('q', '')
+    if q:
+        dtrs = dtrs.filter(student__user__first_name__icontains=q) | dtrs.filter(student__user__last_name__icontains=q)
+        
+    # Status filter
+    status = request.GET.get('status', '')
+    if status == 'approved':
+        dtrs = dtrs.filter(approved=True)
+    elif status == 'pending':
+        dtrs = dtrs.filter(approved=False)
+        
+    # Date filtering
+    start_date = request.GET.get('start_date', '')
+    end_date = request.GET.get('end_date', '')
+    if start_date:
+        dtrs = dtrs.filter(week_start__gte=start_date)
+    if end_date:
+        dtrs = dtrs.filter(week_end__lte=end_date)
+        
+    # Sorting
+    sort_by = request.GET.get('sort_by', '-week_start')
+    valid_sorts = ['week_start', '-week_start', 'student__user__first_name', '-student__user__first_name']
+    if sort_by in valid_sorts:
+        dtrs = dtrs.order_by(sort_by)
+    else:
+        dtrs = dtrs.order_by('-week_start')
+        
+    context = {
+        'dtrs': dtrs,
+        'q': q,
+        'status': status,
+        'start_date': start_date,
+        'end_date': end_date,
+        'sort_by': sort_by,
+    }
+    return render(request, 'dashboard/adviser_dtr_list.html', context)
 
 @login_required
 @require_http_methods(["GET", "POST"])
@@ -496,6 +535,60 @@ def adviser_dashboard(request):
 
 
 @login_required
+@require_http_methods(["POST"])
+def edit_ojt_company_contact(request, company_id):
+    if not request.user.is_adviser:
+        messages.error(request, 'Only advisers can edit OJT records.')
+        return redirect('dashboard:home')
+    
+    company = get_object_or_404(Company, id=company_id)
+    
+    company.company_email = request.POST.get('company_email', company.company_email)
+    company.hr_email = request.POST.get('hr_email', company.hr_email)
+    company.phone_number = request.POST.get('phone_number', company.phone_number)
+    company.street = request.POST.get('street', company.street)
+    company.save()
+    
+    messages.success(request, f'Contact information for {company.name} updated successfully.')
+    return redirect('dashboard:adviser_ojt_records')
+
+
+@login_required
+def download_all_student_documents(request, student_id):
+    if not request.user.is_adviser:
+        messages.error(request, 'Only advisers can download documents.')
+        return redirect('dashboard:home')
+    
+    student = get_object_or_404(StudentProfile, id=student_id)
+    adviser = request.user.adviser_profile
+    if student.course not in adviser.courses.all():
+        messages.error(request, 'You do not have access to this student.')
+        return redirect('dashboard:home')
+        
+    documents = student.documents.all()
+    if not documents:
+        messages.info(request, 'No documents found for this student.')
+        return redirect(request.META.get('HTTP_REFERER', 'dashboard:adviser_document_completion'))
+        
+    zip_buffer = BytesIO()
+    with zipfile.ZipFile(zip_buffer, "a", zipfile.ZIP_DEFLATED, False) as zip_file:
+        for doc in documents:
+            if doc.file:
+                try:
+                    ext = os.path.splitext(doc.file.name)[1]
+                    doc_name_clean = doc.document_type.name.replace(' ', '_').replace('/', '_')
+                    filename = f"{student.user.get_full_name().replace(' ', '_')}_{doc_name_clean}{ext}"
+                    zip_file.writestr(filename, doc.file.read())
+                except Exception as e:
+                    print(f"Failed to read file for {doc}: {e}")
+                    
+    zip_buffer.seek(0)
+    response = HttpResponse(zip_buffer.getvalue(), content_type='application/zip')
+    response['Content-Disposition'] = f'attachment; filename={student.user.get_full_name().replace(" ", "_")}_documents.zip'
+    return response
+
+
+@login_required
 def adviser_document_completion(request):
     if not request.user.is_adviser:
         messages.error(request, 'Only advisers can access this page.')
@@ -586,6 +679,7 @@ def adviser_document_completion(request):
                 'required': req_doc,
                 'uploaded': doc is not None,
                 'file': doc.file.url if doc else None,
+                'uploaded_at': doc.uploaded_at if hasattr(doc, 'uploaded_at') else None,
             })
         total = len(required_documents)
         completed = sum(1 for d in doc_status if d['uploaded'])

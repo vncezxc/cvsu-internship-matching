@@ -130,6 +130,13 @@ class User(AbstractUser):
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username']
     
+    def save(self, *args, **kwargs):
+        if self.first_name:
+            self.first_name = self.first_name.title()
+        if self.last_name:
+            self.last_name = self.last_name.title()
+        super().save(*args, **kwargs)
+    
     def __str__(self):
         return f"{self.username} ({self.get_user_type_display()})"
     
@@ -159,8 +166,13 @@ class Course(models.Model):
 class Skill(models.Model):
     """Model for skills that can be associated with students and internships."""
     
+    class SkillType(models.TextChoices):
+        TECHNICAL = 'TECHNICAL', 'Technical'
+        SOFT = 'SOFT', 'Soft'
+    
     name = models.CharField(max_length=100, unique=True)
     course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='skills', null=True, blank=True)
+    skill_type = models.CharField(max_length=20, choices=SkillType.choices, default=SkillType.TECHNICAL)
     
     def __str__(self):
         return self.name
@@ -269,7 +281,7 @@ class StudentProfile(models.Model):
     longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
     
     # OJT related fields
-    ojt_status = models.CharField(max_length=20, choices=OJTStatus.choices, default=OJTStatus.LOOKING)
+    ojt_status = models.CharField(max_length=20, choices=OJTStatus.choices, null=True, blank=True, default=None)
     ojt_hours_completed = models.PositiveIntegerField(default=0)
 
     # Adviser master list verification

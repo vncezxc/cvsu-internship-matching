@@ -118,10 +118,19 @@ def edit_profile(request):
         # Build course-skill map for JS (include global skills)
         from .models import Skill, Course
         course_skill_map = {}
-        global_skills = list(Skill.objects.filter(course__isnull=True).values('id', 'name'))
+        global_skills = list(Skill.objects.filter(course__isnull=True, skill_type='TECHNICAL').values('id', 'name'))
         for course in Course.objects.all():
-            skills = Skill.objects.filter(course=course).values('id', 'name')[:30]
+            skills = Skill.objects.filter(course=course, skill_type='TECHNICAL').values('id', 'name')[:30]
             course_skill_map[course.id] = list(skills) + global_skills
+        
+        # Predefined soft skill suggestions
+        soft_skill_suggestions = [
+            'Communication', 'Teamwork', 'Problem Solving', 'Time Management',
+            'Leadership', 'Adaptability', 'Critical Thinking', 'Work Ethic',
+            'Creativity', 'Attention to Detail', 'Interpersonal Skills',
+            'Organization', 'Conflict Resolution', 'Decision Making',
+            'Emotional Intelligence', 'Presentation Skills',
+        ]
         
         if request.method == 'POST':
             form = StudentProfileForm(request.POST, request.FILES, instance=profile)
@@ -146,7 +155,7 @@ def edit_profile(request):
                     saved_profile.skills.clear()
                     for skill_item in skills_payload:
                         if skill_item.get('custom'):
-                            obj, _ = Skill.objects.get_or_create(name=skill_item['name'])
+                            obj, _ = Skill.objects.get_or_create(name=skill_item['name'], defaults={'skill_type': 'TECHNICAL'})
                             saved_profile.skills.add(obj)
                         else:
                             try:
@@ -154,6 +163,21 @@ def edit_profile(request):
                                 saved_profile.skills.add(obj)
                             except Skill.DoesNotExist:
                                 pass
+                    
+                    # Handle soft skills
+                    soft_skills_json = request.POST.get('soft_skills_json', '[]')
+                    try:
+                        soft_skills_data = json.loads(soft_skills_json)
+                    except Exception:
+                        soft_skills_data = []
+                    for soft_name in soft_skills_data:
+                        if soft_name and isinstance(soft_name, str):
+                            obj, _ = Skill.objects.get_or_create(name=soft_name.strip(), defaults={'skill_type': 'SOFT'})
+                            if obj.skill_type != 'SOFT':
+                                obj.skill_type = 'SOFT'
+                                obj.save()
+                            saved_profile.skills.add(obj)
+                    
                     return saved_profile
 
                 student_id = (form.cleaned_data.get('student_id') or '').strip()
@@ -169,6 +193,7 @@ def edit_profile(request):
                         'form': form,
                         'profile': profile,
                         'course_skill_map': course_skill_map,
+                        'soft_skill_suggestions': soft_skill_suggestions,
                         'is_student': True,
                         'is_adviser': False,
                         'is_coordinator': False,
@@ -254,6 +279,7 @@ def edit_profile(request):
             'form': form,
             'profile': profile,
             'course_skill_map': course_skill_map,
+            'soft_skill_suggestions': soft_skill_suggestions,
             'is_student': True,
             'is_adviser': False,
             'is_coordinator': False,

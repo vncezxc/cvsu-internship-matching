@@ -195,6 +195,49 @@
                 </div>
             </div>
             <div class="card-body">
+                <!-- Search, Filter & Sort Controls -->
+                <form method="get" class="mb-4" id="dtrFilterForm">
+                    <div class="row g-2 align-items-end">
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold small text-muted"><i class="bi bi-search me-1"></i>Search Student</label>
+                            <input type="text" name="q" class="form-control" placeholder="Name..." value="{{ q }}">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label fw-semibold small text-muted"><i class="bi bi-funnel me-1"></i>Status</label>
+                            <select name="status" class="form-select">
+                                <option value="">All</option>
+                                <option value="approved" {% if status == 'approved' %}selected{% endif %}>Approved</option>
+                                <option value="pending" {% if status == 'pending' %}selected{% endif %}>Pending</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label fw-semibold small text-muted"><i class="bi bi-calendar me-1"></i>From</label>
+                            <input type="date" name="start_date" class="form-control" value="{{ start_date }}">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label fw-semibold small text-muted"><i class="bi bi-calendar me-1"></i>To</label>
+                            <input type="date" name="end_date" class="form-control" value="{{ end_date }}">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label fw-semibold small text-muted"><i class="bi bi-sort-down me-1"></i>Sort</label>
+                            <select name="sort_by" class="form-select">
+                                <option value="-week_start" {% if sort_by == '-week_start' %}selected{% endif %}>Newest First</option>
+                                <option value="week_start" {% if sort_by == 'week_start' %}selected{% endif %}>Oldest First</option>
+                                <option value="student__user__first_name" {% if sort_by == 'student__user__first_name' %}selected{% endif %}>Name A-Z</option>
+                                <option value="-student__user__first_name" {% if sort_by == '-student__user__first_name' %}selected{% endif %}>Name Z-A</option>
+                            </select>
+                        </div>
+                        <div class="col-md-1">
+                            <button type="submit" class="btn btn-outline-primary w-100"><i class="bi bi-search"></i></button>
+                        </div>
+                    </div>
+                    {% if q or status or start_date or end_date %}
+                    <div class="mt-2">
+                        <a href="{% url 'dashboard:adviser_dtr_list' %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-x-circle me-1"></i>Clear Filters</a>
+                    </div>
+                    {% endif %}
+                </form>
+
                 {% if dtrs %}
                 <div class="table-responsive">
                     <table class="table table-striped table-hover">

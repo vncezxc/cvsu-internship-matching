@@ -20,8 +20,10 @@ urlpatterns = [
 
     # Adviser document review
     path('adviser/documents/', views.adviser_documents_review, name='adviser_documents_review'),
+    path('adviser/documents/download-zip/<int:student_id>/', views.download_all_student_documents, name='download_all_student_documents'),
     path('adviser/document-completion/', views.adviser_document_completion, name='adviser_document_completion'),
     path('adviser/ojt-records/', views.adviser_ojt_records, name='adviser_ojt_records'),
+    path('adviser/ojt-records/edit/<int:company_id>/', views.edit_ojt_company_contact, name='edit_ojt_company_contact'),
     path('adviser/ojt-records/pdf/', views.adviser_ojt_records_pdf, name='adviser_ojt_records_pdf'),
     path('adviser/custom-submissions/', views.adviser_custom_submissions, name='adviser_custom_submissions'),
     path('adviser/master-list/', views.adviser_master_list_upload, name='adviser_master_list'),

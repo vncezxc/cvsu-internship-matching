@@ -221,7 +221,11 @@
                                                     </div>
                                                 {% endif %}
                                                 <div>
-                                                    <div>{{ company.name }}</div>
+                                                    <div>{{ company.name }}
+                                                        {% if company.is_partner %}
+                                                        <span class="badge bg-warning text-dark ms-1" style="font-size: 0.7rem;"><i class="fas fa-handshake me-1"></i>Partner</span>
+                                                        {% endif %}
+                                                    </div>
                                                     <div class="text-muted small">Added: {{ company.created_at|date:"M d, Y" }}</div>
                                                 </div>
                                             </div>

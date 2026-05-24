@@ -295,9 +295,15 @@
                                     <td>
                                         {% with stu_doc=doc_map|get_item:student.id|get_item:doc.id %}
                                             {% if stu_doc %}
-                                                <a href="{{ stu_doc.file.url }}" target="_blank" class="btn btn-sm btn-outline-success document-link">
-                                                    <i class="bi bi-eye"></i> View Document
-                                                </a>
+                                                {% if ".docx" in stu_doc.file.url|lower %}
+                                                    <button type="button" class="btn btn-sm btn-outline-info document-link" onclick="previewDocx('{{ stu_doc.file.url }}')">
+                                                        <i class="bi bi-file-word"></i> Preview DOCX
+                                                    </button>
+                                                {% else %}
+                                                    <a href="{{ stu_doc.file.url }}" target="_blank" class="btn btn-sm btn-outline-success document-link">
+                                                        <i class="bi bi-eye"></i> View Document
+                                                    </a>
+                                                {% endif %}
                                                 <br><small class="text-muted">Uploaded: {{ stu_doc.created_at|date:"M d, Y" }}</small>
                                             {% else %}
                                                 <span class="badge bg-secondary">Not uploaded</span>
@@ -417,5 +423,44 @@ function rejectDocument(docId) {
         form.submit();
     }
 }
+
+function previewDocx(url) {
+    var modalHtml = `
+    <div class="modal fade" id="docxPreviewModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Document Preview</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="docx-container" style="background: white; padding: 20px; border: 1px solid #ccc; min-height: 500px;">
+                        Loading preview...
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>`;
+    
+    // Remove existing if any
+    var existingModal = document.getElementById('docxPreviewModal');
+    if (existingModal) { existingModal.remove(); }
+    
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    var myModal = new bootstrap.Modal(document.getElementById('docxPreviewModal'));
+    myModal.show();
+    
+    fetch(url)
+    .then(r => r.arrayBuffer())
+    .then(buffer => mammoth.convertToHtml({arrayBuffer: buffer}))
+    .then(result => {
+        document.getElementById('docx-container').innerHTML = result.value;
+    })
+    .catch(e => {
+        document.getElementById('docx-container').innerHTML = "Preview failed or document is not a valid DOCX.";
+        console.error(e);
+    });
+}
 </script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.2/mammoth.browser.min.js"></script>
 {% endblock dashboard_content %}

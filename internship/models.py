@@ -46,6 +46,7 @@ class Company(models.Model):
     approval_status = models.CharField(max_length=10, choices=ApprovalStatus.choices, default=ApprovalStatus.APPROVED)
     adviser_remark = models.TextField(blank=True)
     is_red_flag = models.BooleanField(default=False)
+    is_partner = models.BooleanField(default=False)
     
     # Company incentives
     has_incentives = models.BooleanField(default=False)
@@ -64,6 +65,11 @@ class Company(models.Model):
     # Location link
     location_link = models.URLField(blank=True, null=True, help_text="Google Maps or OpenStreetMap link for easy location access.")
     
+    def save(self, *args, **kwargs):
+        if self.name:
+            self.name = self.name.title()
+        super().save(*args, **kwargs)
+        
     def __str__(self):
         return self.name
     

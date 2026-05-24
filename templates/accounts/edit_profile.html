@@ -463,11 +463,12 @@
                             </div>
                             
                             <div class="skills-section">
-                                <h6>Suggested Skills for Your Course</h6>
-                                <label for="skill-search-input" class="form-label">Search and add skills</label>
+                                <h6><i class="fas fa-laptop-code me-1"></i> Technical Skills</h6>
+                                <p class="text-muted small">Skills related to your course and technical proficiency</p>
+                                <label for="skill-search-input" class="form-label">Search and add technical skills</label>
                                 <div class="input-group mb-2">
                                     <input type="text" id="skill-search-input" class="form-control" 
-                                           placeholder="Start typing a skill">
+                                           placeholder="Start typing a technical skill">
                                     <button type="button" id="add-custom-skill" class="btn btn-outline-primary">
                                         <i class="fas fa-plus me-1"></i>Add
                                     </button>
@@ -476,6 +477,21 @@
                                 
                                 <div id="selected-skills" class="mb-3"></div>
                                 <input type="hidden" name="skills_json" id="id_skills_json">
+                            </div>
+                            
+                            <div class="skills-section mt-3" style="border-top: 2px dashed var(--gray-200); padding-top: 1rem;">
+                                <h6><i class="fas fa-users me-1"></i> Soft Skills</h6>
+                                <p class="text-muted small">Interpersonal and transferable skills valued by employers</p>
+                                <div class="mb-2">
+                                    <span class="text-muted small">Quick add:</span>
+                                    <div class="d-flex flex-wrap gap-1 mt-1" id="soft-skill-suggestions">
+                                        {% for ss in soft_skill_suggestions %}
+                                        <button type="button" class="btn btn-sm btn-outline-secondary soft-skill-btn" data-skill="{{ ss }}">{{ ss }}</button>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                <div id="selected-soft-skills" class="mb-3"></div>
+                                <input type="hidden" name="soft_skills_json" id="id_soft_skills_json">
                             </div>
                             
                             <div class="section-divider">
@@ -490,7 +506,7 @@
                             <div id="student-map" style="height: 350px;"></div>
                             <div class="map-instructions">
                                 <i class="fas fa-info-circle me-1"></i>
-                                Click on the map to set your location, or drag the marker to adjust
+                                Use the search bar on the map to find your location, click on the map, or drag the marker to adjust
                             </div>
                             
                             <div class="form-actions">
@@ -644,6 +660,8 @@
 {% if is_student %}
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
+<script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
 <script src="{% static 'js/skills_autoload.js' %}"></script>
 <script>
 var COURSE_SKILLS_MAP = {{ course_skill_map|safe }};
@@ -651,14 +669,79 @@ var INITIAL_SELECTED_SKILLS = [
   {% for skill in profile.skills.all %}{ id: {{ skill.id }}, name: "{{ skill.name|escapejs }}" },{% endfor %}
 ];
 
-// Initialize the map for location pinning
+// ---- Soft Skills Logic ----
+document.addEventListener('DOMContentLoaded', function() {
+    var selectedSoftSkills = [
+        {% for skill in profile.skills.all %}{% if skill.skill_type == 'SOFT' %}"{{ skill.name|escapejs }}",{% endif %}{% endfor %}
+    ];
+    var softSkillsContainer = document.getElementById('selected-soft-skills');
+    var softSkillsInput = document.getElementById('id_soft_skills_json');
+
+    function renderSoftSkills() {
+        softSkillsContainer.innerHTML = '';
+        selectedSoftSkills.forEach(function(name, idx) {
+            var chip = document.createElement('span');
+            chip.className = 'badge bg-info text-dark me-1 mb-1';
+            chip.style.cssText = 'font-size: 0.85rem; padding: 0.4rem 0.7rem; border-radius: 20px;';
+            chip.innerHTML = name + ' <span class="ms-1" style="cursor:pointer;" data-idx="' + idx + '">&times;</span>';
+            chip.querySelector('span').addEventListener('click', function() {
+                selectedSoftSkills.splice(idx, 1);
+                renderSoftSkills();
+                // Re-show the suggestion button
+                document.querySelectorAll('.soft-skill-btn').forEach(function(btn) {
+                    if (btn.dataset.skill === name) btn.style.display = '';
+                });
+            });
+            softSkillsContainer.appendChild(chip);
+        });
+        softSkillsInput.value = JSON.stringify(selectedSoftSkills);
+        // Hide already-selected suggestion buttons
+        document.querySelectorAll('.soft-skill-btn').forEach(function(btn) {
+            btn.style.display = selectedSoftSkills.includes(btn.dataset.skill) ? 'none' : '';
+        });
+    }
+
+    document.querySelectorAll('.soft-skill-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            var skill = this.dataset.skill;
+            if (!selectedSoftSkills.includes(skill)) {
+                selectedSoftSkills.push(skill);
+                renderSoftSkills();
+            }
+        });
+    });
+
+    renderSoftSkills();
+});
+
+// ---- File Size Validation (10MB) ----
+document.addEventListener('DOMContentLoaded', function() {
+    var MAX_SIZE = 10 * 1024 * 1024; // 10MB
+    document.querySelectorAll('form[enctype="multipart/form-data"]').forEach(function(form) {
+        form.addEventListener('submit', function(e) {
+            var fileInputs = form.querySelectorAll('input[type="file"]');
+            for (var i = 0; i < fileInputs.length; i++) {
+                var files = fileInputs[i].files;
+                for (var j = 0; j < files.length; j++) {
+                    if (files[j].size > MAX_SIZE) {
+                        e.preventDefault();
+                        alert('File "' + files[j].name + '" exceeds the 10MB size limit. Please choose a smaller file.');
+                        return false;
+                    }
+                }
+            }
+        });
+    });
+});
+
+// ---- Map with Geocoder Search ----
 document.addEventListener('DOMContentLoaded', function() {
     var latInput = document.getElementById('id_latitude');
     var lngInput = document.getElementById('id_longitude');
     
-    // Default location (CvSU Indang, Cavite)
-    var defaultLat = 14.1953;
-    var defaultLng = 120.8796;
+    // Default location (CvSU Bacoor City Campus)
+    var defaultLat = 14.4145;
+    var defaultLng = 120.9640;
     
     // Use existing coordinates if available
     var lat = parseFloat(latInput && latInput.value) || defaultLat;
@@ -669,7 +752,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 19,
-        attribution: '© OpenStreetMap'
+        attribution: '&copy; OpenStreetMap'
     }).addTo(map);
     
     // Create draggable marker
@@ -691,6 +774,20 @@ document.addEventListener('DOMContentLoaded', function() {
         marker.setLatLng(e.latlng);
         updateInputs(e.latlng);
     });
+    
+    // Add Geocoder search control (Revision #4)
+    var geocoder = L.Control.geocoder({
+        defaultMarkType: 'L.marker',
+        collapsed: false,
+        placeholder: 'Search for a place...',
+        errorMessage: 'Nothing found.',
+        showResultIcons: true
+    }).on('markgeocode', function(e) {
+        var latlng = e.geocode.center;
+        marker.setLatLng(latlng);
+        map.setView(latlng, 16);
+        updateInputs(latlng);
+    }).addTo(map);
     
     // Force map to resize properly after load
     setTimeout(function() {
