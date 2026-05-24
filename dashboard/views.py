@@ -210,7 +210,13 @@ def student_dtr_list(request):
         return redirect('dashboard:home')
     profile = request.user.student_profile
     dtrs = DTR.objects.filter(student=profile).order_by('-week_start')
-    return render(request, 'dashboard/student_dtr_list.html', {'dtrs': dtrs})
+    approved_count = dtrs.filter(approved=True).count()
+    pending_count = dtrs.filter(approved=False).count()
+    return render(request, 'dashboard/student_dtr_list.html', {
+        'dtrs': dtrs,
+        'approved_count': approved_count,
+        'pending_count': pending_count,
+    })
 
 # --- DTR List & Review (Adviser) ---
 @login_required
