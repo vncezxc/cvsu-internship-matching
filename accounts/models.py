@@ -348,7 +348,13 @@ class StudentProfile(models.Model):
             self.OJTStatus.REJECTED: 'danger',
             self.OJTStatus.COMPLETED: 'success'
         }
-        return status_colors.get(self.OJTStatus(self.ojt_status), 'secondary')
+        if not self.ojt_status:
+            return 'secondary'
+        try:
+            status = self.OJTStatus(self.ojt_status)
+        except ValueError:
+            return 'secondary'
+        return status_colors.get(status, 'secondary')
     
     @property
     def ojt_hours_required(self):
