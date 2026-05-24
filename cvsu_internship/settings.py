@@ -431,7 +431,7 @@ STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 WHITENOISE_MAX_AGE = 31536000  # 1 year cache for static files
 WHITENOISE_SKIP_COMPRESS_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.ico', '.mp4', '.webm']
 
-MEDIA_URL = ''
+MEDIA_URL = get_config('MEDIA_URL', default='/media/')
 
 MEDIA_ROOT = BASE_DIR / 'media'
 

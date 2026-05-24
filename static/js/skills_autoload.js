@@ -72,11 +72,17 @@ document.addEventListener('DOMContentLoaded', function() {
             item.type = 'button';
             item.className = 'skill-suggestion-item';
             item.textContent = skill.name;
-            item.addEventListener('click', function() {
+            const selectSkill = function(e) {
+                if (e) {
+                    e.preventDefault();
+                }
                 addSkill({id: skill.id, name: skill.name, custom: false});
                 searchInput.value = '';
                 renderSuggestions('');
-            });
+            };
+            item.addEventListener('pointerdown', selectSkill);
+            item.addEventListener('touchstart', selectSkill);
+            item.addEventListener('click', selectSkill);
             suggestionsDiv.appendChild(item);
         });
     }
@@ -165,6 +171,15 @@ document.addEventListener('DOMContentLoaded', function() {
             suggestionsDiv.innerHTML = '';
         }, 150);
     });
+
+    if (suggestionsDiv) {
+        suggestionsDiv.addEventListener('mousedown', function(e) {
+            e.preventDefault();
+        });
+        suggestionsDiv.addEventListener('touchstart', function(e) {
+            e.preventDefault();
+        });
+    }
 
     if (courseDropdown) {
         courseDropdown.addEventListener('change', function() {

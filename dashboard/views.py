@@ -416,6 +416,7 @@ def student_dashboard(request):
             document_completion_percent = int((completed_docs / total_docs) * 100)
         else:
             document_completion_percent = 0
+        assigned_adviser = profile.get_adviser()
         context = {
             'profile': profile,
             'application_count': applications.count(),
@@ -427,6 +428,7 @@ def student_dashboard(request):
             'profile_completion_percentage': profile.get_profile_completion_percentage(),
             'document_status': document_status,
             'document_completion_percent': document_completion_percent,
+            'assigned_adviser': assigned_adviser,
         }
         return render(request, 'dashboard/student_dashboard.html', context)
     except StudentProfile.DoesNotExist:

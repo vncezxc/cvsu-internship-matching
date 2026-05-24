@@ -332,6 +332,17 @@ class StudentProfile(models.Model):
     
     def get_full_address(self):
         return f"{self.street}, {self.barangay}, {self.city}, {self.province}"
+
+    def get_adviser(self):
+        if self.master_list_reviewed_by:
+            return self.master_list_reviewed_by
+        if not self.course or not self.section:
+            return None
+        advisers = AdviserProfile.objects.filter(courses=self.course)
+        for adviser in advisers:
+            if self.section in adviser.get_sections_list():
+                return adviser
+        return None
     
     def get_progress_percentage(self):
         """Calculate the OJT progress percentage."""

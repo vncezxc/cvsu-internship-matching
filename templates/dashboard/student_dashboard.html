@@ -338,6 +338,12 @@
                 <p><strong>Last Name:</strong> {{ profile.user.last_name }}</p>
                 <p><strong>Email:</strong> {{ profile.user.email }}</p>
                 <p>{{ profile.course.name }} - {{ profile.section }}</p>
+                {% if assigned_adviser %}
+                <p><strong>Assigned Adviser:</strong> {{ assigned_adviser.user.get_full_name }}</p>
+                <p><strong>Adviser Email:</strong> <a href="mailto:{{ assigned_adviser.user.email }}">{{ assigned_adviser.user.email }}</a></p>
+                {% else %}
+                <p><strong>Assigned Adviser:</strong> <span class="text-muted">Not assigned</span></p>
+                {% endif %}
                 
                 <div class="progress mt-4 mb-2">
                     <div class="progress-bar" role="progressbar" style="width: {{ profile_completion_percentage }}%;" aria-valuenow="{{ profile_completion_percentage }}" aria-valuemin="0" aria-valuemax="100">{{ profile_completion_percentage }}%</div>
