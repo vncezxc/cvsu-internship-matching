@@ -1,3 +1,5 @@
+import os
+
 from django.apps import AppConfig
 from django.db.models.signals import post_migrate
 
@@ -124,6 +126,8 @@ COURSE_SOFT_SKILLS = {
 
 
 def seed_soft_skills(sender, **kwargs):
+    if os.getenv("FULL_RESTORE_ON_DEPLOY") in ("1", "true", "True", "yes", "on"):
+        return
     from .models import Skill, Course
     for name in SOFT_SKILLS:
         Skill.objects.get_or_create(name=name, course=None)
