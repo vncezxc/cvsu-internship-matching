@@ -174,20 +174,31 @@ ROOT_URLCONF = 'cvsu_internship.urls'
 # ---------------------------------------
 # Database Configuration
 # ---------------------------------------
+import dj_database_url
+
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': get_config('POSTGRES_DB', default='cvsu_internship'),
-        'USER': get_config('POSTGRES_USER', default='postgres'),
-        'PASSWORD': get_config('POSTGRES_PASSWORD', default='postgres'),
-        'HOST': get_config('POSTGRES_HOST', default='localhost'),
-        'PORT': get_config('POSTGRES_PORT', default='5432'),
-        'CONN_MAX_AGE': 600 if not DEBUG else 0,  # Connection pooling for production
-        'OPTIONS': {
-            'sslmode': 'require' if not DEBUG else 'prefer',
+    'default': dj_database_url.config(
+        conn_max_age=600,
+        ssl_require=not DEBUG
+    )
+}
+
+# Fallback to old-style variables if DATABASE_URL is not set
+if not DATABASES['default']:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': get_config('POSTGRES_DB', default='cvsu_internship'),
+            'USER': get_config('POSTGRES_USER', default='postgres'),
+            'PASSWORD': get_config('POSTGRES_PASSWORD', default='postgres'),
+            'HOST': get_config('POSTGRES_HOST', default='localhost'),
+            'PORT': get_config('POSTGRES_PORT', default='5432'),
+            'CONN_MAX_AGE': 600 if not DEBUG else 0,  # Connection pooling for production
+            'OPTIONS': {
+                'sslmode': 'require' if not DEBUG else 'prefer',
+            }
         }
     }
-}
 
 # Use SQLite for local testing if specified
 if get_config('USE_SQLITE', default=False, cast_func=bool):
