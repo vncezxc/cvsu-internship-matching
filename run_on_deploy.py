@@ -24,20 +24,32 @@ print("Applying database migrations...")
 run_cmd(["python", "manage.py", "migrate", "--noinput"], "Migration failed!")
 print("Migrations completed.")
 
-# Check if database already has data (check User table)
+# Check if database already has data (users or skills)
 print("Checking if data restore is needed...")
 result = subprocess.run(
-    ["python", "manage.py", "shell", "-c", 
-     "from accounts.models import User; print(User.objects.count())"],
+    [
+        "python",
+        "manage.py",
+        "shell",
+        "-c",
+        "from accounts.models import User, Skill; print(User.objects.count(), Skill.objects.count())",
+    ],
     capture_output=True,
-    text=True
+    text=True,
 )
 
 user_count = None
+skill_count = None
 try:
-    user_count = int(result.stdout.strip().splitlines()[-1])
-    if user_count > 0:
-        print(f"Database already has {user_count} users, skipping restore...")
+    counts = result.stdout.strip().splitlines()[-1].split()
+    user_count = int(counts[0])
+    skill_count = int(counts[1])
+
+    if user_count > 0 or skill_count > 0:
+        print(
+            "Database already has data "
+            f"(users: {user_count}, skills: {skill_count}), skipping restore..."
+        )
     else:
         # Database is empty, restore the latest available backup file.
         backup_file = "database_backup_20260531_145113.json"
