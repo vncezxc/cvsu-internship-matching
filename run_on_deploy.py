@@ -40,9 +40,8 @@ try:
         print(f"Database already has {user_count} users, skipping restore...")
     else:
         # Database is empty, restore the latest available backup file.
-        backup_files = glob.glob("database_backup_*.json")
-        if backup_files:
-            backup_file = max(backup_files, key=os.path.getmtime)
+        backup_file = "database_backup_20260531_145113.json"
+        if os.path.exists(backup_file):
             backup_path = os.path.abspath(backup_file)
             print(f"Restoring data from {backup_path}...")
             run_cmd(["python", "manage.py", "loaddata", backup_path], "Data restore failed!")
