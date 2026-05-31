@@ -8,18 +8,19 @@ import sys
 from datetime import datetime
 
 # Your Render database credentials - UPDATED March 31, 2026
-POSTGRES_HOST = "dpg-d75s5fkhg0os73avn620-a.oregon-postgres.render.com"
-POSTGRES_DB = "cvsu_internship_hjc9"
+POSTGRES_HOST = "dpg-d7moibhkh4rs73aq7e40-a.virginia-postgres.render.com"
+POSTGRES_DB = "cvsu_internship_6b1k"
 POSTGRES_USER = "cvsu_internship_user"
-POSTGRES_PASSWORD = "wEyoSZKOFjkDPDxcRkOdvmByivLFjC4G"
+POSTGRES_PASSWORD = "bP9mpWyBnYYHIuELYflHobHj0EmVvi3k"
 POSTGRES_PORT = "5432"
 
 # Create backup filename with timestamp
 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 backup_file = f"database_backup_{timestamp}.json"
+backup_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), backup_file)
 
 print(f"Starting database backup from Render...")
-print(f"Backup file: {backup_file}")
+print(f"Backup file: {backup_path}")
 print(f"Database: {POSTGRES_HOST}/{POSTGRES_DB}")
 print("-" * 50)
 
@@ -61,11 +62,11 @@ try:
     )
     
     # Write the output with explicit UTF-8 encoding
-    with open(backup_file, 'w', encoding='utf-8') as f:
+    with open(backup_path, 'w', encoding='utf-8') as f:
         f.write(result.stdout)
     
     print(f"\n✓ Backup successful!")
-    print(f"✓ File saved: {backup_file}")
+    print(f"✓ File saved: {backup_path}")
     print(f"\nYour data is now safely backed up!")
     print(f"\nBackup includes:")
     for app in APPS_TO_BACKUP:
