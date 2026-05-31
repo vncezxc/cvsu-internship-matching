@@ -24,6 +24,21 @@ print("Applying database migrations...")
 run_cmd(["python", "manage.py", "migrate", "--noinput"], "Migration failed!")
 print("Migrations completed.")
 
+# Optional full restore: wipe DB then load backup.
+if env_bool("FULL_RESTORE_ON_DEPLOY", default=False):
+    backup_file = "database_backup_20260531_145113.json"
+    if os.path.exists(backup_file):
+        backup_path = os.path.abspath(backup_file)
+        print("FULL_RESTORE_ON_DEPLOY enabled. Flushing database...")
+        run_cmd(["python", "manage.py", "flush", "--noinput"], "Database flush failed!")
+        print(f"Restoring data from {backup_path}...")
+        run_cmd(["python", "manage.py", "loaddata", backup_path], "Data restore failed!")
+        print("Data restored successfully!")
+    else:
+        print("Backup file not found, skipping full restore")
+    print("Deployment complete!")
+    sys.exit(0)
+
 # Check if database already has data (users or skills)
 print("Checking if data restore is needed...")
 result = subprocess.run(
