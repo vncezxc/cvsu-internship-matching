@@ -18,6 +18,7 @@ from .models import EmailVerificationCode
 from django.utils import timezone
 import pytz
 from allauth.account.models import EmailAddress
+from django.db.models import Count, Q, Sum
 
 # Create your views here.
 @login_required
@@ -730,8 +731,27 @@ def reject_adviser(request, user_id):
 def manage_courses(request):
     """Adviser: Manage courses."""
     adviser = request.user.adviser_profile
-    courses = adviser.courses.all()
-    return render(request, 'accounts/manage_courses.html', {'courses': courses})
+    courses = adviser.courses.annotate(
+        student_count=Count('students', distinct=True),
+        completed_internships=Count(
+            'students',
+            filter=Q(students__ojt_status=StudentProfile.OJTStatus.COMPLETED),
+            distinct=True,
+        ),
+    )
+
+    total_hours = courses.aggregate(total=Sum('required_ojt_hours'))['total'] or 0
+    courses_with_students = courses.filter(student_count__gt=0).count()
+
+    return render(
+        request,
+        'accounts/manage_courses.html',
+        {
+            'courses': courses,
+            'total_hours': total_hours,
+            'courses_with_students': courses_with_students,
+        },
+    )
 
 @login_required
 def add_course(request):

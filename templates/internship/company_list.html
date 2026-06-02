@@ -252,6 +252,12 @@
                                                 <a href="{% url 'internship:toggle_company_status' company.id %}" class="btn btn-sm {% if company.status == 'ACTIVE' %}btn-outline-danger{% else %}btn-outline-success{% endif %}">
                                                     <i class="fas {% if company.status == 'ACTIVE' %}fa-times{% else %}fa-check{% endif %}"></i>
                                                 </a>
+                                                <form method="post" action="{% url 'internship:delete_company' company.id %}" onsubmit="return confirm('Delete this company? This cannot be undone.');">
+                                                    {% csrf_token %}
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </form>
                                             </div>
                                         </td>
                                     </tr>

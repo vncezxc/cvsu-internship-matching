@@ -311,6 +311,39 @@
         color: var(--cvsu-dark-green);
     }
 
+    .review-modal .modal-content {
+        border: none;
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .review-modal .modal-header {
+        background: linear-gradient(135deg, var(--cvsu-green), var(--cvsu-green-light));
+        color: var(--cvsu-white);
+        border: none;
+    }
+
+    .review-modal .modal-title {
+        font-family: var(--font-family);
+        font-weight: var(--font-weight-bold);
+    }
+
+    .review-modal .modal-body {
+        padding: 1.5rem;
+    }
+
+    .review-modal .form-control,
+    .review-modal .form-select {
+        border-radius: var(--radius-sm);
+        border: 2px solid var(--gray-200);
+    }
+
+    .review-modal .form-control:focus,
+    .review-modal .form-select:focus {
+        border-color: var(--cvsu-gold);
+        box-shadow: 0 0 0 0.25rem rgba(239, 182, 10, 0.2);
+    }
+
     .text-warning {
         color: var(--cvsu-gold) !important;
     }
@@ -467,9 +500,13 @@
                 <div class="card-header bg-white d-flex justify-content-between align-items-center">
                     <h5 class="card-title mb-0">Company Reviews</h5>
                     {% if request.user.is_student %}
-                    <a href="{% url 'internship:add_review' company.id %}" class="btn btn-sm btn-primary">
-                        <i class="fas fa-star me-1"></i> Write Review
-                    </a>
+                        {% if has_review %}
+                            <span class="badge bg-info">Review submitted</span>
+                        {% else %}
+                            <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#reviewModal">
+                                <i class="fas fa-star me-1"></i> Write Review
+                            </button>
+                        {% endif %}
                     {% endif %}
                 </div>
                 <div class="card-body">
@@ -533,9 +570,13 @@
                             <i class="far fa-star fa-3x text-muted mb-3"></i>
                             <p>No reviews yet. Be the first to review!</p>
                             {% if request.user.is_student %}
-                            <a href="{% url 'internship:add_review' company.id %}" class="btn btn-primary">
-                                <i class="fas fa-star me-1"></i> Write Review
-                            </a>
+                                {% if has_review %}
+                                    <span class="badge bg-info">Review submitted</span>
+                                {% else %}
+                                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#reviewModal">
+                                        <i class="fas fa-star me-1"></i> Write Review
+                                    </button>
+                                {% endif %}
                             {% endif %}
                         </div>
                     {% endif %}
@@ -598,6 +639,29 @@
     </div>
     </div>
 </div>
+
+{% if request.user.is_student and review_form and not has_review %}
+<div class="modal fade review-modal" id="reviewModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-star me-2"></i>Write a Review</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" action="{% url 'internship:add_review' company.id %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    {{ review_form|crispy }}
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Submit Review</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
 
 <!-- Map Script -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />

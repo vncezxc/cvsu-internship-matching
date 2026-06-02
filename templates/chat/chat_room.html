@@ -390,7 +390,20 @@
                                         <img src="{{ chat_avatar|default:'/static/images/default_avatar.png' }}" class="avatar" alt="avatar">
                                     {% endif %}
                                     <div>
-                                        <div class="message-content">{{ message.content|linebreaksbr }}</div>
+                                        <div class="message-content">
+                                            {% if message.content %}
+                                                {{ message.content|linebreaksbr }}
+                                            {% endif %}
+                                            {% if message.attachment %}
+                                                {% if message.is_image_attachment %}
+                                                    <img src="{{ message.attachment.url }}" class="chat-attachment-img" alt="Attachment" onclick="window.open(this.src)">
+                                                {% else %}
+                                                    <a href="{{ message.attachment.url }}" target="_blank" class="btn btn-sm btn-outline-primary mt-2">
+                                                        <i class="bi bi-file-earmark me-1"></i>{{ message.attachment.name|cut:"chat_attachments/" }}
+                                                    </a>
+                                                {% endif %}
+                                            {% endif %}
+                                        </div>
                                         <div class="message-meta">
                                             <span>{{ message.timestamp|date:"h:i A" }}</span>
                                             {% if message.sender == request.user and message.is_read %}
@@ -589,8 +602,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 })
                 .then(response => response.json())
                 .then(data => {
-                    if (data.success) {
-                        addMessage(data.content, true, data.timestamp);
+                            if (data.success) {
+                                addMessage(data.content, true, data.timestamp, null, data.attachment_url, data.attachment_name, data.attachment_is_image);
                         messageInput.value = '';
                         selectedAttachment = null;
                         attachmentPreview.style.display = 'none';
@@ -616,7 +629,7 @@ document.addEventListener('DOMContentLoaded', function() {
         chatSocket.onmessage = function(e) {
             const data = JSON.parse(e.data);
             if (data.type === 'chat_message') {
-                addMessage(data.message, data.sender_id === userId, data.timestamp, data.sender_avatar);
+                addMessage(data.message, data.sender_id === userId, data.timestamp, data.sender_avatar, data.attachment_url, data.attachment_name, data.attachment_is_image);
             } else if (data.type === 'user_status') {
                 updateUserStatus(data.user_id, data.status);
             } else if (data.type === 'typing') {
@@ -632,15 +645,29 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-function addMessage(content, isSent, timestamp = null, senderAvatar = null) {
+function addMessage(content, isSent, timestamp = null, senderAvatar = null, attachmentUrl = null, attachmentName = null, attachmentIsImage = false) {
     const currentTime = timestamp || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     const messageDiv = document.createElement('div');
     messageDiv.className = `message ${isSent ? 'sent' : 'received'}`;
     const avatarUrl = senderAvatar || (isSent ? '/static/images/default_avatar.png' : '{{ chat_avatar|default:"/static/images/default_avatar.png" }}');
+    let attachmentHtml = '';
+    if (attachmentUrl) {
+        if (attachmentIsImage) {
+            attachmentHtml = `<img src="${attachmentUrl}" class="chat-attachment-img" alt="Attachment" onclick="window.open(this.src)">`;
+        } else {
+            const displayName = attachmentName ? attachmentName.split('/').pop() : 'Attachment';
+            attachmentHtml = `
+                <a href="${attachmentUrl}" target="_blank" class="btn btn-sm btn-outline-primary mt-2">
+                    <i class="bi bi-file-earmark me-1"></i>${displayName}
+                </a>
+            `;
+        }
+    }
+    const safeContent = content ? content.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '';
     messageDiv.innerHTML = `
         <img src="${avatarUrl}" class="avatar" alt="avatar">
         <div>
-            <div class="message-content">${content}</div>
+            <div class="message-content">${safeContent}${attachmentHtml}</div>
             <div class="message-meta">
                 <span>${currentTime}</span>
                 ${isSent ? '<i class="bi bi-check2 ms-1 text-muted" title="Sent"></i>' : ''}

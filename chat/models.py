@@ -1,3 +1,4 @@
+import os
 from django.db import models
 from django.utils import timezone
 from accounts.models import User
@@ -82,6 +83,31 @@ class Message(models.Model):
         if user != self.sender:
             self.read_by.add(user)
     
+    @property
+    def is_image_attachment(self):
+        """Check if the attachment is an image by examining both name and URL.
+        
+        Cloudinary strips file extensions from stored names (public_id),
+        so we must also check the URL which preserves the extension.
+        """
+        if not self.attachment:
+            return False
+        image_extensions = ('.jpg', '.jpeg', '.png', '.gif', '.webp')
+        # Check the stored name
+        name_lower = (self.attachment.name or '').lower()
+        if any(name_lower.endswith(ext) for ext in image_extensions):
+            return True
+        # Check the URL (Cloudinary adds the extension back in the URL)
+        try:
+            url_lower = self.attachment.url.lower()
+            # Strip query params before checking extension
+            url_path = url_lower.split('?')[0]
+            if any(url_path.endswith(ext) for ext in image_extensions):
+                return True
+        except Exception:
+            pass
+        return False
+
     @property
     def is_read(self):
         """Check if all participants have read this message."""

@@ -66,6 +66,10 @@ django-anymail[sendinblue]==10.2
 python-decouple==3.8
 python-dotenv==1.2.1
 
+# AI Matching (training only)
+numpy==2.0.2
+scikit-learn==1.5.2
+
 # Storage and File Handling
 boto3==1.34.52
 botocore==1.34.52

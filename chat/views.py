@@ -382,6 +382,8 @@ def api_get_messages(request, room_name):
                 'content': message.content,
                 'timestamp': message.timestamp.timestamp(),
                 'is_read': message.is_read,
+                'attachment_url': message.attachment.url if message.attachment else None,
+                'attachment_name': message.attachment.name if message.attachment else None,
             })
         
         return JsonResponse({'messages': messages_data})
@@ -488,29 +490,17 @@ def send_message_with_attachment(request, room_id):
             message.attachment = attachment
             message.save()
             
-            # Update message content to include image/file display
             attachment_url = message.attachment.url
             file_ext = attachment.name.rsplit('.', 1)[-1].lower() if '.' in attachment.name else ''
-            
-            if file_ext in ('jpg', 'jpeg', 'png', 'gif', 'webp'):
-                img_html = f'<img src="{attachment_url}" class="chat-attachment-img" style="max-width: 200px; border-radius: 8px; margin-top: 0.5rem; cursor: pointer;" onclick="window.open(this.src)">'
-                if content:
-                    message.content = f'{content}<br>{img_html}'
-                else:
-                    message.content = img_html
-            else:
-                file_html = f'<a href="{attachment_url}" target="_blank" class="btn btn-sm btn-outline-primary mt-1"><i class="bi bi-file-earmark me-1"></i>{attachment.name}</a>'
-                if content:
-                    message.content = f'{content}<br>{file_html}'
-                else:
-                    message.content = file_html
-            message.save()
         
         return JsonResponse({
             'success': True,
             'message_id': message.id,
             'content': message.content,
-            'timestamp': message.timestamp.strftime('%I:%M %p')
+            'timestamp': message.timestamp.strftime('%I:%M %p'),
+            'attachment_url': attachment_url if attachment else None,
+            'attachment_name': attachment.name if attachment else None,
+            'attachment_is_image': file_ext in ('jpg', 'jpeg', 'png', 'gif', 'webp') if attachment else False,
         })
     
     return JsonResponse({'error': 'Invalid request'}, status=400)

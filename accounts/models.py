@@ -152,6 +152,18 @@ class User(AbstractUser):
     def is_coordinator(self):
         return self.user_type == self.UserType.COORDINATOR
 
+    @property
+    def unread_messages_count(self):
+        """Count unread chat messages for this user."""
+        from chat.models import Message
+        return Message.objects.filter(
+            room__participants=self
+        ).exclude(
+            read_by=self
+        ).exclude(
+            sender=self
+        ).count()
+
 class Course(models.Model):
     """Model for academic courses offered by CVSU."""
     

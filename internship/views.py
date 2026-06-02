@@ -6,12 +6,63 @@ from django.http import JsonResponse
 from django.core.paginator import Paginator
 from django.utils import timezone
 from .models import Company, Internship, Application, CompanyReview
+from .matching import score_internship
 from accounts.models import StudentProfile, Skill, Course
 from .forms import InternshipForm
 from .forms import CompanyForm, CompanyReviewForm, ApplicationStatusUpdateForm, CustomCompanyInternshipForm
 from django.db import models
+import re
 
 # Create your views here.
+
+def parse_lat_lng_from_link(link):
+    value = (link or "").strip()
+    if not value:
+        return None
+
+    patterns = [
+        r"^([\-\d.]+)\s*,\s*([\-\d.]+)$",
+        r"@([\-\d.]+),([\-\d.]+),",
+        r"!3d([\-\d.]+)!4d([\-\d.]+)",
+        r"!2d([\-\d.]+)!3d([\-\d.]+)",
+        r"[?&]center=([\-\d.]+),([\-\d.]+)",
+        r"[?&]destination=([\-\d.]+),([\-\d.]+)",
+        r"[?&]origin=([\-\d.]+),([\-\d.]+)",
+        r"[?&]point=([\-\d.]+),([\-\d.]+)",
+        r"[?&]q=([\-\d.]+),([\-\d.]+)",
+        r"[?&]query=([\-\d.]+),([\-\d.]+)",
+        r"[?&]ll=([\-\d.]+),([\-\d.]+)",
+        r"[?&]cp=([\-\d.]+)~([\-\d.]+)",
+        r"#map=\d+/([\-\d.]+)/([\-\d.]+)",
+        r"mlat=([\-\d.]+)&mlon=([\-\d.]+)",
+    ]
+
+    for pattern in patterns:
+        match = re.search(pattern, value)
+        if match:
+            if "!2d" in pattern:
+                lat_val, lng_val = match.group(2), match.group(1)
+            else:
+                lat_val, lng_val = match.group(1), match.group(2)
+            try:
+                lat = float(lat_val)
+                lng = float(lng_val)
+            except ValueError:
+                continue
+            if -90 <= lat <= 90 and -180 <= lng <= 180:
+                return lat, lng
+
+    numeric_values = re.findall(r"[\-+]?\d{1,3}(?:\.\d+)?", value)
+    for idx in range(len(numeric_values) - 1):
+        try:
+            lat = float(numeric_values[idx])
+            lng = float(numeric_values[idx + 1])
+        except ValueError:
+            continue
+        if -90 <= lat <= 90 and -180 <= lng <= 180:
+            return lat, lng
+
+    return None
 
 @login_required
 @require_POST
@@ -54,61 +105,16 @@ def internship_matches(request):
             if Application.objects.filter(student=profile, internship=internship).exists():
                 continue
 
-
-            # Technical Skill match
-            req_tech_skills = set(internship.required_skills.filter(skill_type='TECHNICAL').values_list('id', flat=True))
-            stu_tech_skills = set(profile.skills.filter(skill_type='TECHNICAL').values_list('id', flat=True))
-            tech_match = len(req_tech_skills & stu_tech_skills) / len(req_tech_skills) if req_tech_skills else 1.0
-
-            # Soft Skill match
-            req_soft_skills = set(internship.required_skills.filter(skill_type='SOFT').values_list('id', flat=True))
-            stu_soft_skills = set(profile.skills.filter(skill_type='SOFT').values_list('id', flat=True))
-            soft_match = len(req_soft_skills & stu_soft_skills) / len(req_soft_skills) if req_soft_skills else 1.0
-
-            # Course match: 1.0 if course matches, else 0.0
-            course_match = 1.0 if profile.course in internship.recommended_courses.all() else 0.0
-
-            # Map/location match: if both have lat/lng, use distance (within 10km = 1.0, 10-30km = 0.5, else 0)
-            def haversine(lat1, lon1, lat2, lon2):
-                from math import radians, sin, cos, sqrt, atan2
-                R = 6371  # Earth radius in km
-                dlat = radians(lat2 - lat1)
-                dlon = radians(lon2 - lon1)
-                a = sin(dlat/2)**2 + cos(radians(lat1)) * cos(radians(lat2)) * sin(dlon/2)**2
-                c = 2 * atan2(sqrt(a), sqrt(1 - a))
-                return R * c
-
-            company = internship.company
-            map_match = 0.0
-            dist = None
-            if (company.latitude and company.longitude and profile.latitude and profile.longitude):
-                try:
-                    dist = haversine(float(company.latitude), float(company.longitude), float(profile.latitude), float(profile.longitude))
-                    if dist <= 10:
-                        map_match = 1.0
-                    elif dist <= 30:
-                        map_match = 0.5
-                except Exception:
-                    map_match = 0.0
-
-            # Softer matching: 50% tech skills, 20% soft skills, 20% course, 10% map
-            match_score = round(tech_match * 50 + soft_match * 20 + course_match * 20 + map_match * 10)
-
-            # Provide breakdown percentages for template display
-            tech_pct = int(round(tech_match * 100))
-            soft_pct = int(round(soft_match * 100))
-            course_pct = int(round(course_match * 100))
-            map_pct = int(round(map_match * 100))
-
-            if match_score > 0:
+            match_result = score_internship(profile, internship)
+            if match_result["score"] > 0:
                 matches.append({
                     'internship': internship,
-                    'score': match_score,
-                    'distance_km': round(dist, 1) if dist is not None and map_match > 0 else None,
-                    'tech_pct': tech_pct,
-                    'soft_pct': soft_pct,
-                    'course_pct': course_pct,
-                    'map_pct': map_pct,
+                    'score': match_result["score"],
+                    'distance_km': match_result["distance_km"],
+                    'tech_pct': match_result["tech_pct"],
+                    'soft_pct': match_result["soft_pct"],
+                    'course_pct': match_result["course_pct"],
+                    'map_pct': match_result["map_pct"],
                 })
 
         # Sort by match score (highest first)
@@ -409,16 +415,30 @@ def company_detail(request, company_id):
     
     # Calculate average rating
     avg_rating = reviews.aggregate(models.Avg('rating'))['rating__avg'] or 0
+
+    has_review = False
+    review_form = None
+    if request.user.is_authenticated and request.user.is_student:
+        try:
+            profile = request.user.student_profile
+            has_review = CompanyReview.objects.filter(student=profile, company=company).exists()
+            if not has_review:
+                review_form = CompanyReviewForm()
+        except StudentProfile.DoesNotExist:
+            review_form = None
     
     context = {
         'company': company,
         'internships': internships,
         'reviews': reviews,
         'avg_rating': avg_rating,
+        'review_form': review_form,
+        'has_review': has_review,
     }
     return render(request, 'internship/company_detail.html', context)
 
 @login_required
+@require_POST
 def add_company_review(request, company_id):
     """Add a review for a company."""
     if not request.user.is_student:
@@ -435,19 +455,16 @@ def add_company_review(request, company_id):
             messages.warning(request, 'You have already reviewed this company.')
             return redirect('internship:company_detail', company_id=company.id)
         
-        if request.method == 'POST':
-            form = CompanyReviewForm(request.POST)
-            if form.is_valid():
-                review = form.save(commit=False)
-                review.student = profile
-                review.company = company
-                review.save()
-                messages.success(request, 'Review submitted successfully.')
-                return redirect('internship:company_detail', company_id=company.id)
+        form = CompanyReviewForm(request.POST)
+        if form.is_valid():
+            review = form.save(commit=False)
+            review.student = profile
+            review.company = company
+            review.save()
+            messages.success(request, 'Review submitted successfully.')
         else:
-            form = CompanyReviewForm()
-        
-        return render(request, 'internship/add_review.html', {'form': form, 'company': company})
+            messages.error(request, 'Please correct the review form and try again.')
+        return redirect('internship:company_detail', company_id=company.id)
     except StudentProfile.DoesNotExist:
         messages.warning(request, 'Please complete your profile first.')
         return redirect('accounts:edit_profile')
@@ -492,6 +509,30 @@ def add_company(request):
         form = CompanyForm(request.POST, request.FILES)
         if form.is_valid():
             company = form.save(commit=False)
+            lat_val = (request.POST.get('latitude') or '').strip()
+            lng_val = (request.POST.get('longitude') or '').strip()
+            latitude = None
+            longitude = None
+
+            try:
+                latitude = float(lat_val) if lat_val else None
+                longitude = float(lng_val) if lng_val else None
+            except ValueError:
+                latitude = None
+                longitude = None
+
+            if latitude is None or longitude is None:
+                parsed = parse_lat_lng_from_link(form.cleaned_data.get('location_link'))
+                if parsed:
+                    latitude, longitude = parsed
+
+            company.latitude = latitude
+            company.longitude = longitude
+            if not company.location_link and latitude is not None and longitude is not None:
+                company.location_link = (
+                    "https://www.openstreetmap.org/?mlat="
+                    f"{latitude:.6f}&mlon={longitude:.6f}#map=18/{latitude:.6f}/{longitude:.6f}"
+                )
             company.added_by = request.user
             company.save()
             messages.success(request, 'Company added successfully.')
@@ -514,8 +555,27 @@ def edit_company(request, company_id):
             # Parse and set latitude/longitude from POST if present (handle blank, string, float)
             lat_val = request.POST.get('latitude', '').strip()
             lng_val = request.POST.get('longitude', '').strip()
-            company.latitude = float(lat_val) if lat_val else None
-            company.longitude = float(lng_val) if lng_val else None
+            latitude = None
+            longitude = None
+            try:
+                latitude = float(lat_val) if lat_val else None
+                longitude = float(lng_val) if lng_val else None
+            except ValueError:
+                latitude = None
+                longitude = None
+
+            if latitude is None or longitude is None:
+                parsed = parse_lat_lng_from_link(form.cleaned_data.get('location_link'))
+                if parsed:
+                    latitude, longitude = parsed
+
+            company.latitude = latitude
+            company.longitude = longitude
+            if not company.location_link and latitude is not None and longitude is not None:
+                company.location_link = (
+                    "https://www.openstreetmap.org/?mlat="
+                    f"{latitude:.6f}&mlon={longitude:.6f}#map=18/{latitude:.6f}/{longitude:.6f}"
+                )
             company.save()
             form.save_m2m()
             messages.success(request, 'Company updated successfully.')
@@ -547,6 +607,19 @@ def toggle_company_status(request, company_id):
         return redirect('internship:companies')
     
     return render(request, 'internship/confirm_toggle_status.html', {'company': company})
+
+
+@login_required
+@require_POST
+def delete_company(request, company_id):
+    if not request.user.is_coordinator:
+        messages.error(request, 'Only OJT Coordinators can delete companies.')
+        return redirect('dashboard:home')
+
+    company = get_object_or_404(Company, id=company_id)
+    company.delete()
+    messages.success(request, 'Company deleted successfully.')
+    return redirect('internship:companies')
 
 @login_required
 def internship_list(request):

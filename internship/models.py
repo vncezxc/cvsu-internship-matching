@@ -139,21 +139,10 @@ class Internship(models.Model):
         """Calculate match score between internship and student (0-100)."""
         if not student_profile.course or not student_profile.skills.exists():
             return 0
-        
-        # Course match (40% weight)
-        course_match = 40 if student_profile.course in self.recommended_courses.all() else 0
-        
-        # Skills match (60% weight)
-        student_skills = set(student_profile.skills.all())
-        internship_skills = set(self.required_skills.all())
-        
-        if not internship_skills:
-            skill_match = 60  # If no skills required, full score
-        else:
-            matching_skills = student_skills.intersection(internship_skills)
-            skill_match = int((len(matching_skills) / len(internship_skills)) * 60)
-        
-        return course_match + skill_match
+
+        from .matching import score_internship
+
+        return score_internship(student_profile, self)["score"]
 
 class Application(models.Model):
     """Model for student applications to internships."""
@@ -237,3 +226,17 @@ class CompanyReview(models.Model):
         if self.is_anonymous:
             return f"Anonymous - {self.company.name} - {self.rating} stars"
         return f"{self.student.user.username} - {self.company.name} - {self.rating} stars"
+
+
+class MatchModel(models.Model):
+    """Stores trained matching model coefficients for AI scoring."""
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    feature_order = models.JSONField()
+    coef = models.JSONField()
+    intercept = models.FloatField(default=0.0)
+    sample_count = models.PositiveIntegerField(default=0)
+    accuracy = models.FloatField(null=True, blank=True)
+
+    def __str__(self):
+        return f"MatchModel {self.pk} ({self.sample_count} samples)"

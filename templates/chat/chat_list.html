@@ -357,7 +357,7 @@
                 <div class="chat-list">
                     {% if rooms_info %}
                         {% for info in rooms_info %}
-                            <a href="{% url 'chat:room' info.id %}" class="chat-item {% if info.room.id == active_room.id %}active{% endif %}">
+                            <a href="{% url 'chat:room' info.id %}" class="chat-item {% if active_room and info.room.id == active_room.id %}active{% endif %}">
                                 <img src="{{ info.avatar }}" class="chat-avatar" alt="Avatar">
                                 <div class="chat-info">
                                     <div class="chat-name">{{ info.name }}</div>
@@ -366,7 +366,15 @@
                                             {% if info.last_message.sender == request.user %}
                                                 <span class="text-muted">You:</span>
                                             {% endif %}
-                                            {{ info.last_message.content|truncatechars:30 }}
+                                            {% if info.last_message.content %}
+                                                {{ info.last_message.content|truncatechars:30 }}
+                                            {% elif info.last_message.attachment %}
+                                                {% if info.last_message.is_image_attachment %}
+                                                    📷 Photo
+                                                {% else %}
+                                                    📎 Attachment
+                                                {% endif %}
+                                            {% endif %}
                                         {% else %}
                                             <span class="text-muted fst-italic">No messages yet</span>
                                         {% endif %}
@@ -430,7 +438,18 @@
                         {% for message in messages %}
                             <div class="message {% if message.sender == request.user %}sent{% else %}received{% endif %}">
                                 <div class="message-content">
-                                    {{ message.content }}
+                                        {% if message.content %}
+                                            {{ message.content|linebreaksbr }}
+                                        {% endif %}
+                                        {% if message.attachment %}
+                                            {% if message.is_image_attachment %}
+                                                <img src="{{ message.attachment.url }}" alt="Attachment" class="chat-attachment-img" style="max-width: 220px; border-radius: 8px; margin-top: 0.5rem; cursor: pointer;" onclick="window.open(this.src)">
+                                            {% else %}
+                                                <a href="{{ message.attachment.url }}" target="_blank" class="btn btn-sm btn-outline-primary mt-2">
+                                                    <i class="bi bi-file-earmark me-1"></i>{{ message.attachment.name|cut:"chat_attachments/" }}
+                                                </a>
+                                            {% endif %}
+                                        {% endif %}
                                 </div>
                                 <div class="message-meta">
                                     <span>{{ message.sender.first_name|default:message.sender.username }}</span> · 
