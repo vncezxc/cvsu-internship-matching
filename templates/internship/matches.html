@@ -1,9 +1,10 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Internship Matches - CVSU Internship Matching{% endblock %}
+{% block title %}AI Internship Matches - CVSU Internship Matching{% endblock %}
 
 {% block extra_css %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Newsreader:wght@500;700&display=swap');
 
@@ -21,21 +22,27 @@
         --gray-50: #f8f9fa;
         --gray-100: #e9ecef;
         --gray-200: #dee2e6;
+        --gray-300: #ced4da;
         --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
         --shadow-lg: 0 10px 30px rgba(0,0,0,0.15);
+        --shadow-glow-green: 0 0 20px rgba(10,109,11,0.15);
+        --shadow-glow-gold: 0 0 20px rgba(239,182,10,0.2);
         --radius-md: 1rem;
         --radius-sm: 0.5rem;
+        --radius-xs: 0.35rem;
         --font-family: 'Space Grotesk', Arial, sans-serif;
         --font-family-serif: 'Newsreader', Georgia, serif;
         --font-weight-medium: 600;
         --font-weight-bold: 700;
     }
 
+    /* ── Page Container ── */
     .matches-container {
         min-height: 80vh;
         padding: 2.5rem 0 3rem;
-        background: radial-gradient(1100px 480px at 10% -10%, rgba(16, 59, 36, 0.12), transparent 60%),
-            radial-gradient(900px 520px at 95% 5%, rgba(239, 182, 10, 0.18), transparent 60%),
+        background:
+            radial-gradient(1100px 480px at 10% -10%, rgba(16,59,36,0.12), transparent 60%),
+            radial-gradient(900px 520px at 95% 5%, rgba(239,182,10,0.18), transparent 60%),
             linear-gradient(180deg, #f7f3e9 0%, #ffffff 65%);
         position: relative;
         overflow: hidden;
@@ -52,26 +59,20 @@
     }
 
     .matches-container::before {
-        width: 320px;
-        height: 320px;
-        background: rgba(10, 109, 11, 0.12);
-        top: -140px;
-        right: -120px;
+        width: 320px; height: 320px;
+        background: rgba(10,109,11,0.12);
+        top: -140px; right: -120px;
     }
 
     .matches-container::after {
-        width: 260px;
-        height: 260px;
-        background: rgba(239, 182, 10, 0.18);
-        bottom: -130px;
-        left: -90px;
+        width: 260px; height: 260px;
+        background: rgba(239,182,10,0.18);
+        bottom: -130px; left: -90px;
     }
 
-    .matches-container > .container {
-        position: relative;
-        z-index: 1;
-    }
+    .matches-container > .container { position: relative; z-index: 1; }
 
+    /* ── Page Header ── */
     .page-header {
         background: linear-gradient(135deg, #0d3f27, #0a6d0b 55%, #0d3f27);
         color: var(--cvsu-white);
@@ -88,7 +89,7 @@
         content: "";
         position: absolute;
         inset: 0;
-        background: linear-gradient(120deg, rgba(255, 255, 255, 0.08), transparent 50%);
+        background: linear-gradient(120deg, rgba(255,255,255,0.08), transparent 50%);
         pointer-events: none;
     }
 
@@ -99,10 +100,7 @@
         letter-spacing: 0.2px;
     }
 
-    .page-header p {
-        margin: 0;
-        opacity: 0.9;
-    }
+    .page-header p { margin: 0; opacity: 0.9; }
 
     .header-meta {
         display: flex;
@@ -112,8 +110,8 @@
     }
 
     .meta-pill {
-        background: rgba(255, 255, 255, 0.12);
-        border: 1px solid rgba(255, 255, 255, 0.22);
+        background: rgba(255,255,255,0.12);
+        border: 1px solid rgba(255,255,255,0.22);
         color: var(--cvsu-white);
         padding: 0.45rem 0.8rem;
         border-radius: 999px;
@@ -124,22 +122,45 @@
         backdrop-filter: blur(4px);
     }
 
-    .meta-pill strong {
-        font-weight: var(--font-weight-bold);
+    .meta-pill strong { font-weight: var(--font-weight-bold); }
+
+    .meta-pill.ai-pill {
+        background: linear-gradient(135deg, rgba(239,182,10,0.3), rgba(249,178,51,0.2));
+        border: 1px solid rgba(239,182,10,0.5);
     }
 
+    /* ── Info Alerts ── */
     .info-alert {
-        background: linear-gradient(135deg, rgba(239, 182, 10, 0.2), rgba(249, 178, 51, 0.12));
-        border: 1px solid rgba(239, 182, 10, 0.45);
+        background: linear-gradient(135deg, rgba(239,182,10,0.2), rgba(249,178,51,0.12));
+        border: 1px solid rgba(239,182,10,0.45);
         border-radius: var(--radius-sm);
         padding: 1rem;
         color: var(--cvsu-dark-green);
     }
 
-    .info-alert i {
-        color: var(--cvsu-gold);
+    .info-alert i { color: var(--cvsu-gold); }
+
+    .cv-alert {
+        background: linear-gradient(135deg, rgba(6,78,7,0.08), rgba(10,109,11,0.04));
+        border: 1px solid rgba(6,78,7,0.25);
+        border-radius: var(--radius-sm);
+        padding: 1rem;
+        color: var(--cvsu-dark-green);
     }
 
+    .cv-alert i { color: var(--cvsu-green); }
+
+    .warning-alert {
+        background: linear-gradient(135deg, rgba(207,18,15,0.1), rgba(207,18,15,0.15));
+        border: 1px solid var(--cvsu-red);
+        border-radius: var(--radius-sm);
+        padding: 1rem;
+        color: var(--cvsu-dark-green);
+    }
+
+    .warning-alert i { color: var(--cvsu-red); }
+
+    /* ── Match Card ── */
     .match-card {
         background: var(--cvsu-white);
         border-radius: var(--radius-md);
@@ -167,11 +188,11 @@
         color: var(--cvsu-dark-green);
         border-radius: 50%;
         padding: 0.5rem;
-        width: 40px;
-        height: 40px;
+        width: 40px; height: 40px;
         display: flex;
         align-items: center;
         justify-content: center;
+        flex-shrink: 0;
     }
 
     .match-card .card-header h5 {
@@ -180,78 +201,14 @@
         color: var(--cvsu-white);
     }
 
-    .match-card .card-body {
-        padding: 1.25rem;
-    }
+    .match-card .card-body { padding: 1.25rem; }
 
     .match-card .company-info {
         color: var(--cvsu-light-gray);
         font-size: 0.9rem;
     }
 
-    .match-card .company-info i {
-        color: var(--cvsu-green);
-    }
-
-    .match-score-badge {
-        background: linear-gradient(135deg, var(--cvsu-gold), var(--cvsu-gold-light));
-        color: var(--cvsu-dark-green);
-        font-weight: var(--font-weight-bold);
-        padding: 0.5rem 0.75rem;
-        border-radius: 20px;
-        box-shadow: inset 0 0 0 1px rgba(0,0,0,0.05);
-    }
-
-    .slots-badge {
-        background: var(--gray-200);
-        color: var(--cvsu-dark-green);
-        padding: 0.5rem 0.75rem;
-        border-radius: 20px;
-    }
-
-    .distance-badge {
-        background: linear-gradient(135deg, var(--cvsu-green), var(--cvsu-green-light));
-        color: var(--cvsu-white);
-        padding: 0.5rem 0.75rem;
-        border-radius: 20px;
-    }
-
-    .breakdown-badge {
-        padding: 0.35rem 0.6rem;
-        border-radius: 15px;
-        font-size: 0.8rem;
-    }
-
-    .breakdown-skill {
-        background: linear-gradient(135deg, var(--cvsu-green), var(--cvsu-green-light));
-        color: var(--cvsu-white);
-    }
-
-    .breakdown-course {
-        background: linear-gradient(135deg, var(--cvsu-gold), var(--cvsu-gold-light));
-        color: var(--cvsu-dark-green);
-    }
-
-    .breakdown-location {
-        background: var(--gray-200);
-        color: var(--cvsu-dark-green);
-    }
-
-    .skill-badge {
-        padding: 0.3rem 0.6rem;
-        border-radius: 15px;
-        font-size: 0.8rem;
-    }
-
-    .skill-matched {
-        background: linear-gradient(135deg, var(--cvsu-green), var(--cvsu-green-light));
-        color: var(--cvsu-white);
-    }
-
-    .skill-unmatched {
-        background: var(--gray-200);
-        color: var(--cvsu-dark-green);
-    }
+    .match-card .company-info i { color: var(--cvsu-green); }
 
     .match-card .card-footer {
         background: var(--gray-50);
@@ -259,6 +216,235 @@
         padding: 1rem;
     }
 
+    .match-card[data-delay] { animation-delay: var(--delay); }
+
+    /* ── AI Score Ring ── */
+    .score-ring-container {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .score-ring {
+        position: relative;
+        width: 80px; height: 80px;
+        flex-shrink: 0;
+    }
+
+    .score-ring svg {
+        width: 100%; height: 100%;
+        transform: rotate(-90deg);
+    }
+
+    .score-ring .ring-bg {
+        fill: none;
+        stroke: var(--gray-200);
+        stroke-width: 6;
+    }
+
+    .score-ring .ring-fill {
+        fill: none;
+        stroke-width: 6;
+        stroke-linecap: round;
+        transition: stroke-dashoffset 1.5s ease-out;
+    }
+
+    .score-ring .ring-fill.score-high { stroke: var(--cvsu-green); }
+    .score-ring .ring-fill.score-mid { stroke: var(--cvsu-gold); }
+    .score-ring .ring-fill.score-low { stroke: var(--cvsu-red); }
+
+    .score-ring .score-text {
+        position: absolute;
+        top: 50%; left: 50%;
+        transform: translate(-50%, -50%);
+        font-family: var(--font-family);
+        font-weight: var(--font-weight-bold);
+        font-size: 1.15rem;
+        color: var(--cvsu-dark-green);
+    }
+
+    .score-ring .score-text small {
+        font-size: 0.6rem;
+        font-weight: 500;
+    }
+
+    .score-ring-label {
+        font-size: 0.8rem;
+        color: var(--cvsu-light-gray);
+    }
+
+    .score-ring-label strong {
+        display: block;
+        font-size: 0.95rem;
+        color: var(--cvsu-dark-green);
+    }
+
+    /* ── Mini Score Ring (for breakdown) ── */
+    .mini-ring {
+        position: relative;
+        width: 44px; height: 44px;
+        flex-shrink: 0;
+    }
+
+    .mini-ring svg {
+        width: 100%; height: 100%;
+        transform: rotate(-90deg);
+    }
+
+    .mini-ring .ring-bg { fill: none; stroke: var(--gray-200); stroke-width: 5; }
+    .mini-ring .ring-fill { fill: none; stroke-width: 5; stroke-linecap: round; transition: stroke-dashoffset 1.2s ease-out; }
+    .mini-ring .ring-fill.score-high { stroke: var(--cvsu-green); }
+    .mini-ring .ring-fill.score-mid { stroke: var(--cvsu-gold); }
+    .mini-ring .ring-fill.score-low { stroke: var(--cvsu-red); }
+
+    .mini-ring .mini-text {
+        position: absolute;
+        top: 50%; left: 50%;
+        transform: translate(-50%, -50%);
+        font-family: var(--font-family);
+        font-weight: var(--font-weight-bold);
+        font-size: 0.65rem;
+        color: var(--cvsu-dark-green);
+    }
+
+    /* ── AI Analysis Card ── */
+    .ai-analysis {
+        background: linear-gradient(135deg, rgba(6,78,7,0.04), rgba(239,182,10,0.06));
+        border: 1px solid rgba(6,78,7,0.15);
+        border-radius: var(--radius-sm);
+        padding: 0.75rem;
+        margin-bottom: 1rem;
+        font-size: 0.85rem;
+        color: var(--cvsu-dark-green);
+        line-height: 1.5;
+    }
+
+    .ai-analysis .ai-label {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        font-weight: var(--font-weight-bold);
+        font-size: 0.75rem;
+        color: var(--cvsu-green);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 0.4rem;
+    }
+
+    .ai-analysis .ai-label i {
+        font-size: 0.8rem;
+    }
+
+    /* ── Breakdown Grid ── */
+    .breakdown-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .breakdown-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: var(--gray-50);
+        border-radius: var(--radius-xs);
+        padding: 0.5rem;
+        border: 1px solid var(--gray-100);
+    }
+
+    .breakdown-item .breakdown-label {
+        font-size: 0.72rem;
+        color: var(--cvsu-light-gray);
+    }
+
+    .breakdown-item .breakdown-label strong {
+        display: block;
+        font-size: 0.8rem;
+        color: var(--cvsu-dark-green);
+    }
+
+    /* ── Skills Section ── */
+    .skills-section { margin-bottom: 1rem; }
+
+    .skills-section .section-title {
+        font-size: 0.82rem;
+        font-weight: var(--font-weight-medium);
+        color: var(--cvsu-dark-green);
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+    }
+
+    .skill-badge {
+        padding: 0.25rem 0.55rem;
+        border-radius: 15px;
+        font-size: 0.78rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    .skill-matched {
+        background: linear-gradient(135deg, var(--cvsu-green), var(--cvsu-green-light));
+        color: var(--cvsu-white);
+    }
+
+    .skill-resume-bonus {
+        background: linear-gradient(135deg, #2563eb, #3b82f6);
+        color: var(--cvsu-white);
+    }
+
+    .skill-missing {
+        background: var(--gray-200);
+        color: var(--cvsu-light-gray);
+    }
+
+    .skills-match-bar {
+        height: 6px;
+        background: var(--gray-200);
+        border-radius: 3px;
+        overflow: hidden;
+        margin-top: 0.5rem;
+    }
+
+    .skills-match-bar .fill {
+        height: 100%;
+        border-radius: 3px;
+        transition: width 1.5s ease-out;
+    }
+
+    .skills-match-bar .fill.high { background: linear-gradient(90deg, var(--cvsu-green), var(--cvsu-green-light)); }
+    .skills-match-bar .fill.mid { background: linear-gradient(90deg, var(--cvsu-gold), var(--cvsu-gold-light)); }
+    .skills-match-bar .fill.low { background: linear-gradient(90deg, var(--cvsu-red), #e74c3c); }
+
+    /* ── Distance & Map ── */
+    .map-container {
+        border-radius: var(--radius-sm);
+        overflow: hidden;
+        border: 2px solid var(--gray-200);
+        margin-bottom: 1rem;
+    }
+
+    .distance-badge {
+        background: linear-gradient(135deg, var(--cvsu-green), var(--cvsu-green-light));
+        color: var(--cvsu-white);
+        padding: 0.4rem 0.65rem;
+        border-radius: 20px;
+        font-size: 0.82rem;
+    }
+
+    .slots-badge {
+        background: var(--gray-200);
+        color: var(--cvsu-dark-green);
+        padding: 0.4rem 0.65rem;
+        border-radius: 20px;
+        font-size: 0.82rem;
+    }
+
+    /* ── Buttons ── */
     .btn {
         border-radius: var(--radius-sm);
         font-family: var(--font-family);
@@ -302,29 +488,7 @@
         color: var(--cvsu-white) !important;
     }
 
-    .map-container {
-        border-radius: var(--radius-sm);
-        overflow: hidden;
-        border: 2px solid var(--gray-200);
-        margin-bottom: 1rem;
-    }
-
-    .match-card[data-delay] {
-        animation-delay: var(--delay);
-    }
-
-    .warning-alert {
-        background: linear-gradient(135deg, rgba(207, 18, 15, 0.1), rgba(207, 18, 15, 0.15));
-        border: 1px solid var(--cvsu-red);
-        border-radius: var(--radius-sm);
-        padding: 1rem;
-        color: var(--cvsu-dark-green);
-    }
-
-    .warning-alert i {
-        color: var(--cvsu-red);
-    }
-
+    /* ── Pagination ── */
     .pagination .page-link {
         border-radius: var(--radius-sm);
         border: 1px solid var(--gray-200);
@@ -343,6 +507,7 @@
         border-color: var(--cvsu-green);
     }
 
+    /* ── Animations ── */
     @keyframes fadeIn {
         from { opacity: 0; transform: translateY(20px); }
         to { opacity: 1; transform: translateY(0); }
@@ -352,42 +517,77 @@
         from { opacity: 0; transform: translateY(18px); }
         to { opacity: 1; transform: translateY(0); }
     }
+
+    @keyframes pulse-glow {
+        0%, 100% { box-shadow: var(--shadow-md); }
+        50% { box-shadow: var(--shadow-glow-green); }
+    }
+
+    .best-match-highlight {
+        animation: pulse-glow 3s ease-in-out infinite;
+        border: 2px solid rgba(10,109,11,0.2);
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 768px) {
+        .breakdown-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        .score-ring { width: 65px; height: 65px; }
+        .score-ring .score-text { font-size: 1rem; }
+    }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="matches-container">
     <div class="container">
+        <!-- Page Header -->
         <div class="page-header">
-            <h2><i class="fas fa-briefcase me-2"></i>Internship Matches</h2>
-            <p>Internship opportunities matched to your profile and skills</p>
+            <h2><i class="fas fa-brain me-2"></i>AI Internship Matches</h2>
+            <p>AI-powered matching — your resume is scanned and compared with internship requirements</p>
             <div class="header-meta">
-                <span class="meta-pill"><i class="fas fa-sparkles"></i> AI-ranked results</span>
+                <span class="meta-pill ai-pill"><i class="fas fa-robot"></i> AI-Powered Analysis</span>
                 <span class="meta-pill"><i class="fas fa-user-graduate"></i> Course: <strong>{{ profile.course }}</strong></span>
                 <span class="meta-pill"><i class="fas fa-tools"></i> Skills: <strong>{{ profile.skills.count }}</strong></span>
+                <span class="meta-pill"><i class="fas fa-file-alt"></i> Resume: <strong>{% if has_cv %}Uploaded{% else %}Missing{% endif %}</strong></span>
                 <span class="meta-pill"><i class="fas fa-map-pin"></i> Location: <strong>{% if profile.latitude and profile.longitude %}Pinned{% else %}Missing{% endif %}</strong></span>
             </div>
         </div>
+
+        {% if not has_cv %}
+        <div class="row mb-3">
+            <div class="col">
+                <div class="cv-alert d-flex align-items-center">
+                    <i class="fas fa-upload me-2 fs-5"></i>
+                    <span><strong>Upload your resume</strong> to unlock full AI matching! The AI scans your CV to find skills and keywords that match internship requirements.
+                        <a href="{% url 'accounts:upload_cv' %}" class="ms-1 fw-bold text-decoration-underline" style="color: var(--cvsu-green);">Upload CV →</a>
+                    </span>
+                </div>
+            </div>
+        </div>
+        {% endif %}
 
         {% if matches_count %}
             <div class="row mb-4">
                 <div class="col">
                     <div class="info-alert d-flex align-items-center">
-                        <i class="fas fa-info-circle me-2 fs-5"></i>
-                        <span>We found <strong>{{ matches_count }}</strong> internship opportunities that match your profile. Matches are sorted by relevance to your skills and course.</span>
+                        <i class="fas fa-sparkles me-2 fs-5"></i>
+                        <span>AI found <strong>{{ matches_count }}</strong> internship match{{ matches_count|pluralize:"es" }} for your profile. Results are ranked by resume similarity, skills overlap, and course relevance.</span>
                     </div>
                 </div>
             </div>
-            
+
+            <!-- ═══════════════════════════ BEST MATCH ═══════════════════════════ -->
             {% if best_match %}
             <div class="row mb-4">
                 <div class="col">
-                    <h4 class="mb-3">Best Match for You</h4>
+                    <h4 class="mb-3"><i class="fas fa-crown text-warning me-2"></i>Best Match for You</h4>
                 </div>
             </div>
             <div class="row">
-                <div class="col-lg-6 mb-4">
-                    <div class="match-card card h-100" data-delay style="--delay: 0.05s;">
+                <div class="col-lg-7 mb-4">
+                    <div class="match-card card h-100 best-match-highlight" data-delay style="--delay: 0.05s;">
                         <div class="card-header d-flex align-items-center">
                             {% if best_match.internship.company.logo %}
                                 <img src="{{ best_match.internship.company.logo.url }}" alt="{{ best_match.internship.company.name }}" class="me-2 rounded" style="max-height: 40px;">
@@ -399,6 +599,7 @@
                             <h5 class="card-title mb-0 text-truncate">{{ best_match.internship.title }}</h5>
                         </div>
                         <div class="card-body">
+                            <!-- Company Info -->
                             <div class="company-info mb-2">
                                 <i class="fas fa-building me-1"></i> {{ best_match.internship.company.name }}
                                 {% if best_match.internship.company.is_partner %}
@@ -408,99 +609,166 @@
                             <div class="company-info mb-3">
                                 <i class="fas fa-map-marker-alt me-1"></i> {{ best_match.internship.company.get_full_address }}
                             </div>
-                        {% if best_match.internship.company.latitude and best_match.internship.company.longitude and profile.latitude and profile.longitude %}
-                        <div class="map-container" id="map-{{ best_match.internship.id }}" style="height: 220px;"></div>
-                        <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-                        <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-                        <script>
-                          document.addEventListener('DOMContentLoaded', function() {
-                            var map = L.map('map-{{ best_match.internship.id }}').setView([
-                              {{ best_match.internship.company.latitude }},
-                              {{ best_match.internship.company.longitude }}
-                            ], 13);
-                            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                              maxZoom: 19,
-                              attribution: '© OpenStreetMap'
-                            }).addTo(map);
-                            L.marker([
-                              {{ best_match.internship.company.latitude }},
-                              {{ best_match.internship.company.longitude }}
-                            ]).addTo(map).bindPopup('Company: {{ best_match.internship.company.name|escapejs }}');
-                            L.marker([
-                              {{ profile.latitude }},
-                              {{ profile.longitude }}
-                            ], {icon: L.icon({iconUrl: 'https://cdn-icons-png.flaticon.com/512/149/149071.png', iconSize: [32,32]})}).addTo(map).bindPopup('You (Student)');
-                            var latlngs = [
-                              [{{ profile.latitude }}, {{ profile.longitude }}],
-                              [{{ best_match.internship.company.latitude }}, {{ best_match.internship.company.longitude }}]
-                            ];
-                            var polyline = L.polyline(latlngs, {color: '#064E07', weight: 3, dashArray: '6, 8'}).addTo(map);
-                            map.fitBounds(polyline.getBounds(), {padding: [30, 30]});
-                          });
-                        </script>
-                        <div class="mb-3">
-                            <span class="distance-badge"><i class="fas fa-route me-1"></i>Distance: {{ best_match.distance_km }} km</span>
-                        </div>
-                        {% elif best_match.internship.company.latitude and best_match.internship.company.longitude %}
-                        <div class="map-container" id="map-{{ best_match.internship.id }}" style="height: 180px;"></div>
-                        <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-                        <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-                        <script>
-                          document.addEventListener('DOMContentLoaded', function() {
-                            var map = L.map('map-{{ best_match.internship.id }}').setView([
-                              {{ best_match.internship.company.latitude }},
-                              {{ best_match.internship.company.longitude }}
-                            ], 15);
-                            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                              maxZoom: 19,
-                              attribution: '© OpenStreetMap'
-                            }).addTo(map);
-                            L.marker([
-                              {{ best_match.internship.company.latitude }},
-                              {{ best_match.internship.company.longitude }}
-                            ]).addTo(map);
-                          });
-                        </script>
-                        {% endif %}
-                        <div class="mb-3 d-flex flex-wrap gap-2">
-                            <span class="match-score-badge"><i class="fas fa-chart-line me-1"></i>Match: {{ best_match.score }}%</span>
-                            <span class="slots-badge"><i class="fas fa-users me-1"></i>{{ best_match.internship.slots_available }} slots</span>
-                        </div>
-                        <div class="mb-3">
-                            <small class="text-muted d-block mb-2">Match breakdown:</small>
-                            <div class="d-flex flex-wrap gap-1">
-                                <span class="breakdown-badge breakdown-skill"><i class="fas fa-tools me-1"></i>Skills: {{ best_match.skill_pct }}%</span>
-                                <span class="breakdown-badge breakdown-course"><i class="fas fa-graduation-cap me-1"></i>Course: {{ best_match.course_pct }}%</span>
-                                <span class="breakdown-badge breakdown-location"><i class="fas fa-map-marker-alt me-1"></i>Location: {{ best_match.map_pct }}%</span>
+
+                            <!-- AI Score Ring -->
+                            <div class="score-ring-container">
+                                <div class="score-ring" data-score="{{ best_match.score }}">
+                                    <svg viewBox="0 0 36 36">
+                                        <circle class="ring-bg" cx="18" cy="18" r="15.5"/>
+                                        <circle class="ring-fill {% if best_match.score >= 70 %}score-high{% elif best_match.score >= 40 %}score-mid{% else %}score-low{% endif %}"
+                                                cx="18" cy="18" r="15.5"
+                                                stroke-dasharray="97.4"
+                                                stroke-dashoffset="97.4"/>
+                                    </svg>
+                                    <div class="score-text">{{ best_match.score }}%</div>
+                                </div>
+                                <div class="score-ring-label">
+                                    <strong>AI Match Score</strong>
+                                    Overall compatibility based on resume analysis, skills, and course relevance
+                                </div>
                             </div>
-                        </div>
-                        <div class="mb-3">
-                            <strong class="d-block mb-2"><i class="fas fa-tools text-muted me-1"></i>Required Skills:</strong>
-                            <div class="d-flex flex-wrap gap-1">
-                                {% for skill in best_match.internship.required_skills.all %}
-                                    <span class="skill-badge {% if skill in profile.skills.all %}skill-matched{% else %}skill-unmatched{% endif %}">{{ skill.name }}</span>
-                                {% endfor %}
+
+                            <!-- AI Analysis Summary -->
+                            <div class="ai-analysis">
+                                <div class="ai-label"><i class="fas fa-robot"></i> AI Analysis</div>
+                                {{ best_match.ai_summary }}
                             </div>
+
+                            <!-- Breakdown Grid -->
+                            <div class="breakdown-grid">
+                                <div class="breakdown-item">
+                                    <div class="mini-ring" data-score="{{ best_match.resume_match_pct }}">
+                                        <svg viewBox="0 0 36 36">
+                                            <circle class="ring-bg" cx="18" cy="18" r="15.5"/>
+                                            <circle class="ring-fill {% if best_match.resume_match_pct >= 70 %}score-high{% elif best_match.resume_match_pct >= 40 %}score-mid{% else %}score-low{% endif %}"
+                                                    cx="18" cy="18" r="15.5"
+                                                    stroke-dasharray="97.4"
+                                                    stroke-dashoffset="97.4"/>
+                                        </svg>
+                                        <div class="mini-text">{{ best_match.resume_match_pct }}%</div>
+                                    </div>
+                                    <div class="breakdown-label"><strong>Resume</strong>AI Scan</div>
+                                </div>
+                                <div class="breakdown-item">
+                                    <div class="mini-ring" data-score="{{ best_match.skills_match_pct }}">
+                                        <svg viewBox="0 0 36 36">
+                                            <circle class="ring-bg" cx="18" cy="18" r="15.5"/>
+                                            <circle class="ring-fill {% if best_match.skills_match_pct >= 70 %}score-high{% elif best_match.skills_match_pct >= 40 %}score-mid{% else %}score-low{% endif %}"
+                                                    cx="18" cy="18" r="15.5"
+                                                    stroke-dasharray="97.4"
+                                                    stroke-dashoffset="97.4"/>
+                                        </svg>
+                                        <div class="mini-text">{{ best_match.skills_match_pct }}%</div>
+                                    </div>
+                                    <div class="breakdown-label"><strong>Skills</strong>Match</div>
+                                </div>
+                                <div class="breakdown-item">
+                                    <div class="mini-ring" data-score="{{ best_match.tech_pct }}">
+                                        <svg viewBox="0 0 36 36">
+                                            <circle class="ring-bg" cx="18" cy="18" r="15.5"/>
+                                            <circle class="ring-fill {% if best_match.tech_pct >= 70 %}score-high{% elif best_match.tech_pct >= 40 %}score-mid{% else %}score-low{% endif %}"
+                                                    cx="18" cy="18" r="15.5"
+                                                    stroke-dasharray="97.4"
+                                                    stroke-dashoffset="97.4"/>
+                                        </svg>
+                                        <div class="mini-text">{{ best_match.tech_pct }}%</div>
+                                    </div>
+                                    <div class="breakdown-label"><strong>Technical</strong>Skills</div>
+                                </div>
+                                <div class="breakdown-item">
+                                    <div class="mini-ring" data-score="{{ best_match.course_pct }}">
+                                        <svg viewBox="0 0 36 36">
+                                            <circle class="ring-bg" cx="18" cy="18" r="15.5"/>
+                                            <circle class="ring-fill {% if best_match.course_pct >= 70 %}score-high{% elif best_match.course_pct >= 40 %}score-mid{% else %}score-low{% endif %}"
+                                                    cx="18" cy="18" r="15.5"
+                                                    stroke-dasharray="97.4"
+                                                    stroke-dashoffset="97.4"/>
+                                        </svg>
+                                        <div class="mini-text">{{ best_match.course_pct }}%</div>
+                                    </div>
+                                    <div class="breakdown-label"><strong>Course</strong>Fit</div>
+                                </div>
+                                <div class="breakdown-item">
+                                    <div class="mini-ring" data-score="{{ best_match.map_pct }}">
+                                        <svg viewBox="0 0 36 36">
+                                            <circle class="ring-bg" cx="18" cy="18" r="15.5"/>
+                                            <circle class="ring-fill {% if best_match.map_pct >= 70 %}score-high{% elif best_match.map_pct >= 40 %}score-mid{% else %}score-low{% endif %}"
+                                                    cx="18" cy="18" r="15.5"
+                                                    stroke-dasharray="97.4"
+                                                    stroke-dashoffset="97.4"/>
+                                        </svg>
+                                        <div class="mini-text">{{ best_match.map_pct }}%</div>
+                                    </div>
+                                    <div class="breakdown-label"><strong>Location</strong>Proximity</div>
+                                </div>
+                            </div>
+
+                            <!-- Skills Breakdown -->
+                            <div class="skills-section">
+                                <div class="section-title"><i class="fas fa-check-double"></i> Skills Match ({{ best_match.skills_match_pct }}%)</div>
+                                <div class="d-flex flex-wrap gap-1 mb-2">
+                                    {% for skill_name in best_match.matched_skills %}
+                                        <span class="skill-badge {% if skill_name in best_match.resume_bonus_skills %}skill-resume-bonus{% else %}skill-matched{% endif %}">
+                                            {% if skill_name in best_match.resume_bonus_skills %}
+                                                <i class="fas fa-file-alt" style="font-size: 0.65rem;"></i>
+                                            {% else %}
+                                                <i class="fas fa-check" style="font-size: 0.65rem;"></i>
+                                            {% endif %}
+                                            {{ skill_name }}
+                                        </span>
+                                    {% endfor %}
+                                    {% for skill_name in best_match.missing_skills %}
+                                        <span class="skill-badge skill-missing">
+                                            <i class="fas fa-times" style="font-size: 0.65rem;"></i>
+                                            {{ skill_name }}
+                                        </span>
+                                    {% endfor %}
+                                </div>
+                                <div class="skills-match-bar">
+                                    <div class="fill {% if best_match.skills_match_pct >= 70 %}high{% elif best_match.skills_match_pct >= 40 %}mid{% else %}low{% endif %}"
+                                         style="width: 0%;" data-width="{{ best_match.skills_match_pct }}%"></div>
+                                </div>
+                            </div>
+
+                            <!-- Map -->
+                            {% if best_match.internship.company.latitude and best_match.internship.company.longitude and profile.latitude and profile.longitude %}
+                            <div class="map-container" id="map-{{ best_match.internship.id }}" style="height: 200px;"></div>
+                            <div class="mb-3 d-flex flex-wrap gap-2">
+                                <span class="distance-badge"><i class="fas fa-route me-1"></i>Distance: {{ best_match.distance_km }} km</span>
+                                <span class="slots-badge"><i class="fas fa-users me-1"></i>{{ best_match.internship.slots_available }} slot{{ best_match.internship.slots_available|pluralize:"s" }}</span>
+                            </div>
+                            {% elif best_match.internship.company.latitude and best_match.internship.company.longitude %}
+                            <div class="map-container" id="map-{{ best_match.internship.id }}" style="height: 160px;"></div>
+                            <div class="mb-3">
+                                <span class="slots-badge"><i class="fas fa-users me-1"></i>{{ best_match.internship.slots_available }} slot{{ best_match.internship.slots_available|pluralize:"s" }}</span>
+                            </div>
+                            {% else %}
+                            <div class="mb-3">
+                                <span class="slots-badge"><i class="fas fa-users me-1"></i>{{ best_match.internship.slots_available }} slot{{ best_match.internship.slots_available|pluralize:"s" }}</span>
+                            </div>
+                            {% endif %}
+
+                            <p class="card-text text-muted small" style="display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">{{ best_match.internship.description }}</p>
                         </div>
-                        <p class="card-text text-truncate text-muted small">{{ best_match.internship.description }}</p>
-                    </div>
-                    <div class="card-footer border-0">
-                        <div class="d-flex justify-content-between">
-                            <a href="{% url 'internship:company_detail' best_match.internship.company.id %}" class="btn btn-sm btn-outline-secondary">
-                                <i class="fas fa-building me-1"></i> Company
-                            </a>
-                            <a href="{% url 'internship:apply' best_match.internship.id %}" class="btn btn-sm btn-primary">
-                                <i class="fas fa-paper-plane me-1"></i> Apply Now
-                            </a>
+                        <div class="card-footer border-0">
+                            <div class="d-flex justify-content-between">
+                                <a href="{% url 'internship:company_detail' best_match.internship.company.id %}" class="btn btn-sm btn-outline-secondary">
+                                    <i class="fas fa-building me-1"></i> Company
+                                </a>
+                                <a href="{% url 'internship:apply' best_match.internship.id %}" class="btn btn-sm btn-primary">
+                                    <i class="fas fa-paper-plane me-1"></i> Apply Now
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
             {% endif %}
 
+            <!-- ═══════════════════════════ OTHER MATCHES ═══════════════════════════ -->
             <div class="row mb-2">
                 <div class="col">
-                    <h4 class="mb-3">Other Matches</h4>
+                    <h4 class="mb-3"><i class="fas fa-list-ol me-2 text-muted"></i>Other Matches</h4>
                 </div>
             </div>
             <div class="row">
@@ -527,94 +795,114 @@
                                 <div class="company-info mb-3">
                                     <i class="fas fa-map-marker-alt me-1"></i> {{ match.internship.company.get_full_address }}
                                 </div>
-                            {% if match.internship.company.latitude and match.internship.company.longitude and profile.latitude and profile.longitude %}
-                            <div class="map-container" id="map-{{ match.internship.id }}" style="height: 220px;"></div>
-                            <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-                            <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-                            <script>
-                              document.addEventListener('DOMContentLoaded', function() {
-                                var map = L.map('map-{{ match.internship.id }}').setView([
-                                  {{ match.internship.company.latitude }},
-                                  {{ match.internship.company.longitude }}
-                                ], 13);
-                                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                                  maxZoom: 19,
-                                  attribution: '© OpenStreetMap'
-                                }).addTo(map);
-                                var companyMarker = L.marker([
-                                  {{ match.internship.company.latitude }},
-                                  {{ match.internship.company.longitude }}
-                                ]).addTo(map).bindPopup('Company: {{ match.internship.company.name|escapejs }}');
-                                var studentMarker = L.marker([
-                                  {{ profile.latitude }},
-                                  {{ profile.longitude }}
-                                ], {icon: L.icon({iconUrl: 'https://cdn-icons-png.flaticon.com/512/149/149071.png', iconSize: [32,32]})}).addTo(map).bindPopup('You (Student)');
-                                var latlngs = [
-                                  [{{ profile.latitude }}, {{ profile.longitude }}],
-                                  [{{ match.internship.company.latitude }}, {{ match.internship.company.longitude }}]
-                                ];
-                                var polyline = L.polyline(latlngs, {color: '#064E07', weight: 3, dashArray: '6, 8'}).addTo(map);
-                                map.fitBounds(polyline.getBounds(), {padding: [30, 30]});
-                              });
-                            </script>
-                            <div class="mb-3">
-                                <span class="distance-badge"><i class="fas fa-route me-1"></i>Distance: {{ match.distance_km }} km</span>
-                            </div>
-                            {% elif match.internship.company.latitude and match.internship.company.longitude %}
-                            <div class="map-container" id="map-{{ match.internship.id }}" style="height: 180px;"></div>
-                            <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-                            <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-                            <script>
-                              document.addEventListener('DOMContentLoaded', function() {
-                                var map = L.map('map-{{ match.internship.id }}').setView([
-                                  {{ match.internship.company.latitude }},
-                                  {{ match.internship.company.longitude }}
-                                ], 15);
-                                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                                  maxZoom: 19,
-                                  attribution: '© OpenStreetMap'
-                                }).addTo(map);
-                                L.marker([
-                                  {{ match.internship.company.latitude }},
-                                  {{ match.internship.company.longitude }}
-                                ]).addTo(map);
-                              });
-                            </script>
-                            {% endif %}
-                            <div class="mb-3 d-flex flex-wrap gap-2">
-                                <span class="match-score-badge"><i class="fas fa-chart-line me-1"></i>Match: {{ match.score }}%</span>
-                                <span class="slots-badge"><i class="fas fa-users me-1"></i>{{ match.internship.slots_available }} slots</span>
-                            </div>
-                            <div class="mb-3">
-                                <small class="text-muted d-block mb-2">Match breakdown:</small>
-                                <div class="d-flex flex-wrap gap-1">
-                                    <span class="breakdown-badge breakdown-skill"><i class="fas fa-tools me-1"></i>Skills: {{ match.skill_pct }}%</span>
-                                    <span class="breakdown-badge breakdown-course"><i class="fas fa-graduation-cap me-1"></i>Course: {{ match.course_pct }}%</span>
-                                    <span class="breakdown-badge breakdown-location"><i class="fas fa-map-marker-alt me-1"></i>Location: {{ match.map_pct }}%</span>
+
+                                <!-- AI Score Ring (compact) -->
+                                <div class="score-ring-container">
+                                    <div class="score-ring" data-score="{{ match.score }}">
+                                        <svg viewBox="0 0 36 36">
+                                            <circle class="ring-bg" cx="18" cy="18" r="15.5"/>
+                                            <circle class="ring-fill {% if match.score >= 70 %}score-high{% elif match.score >= 40 %}score-mid{% else %}score-low{% endif %}"
+                                                    cx="18" cy="18" r="15.5"
+                                                    stroke-dasharray="97.4"
+                                                    stroke-dashoffset="97.4"/>
+                                        </svg>
+                                        <div class="score-text">{{ match.score }}%</div>
+                                    </div>
+                                    <div class="score-ring-label">
+                                        <strong>AI Match</strong>
+                                        {% if match.has_resume %}Resume scanned{% else %}Profile-based{% endif %}
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="mb-3">
-                                <strong class="d-block mb-2"><i class="fas fa-tools text-muted me-1"></i>Required Skills:</strong>
-                                <div class="d-flex flex-wrap gap-1">
-                                    {% for skill in match.internship.required_skills.all %}
-                                        <span class="skill-badge {% if skill in profile.skills.all %}skill-matched{% else %}skill-unmatched{% endif %}">{{ skill.name }}</span>
-                                    {% endfor %}
+
+                                <!-- AI Analysis (compact) -->
+                                <div class="ai-analysis">
+                                    <div class="ai-label"><i class="fas fa-robot"></i> AI Analysis</div>
+                                    {{ match.ai_summary }}
                                 </div>
+
+                                <!-- Mini Breakdown -->
+                                <div class="breakdown-grid" style="grid-template-columns: repeat(3, 1fr);">
+                                    <div class="breakdown-item">
+                                        <div class="mini-ring" data-score="{{ match.resume_match_pct }}">
+                                            <svg viewBox="0 0 36 36">
+                                                <circle class="ring-bg" cx="18" cy="18" r="15.5"/>
+                                                <circle class="ring-fill {% if match.resume_match_pct >= 70 %}score-high{% elif match.resume_match_pct >= 40 %}score-mid{% else %}score-low{% endif %}"
+                                                        cx="18" cy="18" r="15.5" stroke-dasharray="97.4" stroke-dashoffset="97.4"/>
+                                            </svg>
+                                            <div class="mini-text">{{ match.resume_match_pct }}%</div>
+                                        </div>
+                                        <div class="breakdown-label"><strong>Resume</strong></div>
+                                    </div>
+                                    <div class="breakdown-item">
+                                        <div class="mini-ring" data-score="{{ match.skills_match_pct }}">
+                                            <svg viewBox="0 0 36 36">
+                                                <circle class="ring-bg" cx="18" cy="18" r="15.5"/>
+                                                <circle class="ring-fill {% if match.skills_match_pct >= 70 %}score-high{% elif match.skills_match_pct >= 40 %}score-mid{% else %}score-low{% endif %}"
+                                                        cx="18" cy="18" r="15.5" stroke-dasharray="97.4" stroke-dashoffset="97.4"/>
+                                            </svg>
+                                            <div class="mini-text">{{ match.skills_match_pct }}%</div>
+                                        </div>
+                                        <div class="breakdown-label"><strong>Skills</strong></div>
+                                    </div>
+                                    <div class="breakdown-item">
+                                        <div class="mini-ring" data-score="{{ match.course_pct }}">
+                                            <svg viewBox="0 0 36 36">
+                                                <circle class="ring-bg" cx="18" cy="18" r="15.5"/>
+                                                <circle class="ring-fill {% if match.course_pct >= 70 %}score-high{% elif match.course_pct >= 40 %}score-mid{% else %}score-low{% endif %}"
+                                                        cx="18" cy="18" r="15.5" stroke-dasharray="97.4" stroke-dashoffset="97.4"/>
+                                            </svg>
+                                            <div class="mini-text">{{ match.course_pct }}%</div>
+                                        </div>
+                                        <div class="breakdown-label"><strong>Course</strong></div>
+                                    </div>
+                                </div>
+
+                                <!-- Skills Tags -->
+                                <div class="skills-section">
+                                    <div class="section-title"><i class="fas fa-check-double"></i> Skills ({{ match.skills_match_pct }}%)</div>
+                                    <div class="d-flex flex-wrap gap-1 mb-1">
+                                        {% for skill_name in match.matched_skills %}
+                                            <span class="skill-badge {% if skill_name in match.resume_bonus_skills %}skill-resume-bonus{% else %}skill-matched{% endif %}">
+                                                <i class="fas fa-check" style="font-size: 0.6rem;"></i> {{ skill_name }}
+                                            </span>
+                                        {% endfor %}
+                                        {% for skill_name in match.missing_skills %}
+                                            <span class="skill-badge skill-missing">
+                                                <i class="fas fa-times" style="font-size: 0.6rem;"></i> {{ skill_name }}
+                                            </span>
+                                        {% endfor %}
+                                    </div>
+                                    <div class="skills-match-bar">
+                                        <div class="fill {% if match.skills_match_pct >= 70 %}high{% elif match.skills_match_pct >= 40 %}mid{% else %}low{% endif %}"
+                                             style="width: 0%;" data-width="{{ match.skills_match_pct }}%"></div>
+                                    </div>
+                                </div>
+
+                                <!-- Map -->
+                                {% if match.internship.company.latitude and match.internship.company.longitude and profile.latitude and profile.longitude %}
+                                <div class="map-container" id="map-{{ match.internship.id }}" style="height: 180px;"></div>
+                                <div class="mb-2 d-flex flex-wrap gap-2">
+                                    <span class="distance-badge"><i class="fas fa-route me-1"></i>{{ match.distance_km }} km</span>
+                                    <span class="slots-badge"><i class="fas fa-users me-1"></i>{{ match.internship.slots_available }} slot{{ match.internship.slots_available|pluralize:"s" }}</span>
+                                </div>
+                                {% elif match.internship.company.latitude and match.internship.company.longitude %}
+                                <div class="map-container" id="map-{{ match.internship.id }}" style="height: 140px;"></div>
+                                {% endif %}
+
+                                <p class="card-text text-muted small" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">{{ match.internship.description }}</p>
                             </div>
-                            <p class="card-text text-truncate text-muted small">{{ match.internship.description }}</p>
-                        </div>
-                        <div class="card-footer border-0">
-                            <div class="d-flex justify-content-between">
-                                <a href="{% url 'internship:company_detail' match.internship.company.id %}" class="btn btn-sm btn-outline-secondary">
-                                    <i class="fas fa-building me-1"></i> Company
-                                </a>
-                                <a href="{% url 'internship:apply' match.internship.id %}" class="btn btn-sm btn-primary">
-                                    <i class="fas fa-paper-plane me-1"></i> Apply Now
-                                </a>
+                            <div class="card-footer border-0">
+                                <div class="d-flex justify-content-between">
+                                    <a href="{% url 'internship:company_detail' match.internship.company.id %}" class="btn btn-sm btn-outline-secondary">
+                                        <i class="fas fa-building me-1"></i> Company
+                                    </a>
+                                    <a href="{% url 'internship:apply' match.internship.id %}" class="btn btn-sm btn-primary">
+                                        <i class="fas fa-paper-plane me-1"></i> Apply Now
+                                    </a>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
                 {% empty %}
                     <div class="col">
                         <div class="info-alert d-flex align-items-center">
@@ -624,7 +912,8 @@
                     </div>
                 {% endfor %}
             </div>
-        
+
+        <!-- Pagination -->
         {% if matches.has_other_pages %}
         <div class="row mt-4">
             <div class="col d-flex justify-content-center">
@@ -632,39 +921,25 @@
                     <ul class="pagination">
                         {% if matches.has_previous %}
                             <li class="page-item">
-                                <a class="page-link" href="?page=1" aria-label="First">
-                                    <i class="fas fa-angle-double-left"></i>
-                                </a>
+                                <a class="page-link" href="?page=1" aria-label="First"><i class="fas fa-angle-double-left"></i></a>
                             </li>
                             <li class="page-item">
-                                <a class="page-link" href="?page={{ matches.previous_page_number }}" aria-label="Previous">
-                                    <i class="fas fa-angle-left"></i>
-                                </a>
+                                <a class="page-link" href="?page={{ matches.previous_page_number }}" aria-label="Previous"><i class="fas fa-angle-left"></i></a>
                             </li>
                         {% endif %}
-                        
                         {% for num in matches.paginator.page_range %}
                             {% if matches.number == num %}
-                                <li class="page-item active">
-                                    <a class="page-link" href="?page={{ num }}">{{ num }}</a>
-                                </li>
+                                <li class="page-item active"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
                             {% elif num > matches.number|add:'-3' and num < matches.number|add:'3' %}
-                                <li class="page-item">
-                                    <a class="page-link" href="?page={{ num }}">{{ num }}</a>
-                                </li>
+                                <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
                             {% endif %}
                         {% endfor %}
-                        
                         {% if matches.has_next %}
                             <li class="page-item">
-                                <a class="page-link" href="?page={{ matches.next_page_number }}" aria-label="Next">
-                                    <i class="fas fa-angle-right"></i>
-                                </a>
+                                <a class="page-link" href="?page={{ matches.next_page_number }}" aria-label="Next"><i class="fas fa-angle-right"></i></a>
                             </li>
                             <li class="page-item">
-                                <a class="page-link" href="?page={{ matches.paginator.num_pages }}" aria-label="Last">
-                                    <i class="fas fa-angle-double-right"></i>
-                                </a>
+                                <a class="page-link" href="?page={{ matches.paginator.num_pages }}" aria-label="Last"><i class="fas fa-angle-double-right"></i></a>
                             </li>
                         {% endif %}
                     </ul>
@@ -672,14 +947,21 @@
             </div>
         </div>
         {% endif %}
+
     {% else %}
+        <!-- No Matches -->
         <div class="row">
             <div class="col">
                 <div class="warning-alert d-flex align-items-center">
                     <i class="fas fa-exclamation-triangle me-2 fs-5"></i>
-                    <span>No internship matches found. Try updating your profile and skills to get more matches.</span>
+                    <span>No internship matches found. Try updating your profile, uploading your resume, or adding more skills.</span>
                 </div>
                 <div class="text-center mt-4">
+                    {% if not has_cv %}
+                    <a href="{% url 'accounts:upload_cv' %}" class="btn btn-primary me-2">
+                        <i class="fas fa-upload me-1"></i> Upload Resume
+                    </a>
+                    {% endif %}
                     <a href="{% url 'accounts:manage_skills' %}" class="btn btn-primary me-2">
                         <i class="fas fa-tools me-1"></i> Update Skills
                     </a>
@@ -736,4 +1018,95 @@
     {% endif %}
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // ── Animate Score Rings ──
+    const circumference = 97.4; // 2 * PI * 15.5
+    document.querySelectorAll('.score-ring, .mini-ring').forEach(function(ring) {
+        var score = parseInt(ring.getAttribute('data-score')) || 0;
+        var fillCircle = ring.querySelector('.ring-fill');
+        if (fillCircle) {
+            var offset = circumference - (circumference * score / 100);
+            setTimeout(function() {
+                fillCircle.style.strokeDashoffset = offset;
+            }, 300);
+        }
+    });
+
+    // ── Animate Skills Bars ──
+    document.querySelectorAll('.skills-match-bar .fill').forEach(function(bar) {
+        var targetWidth = bar.getAttribute('data-width');
+        setTimeout(function() {
+            bar.style.width = targetWidth;
+        }, 600);
+    });
+
+    // ── Initialize Maps ──
+    {% if best_match %}
+    {% if best_match.internship.company.latitude and best_match.internship.company.longitude %}
+        (function() {
+            var mapEl = document.getElementById('map-{{ best_match.internship.id }}');
+            if (!mapEl) return;
+            var map = L.map(mapEl).setView([
+                {{ best_match.internship.company.latitude }},
+                {{ best_match.internship.company.longitude }}
+            ], 13);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19, attribution: '&copy; OpenStreetMap'
+            }).addTo(map);
+            L.marker([
+                {{ best_match.internship.company.latitude }},
+                {{ best_match.internship.company.longitude }}
+            ]).addTo(map).bindPopup('Company: {{ best_match.internship.company.name|escapejs }}');
+            {% if profile.latitude and profile.longitude %}
+            L.marker([{{ profile.latitude }}, {{ profile.longitude }}], {
+                icon: L.icon({iconUrl: 'https://cdn-icons-png.flaticon.com/512/149/149071.png', iconSize: [32,32]})
+            }).addTo(map).bindPopup('You (Student)');
+            var latlngs = [
+                [{{ profile.latitude }}, {{ profile.longitude }}],
+                [{{ best_match.internship.company.latitude }}, {{ best_match.internship.company.longitude }}]
+            ];
+            L.polyline(latlngs, {color: '#064E07', weight: 3, dashArray: '6, 8'}).addTo(map);
+            map.fitBounds(L.latLngBounds(latlngs), {padding: [30, 30]});
+            {% endif %}
+        })();
+    {% endif %}
+    {% endif %}
+
+    {% for match in matches %}
+    {% if match.internship.company.latitude and match.internship.company.longitude %}
+        (function() {
+            var mapEl = document.getElementById('map-{{ match.internship.id }}');
+            if (!mapEl) return;
+            var map = L.map(mapEl).setView([
+                {{ match.internship.company.latitude }},
+                {{ match.internship.company.longitude }}
+            ], 13);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19, attribution: '&copy; OpenStreetMap'
+            }).addTo(map);
+            L.marker([
+                {{ match.internship.company.latitude }},
+                {{ match.internship.company.longitude }}
+            ]).addTo(map).bindPopup('Company: {{ match.internship.company.name|escapejs }}');
+            {% if profile.latitude and profile.longitude %}
+            L.marker([{{ profile.latitude }}, {{ profile.longitude }}], {
+                icon: L.icon({iconUrl: 'https://cdn-icons-png.flaticon.com/512/149/149071.png', iconSize: [32,32]})
+            }).addTo(map).bindPopup('You (Student)');
+            var latlngs = [
+                [{{ profile.latitude }}, {{ profile.longitude }}],
+                [{{ match.internship.company.latitude }}, {{ match.internship.company.longitude }}]
+            ];
+            L.polyline(latlngs, {color: '#064E07', weight: 3, dashArray: '6, 8'}).addTo(map);
+            map.fitBounds(L.latLngBounds(latlngs), {padding: [30, 30]});
+            {% endif %}
+        })();
+    {% endif %}
+    {% endfor %}
+});
+</script>
 {% endblock %}

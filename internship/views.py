@@ -74,7 +74,7 @@ def delete_internship(request, internship_id):
 # Student views
 @login_required
 def internship_matches(request):
-    """View internship matches for a student."""
+    """View internship matches for a student — AI-powered matching."""
     if not request.user.is_student:
         messages.error(request, 'Only students can access internship matches.')
         return redirect('dashboard:home')
@@ -115,6 +115,13 @@ def internship_matches(request):
                     'soft_pct': match_result["soft_pct"],
                     'course_pct': match_result["course_pct"],
                     'map_pct': match_result["map_pct"],
+                    'resume_match_pct': match_result["resume_match_pct"],
+                    'skills_match_pct': match_result["skills_match_pct"],
+                    'matched_skills': match_result["matched_skills"],
+                    'missing_skills': match_result["missing_skills"],
+                    'resume_bonus_skills': match_result["resume_bonus_skills"],
+                    'ai_summary': match_result["ai_summary"],
+                    'has_resume': match_result["has_resume"],
                 })
 
         # Sort by match score (highest first)
@@ -147,6 +154,7 @@ def internship_matches(request):
             'matches_count': len(matches),
             'profile': profile,
             'recommendations': recommendations,
+            'has_cv': bool(profile.cv),
         }
         return render(request, 'internship/matches.html', context)
     except StudentProfile.DoesNotExist:
