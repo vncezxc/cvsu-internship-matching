@@ -287,8 +287,10 @@ def apply_internship(request, internship_id):
             return redirect('accounts:upload_cv')
         
         if request.method == 'POST':
-            # Calculate match score
-            match_score = internship.get_match_score(profile)
+            # Calculate match score using AI engine
+            from .matching import score_internship
+            match_data = score_internship(profile, internship)
+            match_score = match_data['score']
             
             # Create application
             application = Application.objects.create(
@@ -377,26 +379,26 @@ Best regards,
             messages.success(request, f'Successfully applied to {internship.title} at {internship.company.name}.')
             return redirect('internship:applications')
         
-        # Calculate distance if both have lat/lng
-        distance_km = None
-        if internship.company.latitude and internship.company.longitude and profile.latitude and profile.longitude:
-            from math import radians, sin, cos, sqrt, atan2
-            def haversine(lat1, lon1, lat2, lon2):
-                R = 6371  # Earth radius in km
-                dlat = radians(lat2 - lat1)
-                dlon = radians(lon2 - lon1)
-                a = sin(dlat/2)**2 + cos(radians(lat1)) * cos(radians(lat2)) * sin(dlon/2)**2
-                c = 2 * atan2(sqrt(a), sqrt(1 - a))
-                return R * c
-            try:
-                distance_km = round(haversine(float(internship.company.latitude), float(internship.company.longitude), float(profile.latitude), float(profile.longitude)), 1)
-            except Exception:
-                distance_km = None
+        # AI-powered scoring
+        from .matching import score_internship
+        match_data = score_internship(profile, internship)
+
         context = {
             'internship': internship,
             'profile': profile,
-            'match_score': internship.get_match_score(profile),
-            'distance_km': distance_km,
+            'match_score': match_data['score'],
+            'distance_km': match_data['distance_km'],
+            'resume_match_pct': match_data['resume_match_pct'],
+            'skills_match_pct': match_data['skills_match_pct'],
+            'tech_pct': match_data['tech_pct'],
+            'soft_pct': match_data['soft_pct'],
+            'course_pct': match_data['course_pct'],
+            'map_pct': match_data['map_pct'],
+            'matched_skills': match_data['matched_skills'],
+            'missing_skills': match_data['missing_skills'],
+            'resume_bonus_skills': match_data['resume_bonus_skills'],
+            'ai_summary': match_data['ai_summary'],
+            'has_resume': match_data['has_resume'],
         }
         return render(request, 'internship/apply.html', context)
     except StudentProfile.DoesNotExist:

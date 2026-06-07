@@ -1,10 +1,13 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Apply for Internship - CVSU Internship Matching{% endblock %}
+{% block title %}Apply for {{ internship.title }} - CVSU Internship Matching{% endblock %}
 
 {% block extra_css %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
 <style>
+    @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Newsreader:wght@500;700&display=swap');
+
     :root {
         --cvsu-dark-green: #030403;
         --cvsu-light-gray: #787A66;
@@ -14,72 +17,149 @@
         --cvsu-white: #FFFFFF;
         --cvsu-green-light: #0a6d0b;
         --cvsu-gold-light: #f9b233;
+        --cvsu-moss: #103b24;
+        --cvsu-cream: #f7f3e9;
         --gray-50: #f8f9fa;
         --gray-100: #e9ecef;
         --gray-200: #dee2e6;
+        --gray-300: #ced4da;
         --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
         --shadow-lg: 0 10px 30px rgba(0,0,0,0.15);
+        --shadow-glow-green: 0 0 20px rgba(10,109,11,0.15);
+        --shadow-glow-gold: 0 0 20px rgba(239,182,10,0.2);
         --radius-md: 1rem;
         --radius-sm: 0.5rem;
-        --font-family: 'Nunito', Arial, sans-serif;
+        --radius-xs: 0.35rem;
+        --font-family: 'Space Grotesk', Arial, sans-serif;
+        --font-family-serif: 'Newsreader', Georgia, serif;
         --font-weight-medium: 600;
         --font-weight-bold: 700;
     }
 
+    /* ── Page Container ── */
     .apply-container {
         min-height: 80vh;
-        padding: 2rem 0;
+        padding: 2.5rem 0 3rem;
+        background:
+            radial-gradient(1100px 480px at 10% -10%, rgba(16,59,36,0.12), transparent 60%),
+            radial-gradient(900px 520px at 95% 5%, rgba(239,182,10,0.18), transparent 60%),
+            linear-gradient(180deg, #f7f3e9 0%, #ffffff 65%);
+        position: relative;
+        overflow: hidden;
     }
 
+    .apply-container::before,
+    .apply-container::after {
+        content: "";
+        position: absolute;
+        border-radius: 999px;
+        filter: blur(0.5px);
+        opacity: 0.5;
+        z-index: 0;
+    }
+
+    .apply-container::before {
+        width: 320px; height: 320px;
+        background: rgba(10,109,11,0.12);
+        top: -140px; right: -120px;
+    }
+
+    .apply-container::after {
+        width: 260px; height: 260px;
+        background: rgba(239,182,10,0.18);
+        bottom: -130px; left: -90px;
+    }
+
+    .apply-container > .container { position: relative; z-index: 1; }
+
+    /* ── Breadcrumb ── */
     .breadcrumb-wrapper {
-        background: var(--gray-50);
+        background: rgba(255,255,255,0.7);
+        backdrop-filter: blur(8px);
         border-radius: var(--radius-sm);
         padding: 0.75rem 1.25rem;
         margin-bottom: 1.5rem;
+        border: 1px solid var(--gray-200);
     }
 
-    .breadcrumb {
-        margin-bottom: 0;
-        font-family: var(--font-family);
+    .breadcrumb { margin-bottom: 0; font-family: var(--font-family); }
+    .breadcrumb a { color: var(--cvsu-green); text-decoration: none; font-weight: var(--font-weight-medium); }
+    .breadcrumb a:hover { color: var(--cvsu-gold); }
+
+    /* ── Page Header ── */
+    .page-header {
+        background: linear-gradient(135deg, #0d3f27, #0a6d0b 55%, #0d3f27);
+        color: var(--cvsu-white);
+        border-radius: var(--radius-md);
+        padding: 2rem 2.25rem;
+        margin-bottom: 2rem;
+        box-shadow: var(--shadow-lg);
+        animation: fadeIn 0.7s ease-out;
+        position: relative;
+        overflow: hidden;
     }
 
-    .breadcrumb a {
-        color: var(--cvsu-green);
-        text-decoration: none;
-        font-weight: var(--font-weight-medium);
+    .page-header::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(120deg, rgba(255,255,255,0.08), transparent 50%);
+        pointer-events: none;
     }
 
-    .breadcrumb a:hover {
-        color: var(--cvsu-gold);
-    }
-
-    .page-title {
-        color: var(--cvsu-dark-green);
-        font-family: var(--font-family);
+    .page-header h2 {
+        font-family: var(--font-family-serif);
         font-weight: var(--font-weight-bold);
+        margin-bottom: 0.25rem;
+        letter-spacing: 0.2px;
+    }
+
+    .page-header .subtitle {
+        opacity: 0.9;
+        font-size: 0.95rem;
+        margin: 0;
+    }
+
+    .header-meta {
         display: flex;
+        flex-wrap: wrap;
+        gap: 0.6rem;
+        margin-top: 1rem;
+    }
+
+    .meta-pill {
+        background: rgba(255,255,255,0.12);
+        border: 1px solid rgba(255,255,255,0.22);
+        color: var(--cvsu-white);
+        padding: 0.4rem 0.75rem;
+        border-radius: 999px;
+        font-size: 0.82rem;
+        display: inline-flex;
         align-items: center;
-        gap: 0.75rem;
-        margin-bottom: 1.5rem;
+        gap: 0.35rem;
+        backdrop-filter: blur(4px);
     }
 
-    .page-title i {
-        color: var(--cvsu-green);
+    .meta-pill strong { font-weight: var(--font-weight-bold); }
+    .meta-pill.ai-pill {
+        background: linear-gradient(135deg, rgba(239,182,10,0.3), rgba(249,178,51,0.2));
+        border: 1px solid rgba(239,182,10,0.5);
     }
 
+    /* ── Cards ── */
     .apply-card {
         background: var(--cvsu-white);
         border-radius: var(--radius-md);
         box-shadow: var(--shadow-lg);
         border: none;
         overflow: hidden;
-        animation: fadeIn 0.7s ease-out;
+        animation: rise 0.7s ease both;
     }
 
     .apply-card .card-header {
-        background: linear-gradient(135deg, var(--cvsu-green), var(--cvsu-green-light)) !important;
-        color: var(--cvsu-white) !important;
-        padding: 1.5rem;
+        background: linear-gradient(135deg, #0b4f2d, #0a6d0b);
+        color: var(--cvsu-white);
+        padding: 1.25rem 1.5rem;
         border: none;
     }
 
@@ -87,191 +167,507 @@
         font-family: var(--font-family);
         font-weight: var(--font-weight-bold);
         margin: 0;
+        color: var(--cvsu-white);
     }
 
-    .apply-card .card-body {
-        padding: 2rem;
+    .apply-card .card-body { padding: 1.75rem; }
+
+    .sidebar-card {
+        background: var(--cvsu-white);
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-md);
+        border: none;
+        overflow: hidden;
+        animation: rise 0.7s ease both;
+        animation-delay: 0.15s;
     }
 
-    .company-info {
+    .sidebar-card .card-header {
+        background: linear-gradient(135deg, var(--cvsu-gold), var(--cvsu-gold-light));
+        color: var(--cvsu-dark-green);
+        padding: 1.1rem 1.25rem;
+        border: none;
+    }
+
+    .sidebar-card .card-header h5 {
+        font-family: var(--font-family);
+        font-weight: var(--font-weight-bold);
+        margin: 0;
+    }
+
+    .sidebar-card .card-body { padding: 1.25rem; }
+
+    /* ── Company Info Bar ── */
+    .company-info-bar {
         display: flex;
         align-items: center;
         gap: 1rem;
-        padding: 1rem;
-        background: var(--gray-50);
+        padding: 1rem 1.25rem;
+        background: linear-gradient(135deg, var(--gray-50), rgba(239,182,10,0.05));
         border-radius: var(--radius-sm);
         margin-bottom: 1.5rem;
+        border: 1px solid var(--gray-200);
     }
 
-    .company-logo {
-        width: 60px;
-        height: 60px;
+    .company-avatar {
+        background: var(--cvsu-gold);
+        color: var(--cvsu-dark-green);
         border-radius: 50%;
-        background: linear-gradient(135deg, var(--cvsu-gold), var(--cvsu-gold-light));
+        padding: 0.5rem;
+        width: 52px; height: 52px;
         display: flex;
         align-items: center;
         justify-content: center;
+        flex-shrink: 0;
+        font-size: 1.25rem;
+    }
+
+    .company-avatar img {
+        width: 52px; height: 52px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+
+    .company-info-text h5 {
+        font-family: var(--font-family);
+        font-weight: var(--font-weight-bold);
+        margin-bottom: 0.15rem;
         color: var(--cvsu-dark-green);
     }
 
-    .company-logo img {
-        max-height: 50px;
-        border-radius: 50%;
+    .company-info-text p {
+        font-size: 0.87rem;
+        color: var(--cvsu-light-gray);
+        margin: 0;
     }
 
-    .info-section {
-        margin-bottom: 1.5rem;
+    /* ── AI Score Ring ── */
+    .score-ring-container {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1.25rem;
     }
 
-    .info-section strong {
-        color: var(--cvsu-green);
+    .score-ring {
+        position: relative;
+        width: 90px; height: 90px;
+        flex-shrink: 0;
+    }
+
+    .score-ring svg {
+        width: 100%; height: 100%;
+        transform: rotate(-90deg);
+    }
+
+    .score-ring .ring-bg { fill: none; stroke: var(--gray-200); stroke-width: 5; }
+    .score-ring .ring-fill {
+        fill: none; stroke-width: 5; stroke-linecap: round;
+        transition: stroke-dashoffset 1.5s ease-out;
+    }
+    .score-ring .ring-fill.score-high { stroke: var(--cvsu-green); }
+    .score-ring .ring-fill.score-mid { stroke: var(--cvsu-gold); }
+    .score-ring .ring-fill.score-low { stroke: var(--cvsu-red); }
+
+    .score-ring .score-text {
+        position: absolute;
+        top: 50%; left: 50%;
+        transform: translate(-50%, -50%);
         font-family: var(--font-family);
         font-weight: var(--font-weight-bold);
+        font-size: 1.3rem;
+        color: var(--cvsu-dark-green);
+    }
+
+    .score-ring-label {
+        font-size: 0.82rem;
+        color: var(--cvsu-light-gray);
+        line-height: 1.45;
+    }
+
+    .score-ring-label strong {
         display: block;
+        font-size: 1rem;
+        color: var(--cvsu-dark-green);
+    }
+
+    /* ── Mini Score Ring ── */
+    .mini-ring {
+        position: relative;
+        width: 48px; height: 48px;
+        flex-shrink: 0;
+    }
+
+    .mini-ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+    .mini-ring .ring-bg { fill: none; stroke: var(--gray-200); stroke-width: 5; }
+    .mini-ring .ring-fill { fill: none; stroke-width: 5; stroke-linecap: round; transition: stroke-dashoffset 1.2s ease-out; }
+    .mini-ring .ring-fill.score-high { stroke: var(--cvsu-green); }
+    .mini-ring .ring-fill.score-mid { stroke: var(--cvsu-gold); }
+    .mini-ring .ring-fill.score-low { stroke: var(--cvsu-red); }
+
+    .mini-ring .mini-text {
+        position: absolute;
+        top: 50%; left: 50%;
+        transform: translate(-50%, -50%);
+        font-family: var(--font-family);
+        font-weight: var(--font-weight-bold);
+        font-size: 0.68rem;
+        color: var(--cvsu-dark-green);
+    }
+
+    /* ── AI Analysis Card ── */
+    .ai-analysis {
+        background: linear-gradient(135deg, rgba(6,78,7,0.04), rgba(239,182,10,0.06));
+        border: 1px solid rgba(6,78,7,0.15);
+        border-radius: var(--radius-sm);
+        padding: 1rem;
+        margin-bottom: 1.25rem;
+        font-size: 0.88rem;
+        color: var(--cvsu-dark-green);
+        line-height: 1.55;
+    }
+
+    .ai-analysis .ai-label {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        font-weight: var(--font-weight-bold);
+        font-size: 0.78rem;
+        color: var(--cvsu-green);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
         margin-bottom: 0.5rem;
     }
 
-    .skill-badge {
-        display: inline-block;
-        padding: 0.4rem 0.8rem;
-        border-radius: 20px;
-        font-size: 0.875rem;
-        font-weight: var(--font-weight-medium);
-        margin: 0.2rem;
+    .ai-analysis .ai-label i { font-size: 0.85rem; }
+
+    /* ── Breakdown Grid ── */
+    .breakdown-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+        gap: 0.6rem;
+        margin-bottom: 1.25rem;
     }
 
-    .skill-match {
+    .breakdown-item {
+        display: flex;
+        align-items: center;
+        gap: 0.55rem;
+        background: var(--gray-50);
+        border-radius: var(--radius-xs);
+        padding: 0.65rem;
+        border: 1px solid var(--gray-100);
+    }
+
+    .breakdown-item .breakdown-label {
+        font-size: 0.74rem;
+        color: var(--cvsu-light-gray);
+    }
+
+    .breakdown-item .breakdown-label strong {
+        display: block;
+        font-size: 0.82rem;
+        color: var(--cvsu-dark-green);
+    }
+
+    /* ── Skills Section ── */
+    .skills-section { margin-bottom: 1.25rem; }
+
+    .skills-section .section-title {
+        font-size: 0.85rem;
+        font-weight: var(--font-weight-medium);
+        color: var(--cvsu-dark-green);
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+    }
+
+    .skill-badge {
+        padding: 0.28rem 0.6rem;
+        border-radius: 15px;
+        font-size: 0.8rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        margin: 0.15rem;
+    }
+
+    .skill-matched {
         background: linear-gradient(135deg, var(--cvsu-green), var(--cvsu-green-light));
+        color: var(--cvsu-white);
+    }
+
+    .skill-resume-bonus {
+        background: linear-gradient(135deg, #2563eb, #3b82f6);
         color: var(--cvsu-white);
     }
 
     .skill-missing {
         background: var(--gray-200);
-        color: var(--cvsu-dark-green);
+        color: var(--cvsu-light-gray);
     }
 
-    .progress {
-        height: 12px;
-        border-radius: 6px;
+    .skills-match-bar {
+        height: 7px;
         background: var(--gray-200);
+        border-radius: 4px;
+        overflow: hidden;
+        margin-top: 0.5rem;
     }
 
-    .progress-bar {
-        background: linear-gradient(135deg, var(--cvsu-green), var(--cvsu-green-light));
-        border-radius: 6px;
+    .skills-match-bar .fill {
+        height: 100%;
+        border-radius: 4px;
+        transition: width 1.5s ease-out;
     }
 
+    .skills-match-bar .fill.high { background: linear-gradient(90deg, var(--cvsu-green), var(--cvsu-green-light)); }
+    .skills-match-bar .fill.mid { background: linear-gradient(90deg, var(--cvsu-gold), var(--cvsu-gold-light)); }
+    .skills-match-bar .fill.low { background: linear-gradient(90deg, var(--cvsu-red), #e74c3c); }
+
+    /* ── Section Divider ── */
+    .section-divider {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        font-family: var(--font-family);
+        font-weight: var(--font-weight-bold);
+        font-size: 0.95rem;
+        color: var(--cvsu-dark-green);
+        margin: 1.5rem 0 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid var(--gray-100);
+    }
+
+    .section-divider i { color: var(--cvsu-green); }
+
+    /* ── Contact Grid ── */
+    .contact-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+    }
+
+    .contact-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.6rem;
+        padding: 0.75rem;
+        background: var(--gray-50);
+        border-radius: var(--radius-xs);
+        border: 1px solid var(--gray-100);
+    }
+
+    .contact-item i {
+        color: var(--cvsu-green);
+        margin-top: 0.15rem;
+        font-size: 0.95rem;
+    }
+
+    .contact-item .contact-label {
+        font-size: 0.72rem;
+        color: var(--cvsu-light-gray);
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+    }
+
+    .contact-item .contact-value {
+        font-size: 0.88rem;
+        color: var(--cvsu-dark-green);
+        font-weight: var(--font-weight-medium);
+        word-break: break-all;
+    }
+
+    .contact-item .contact-value a {
+        color: var(--cvsu-green);
+        text-decoration: none;
+    }
+
+    .contact-item .contact-value a:hover { color: var(--cvsu-gold); text-decoration: underline; }
+
+    /* ── Map ── */
     .map-container {
         border-radius: var(--radius-sm);
         overflow: hidden;
         border: 2px solid var(--gray-200);
-        margin-bottom: 1rem;
+        margin-bottom: 0.75rem;
         width: 100%;
-        height: 320px;
-        min-height: 0;
+        height: 300px;
     }
 
     .map-container #map-apply {
         width: 100% !important;
-        min-width: 100%;
         height: 100% !important;
         display: block;
     }
 
-    .alert-info {
-        background: linear-gradient(135deg, rgba(6, 78, 7, 0.1), rgba(10, 109, 11, 0.1));
-        border: 2px solid var(--cvsu-green);
+    .distance-badge {
+        background: linear-gradient(135deg, var(--cvsu-green), var(--cvsu-green-light));
+        color: var(--cvsu-white);
+        padding: 0.4rem 0.7rem;
+        border-radius: 20px;
+        font-size: 0.82rem;
+    }
+
+    .slots-badge {
+        background: var(--gray-200);
+        color: var(--cvsu-dark-green);
+        padding: 0.4rem 0.7rem;
+        border-radius: 20px;
+        font-size: 0.82rem;
+    }
+
+    .partner-badge {
+        background: linear-gradient(135deg, var(--cvsu-gold), var(--cvsu-gold-light));
+        color: var(--cvsu-dark-green);
+        padding: 0.4rem 0.7rem;
+        border-radius: 20px;
+        font-size: 0.82rem;
+        font-weight: var(--font-weight-medium);
+    }
+
+    /* ── Confirmation Alert ── */
+    .confirm-alert {
+        background: linear-gradient(135deg, rgba(6,78,7,0.06), rgba(239,182,10,0.05));
+        border: 2px solid rgba(6,78,7,0.2);
         border-radius: var(--radius-sm);
+        padding: 1.25rem;
         color: var(--cvsu-dark-green);
     }
 
-    .alert-info .alert-heading {
+    .confirm-alert .alert-heading {
         color: var(--cvsu-green);
         font-family: var(--font-family);
         font-weight: var(--font-weight-bold);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
     }
 
+    .confirm-alert ul {
+        margin: 0.5rem 0;
+        padding-left: 1.25rem;
+    }
+
+    .confirm-alert ul li {
+        margin-bottom: 0.35rem;
+        font-size: 0.9rem;
+    }
+
+    /* ── Buttons ── */
     .btn {
         border-radius: var(--radius-sm);
         font-family: var(--font-family);
         font-weight: var(--font-weight-medium);
-        padding: 0.75rem 1.5rem;
         transition: all 0.3s ease;
         border: 2px solid transparent;
     }
 
-    .btn-primary {
+    .btn-apply {
         background: linear-gradient(135deg, var(--cvsu-green), var(--cvsu-green-light));
         border-color: var(--cvsu-green);
         color: var(--cvsu-white) !important;
+        padding: 0.85rem 2rem;
+        font-size: 1.05rem;
+        letter-spacing: 0.3px;
     }
 
-    .btn-primary:hover {
+    .btn-apply:hover {
         background: linear-gradient(135deg, var(--cvsu-gold), var(--cvsu-gold-light));
         border-color: var(--cvsu-gold);
         color: var(--cvsu-dark-green) !important;
-        transform: translateY(-2px);
-        box-shadow: var(--shadow-md);
+        transform: translateY(-3px);
+        box-shadow: var(--shadow-glow-gold);
     }
 
-    .btn-secondary {
-        background: var(--gray-50);
-        border-color: var(--gray-200);
+    .btn-back {
+        background: rgba(255,255,255,0.8);
+        border-color: var(--gray-300);
         color: var(--cvsu-dark-green) !important;
+        padding: 0.85rem 1.5rem;
     }
 
-    .btn-secondary:hover {
+    .btn-back:hover {
         background: var(--cvsu-light-gray);
         border-color: var(--cvsu-light-gray);
         color: var(--cvsu-white) !important;
         transform: translateY(-2px);
     }
 
-    .profile-card {
-        background: var(--cvsu-white);
-        border-radius: var(--radius-md);
-        box-shadow: var(--shadow-md);
-        border: none;
-        overflow: hidden;
+    .btn-sm-outline {
+        background: transparent;
+        border-color: var(--gray-200);
+        color: var(--cvsu-dark-green) !important;
+        font-size: 0.85rem;
+        padding: 0.45rem 0.85rem;
     }
 
-    .profile-card .card-header {
-        background: linear-gradient(135deg, var(--cvsu-green), var(--cvsu-green-light));
-        color: var(--cvsu-white);
-        padding: 1.25rem;
-        border: none;
-    }
-
-    .profile-card .card-header h5 {
-        font-family: var(--font-family);
-        font-weight: var(--font-weight-bold);
-        margin: 0;
+    .btn-sm-outline:hover {
+        background: var(--cvsu-green);
+        border-color: var(--cvsu-green);
         color: var(--cvsu-white) !important;
     }
 
-    .profile-card .card-body {
-        padding: 1.5rem;
+    /* ── Profile Sidebar Items ── */
+    .profile-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid var(--gray-100);
     }
+
+    .profile-item:last-child { border-bottom: none; }
+
+    .profile-item .label {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.88rem;
+        font-weight: var(--font-weight-medium);
+        color: var(--cvsu-dark-green);
+    }
+
+    .profile-item .label i { color: var(--cvsu-green); font-size: 0.9rem; }
 
     .badge-success {
         background: linear-gradient(135deg, var(--cvsu-green), var(--cvsu-green-light)) !important;
         color: var(--cvsu-white) !important;
+        font-weight: var(--font-weight-medium);
+        padding: 0.3rem 0.6rem;
+        border-radius: 12px;
+        font-size: 0.78rem;
     }
 
     .badge-danger {
         background: linear-gradient(135deg, var(--cvsu-red), #b10a0a) !important;
         color: var(--cvsu-white) !important;
+        font-weight: var(--font-weight-medium);
+        padding: 0.3rem 0.6rem;
+        border-radius: 12px;
+        font-size: 0.78rem;
     }
 
+    /* ── Animations ── */
     @keyframes fadeIn {
         from { opacity: 0; transform: translateY(20px); }
         to { opacity: 1; transform: translateY(0); }
     }
 
+    @keyframes rise {
+        from { opacity: 0; transform: translateY(18px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Responsive ── */
     @media (max-width: 768px) {
-        .apply-card .card-body {
-            padding: 1.5rem;
-        }
+        .apply-card .card-body { padding: 1.25rem; }
+        .breakdown-grid { grid-template-columns: repeat(2, 1fr); }
+        .score-ring { width: 70px; height: 70px; }
+        .score-ring .score-text { font-size: 1.1rem; }
+        .contact-grid { grid-template-columns: 1fr; }
     }
 </style>
 {% endblock %}
@@ -279,228 +675,299 @@
 {% block content %}
 <div class="apply-container">
     <div class="container">
+        <!-- Breadcrumb -->
         <div class="breadcrumb-wrapper">
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="{% url 'internship:matches' %}"><i class="fas fa-briefcase me-1"></i>Internship Matches</a></li>
-                    <li class="breadcrumb-item active" aria-current="page">Apply</li>
+                    <li class="breadcrumb-item"><a href="{% url 'internship:matches' %}"><i class="fas fa-brain me-1"></i>AI Matches</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Apply — {{ internship.title }}</li>
                 </ol>
             </nav>
         </div>
-        
-        <h2 class="page-title"><i class="fas fa-paper-plane"></i>Apply for Internship</h2>
+
+        <!-- Page Header -->
+        <div class="page-header">
+            <h2><i class="fas fa-paper-plane me-2"></i>Apply for Internship</h2>
+            <p class="subtitle">Review your AI match analysis before submitting your application</p>
+            <div class="header-meta">
+                <span class="meta-pill ai-pill"><i class="fas fa-robot"></i> AI-Analyzed Match</span>
+                <span class="meta-pill"><i class="fas fa-building"></i> {{ internship.company.name }}</span>
+                <span class="meta-pill"><i class="fas fa-users"></i> {{ internship.slots_available }} slot{{ internship.slots_available|pluralize:"s" }}</span>
+                {% if internship.company.is_partner %}
+                <span class="meta-pill" style="background: rgba(239,182,10,0.25); border-color: rgba(239,182,10,0.5);"><i class="fas fa-handshake"></i> Partner Company</span>
+                {% endif %}
+            </div>
+        </div>
 
         <div class="row g-4">
+            <!-- ════════════════ MAIN COLUMN ════════════════ -->
             <div class="col-lg-8">
                 <div class="apply-card card">
-                    <div class="card-header">
+                    <div class="card-header d-flex align-items-center">
+                        {% if internship.company.logo %}
+                            <img src="{{ internship.company.logo.url }}" alt="{{ internship.company.name }}" class="me-2 rounded" style="max-height: 38px;">
+                        {% else %}
+                            <div class="company-avatar me-2" style="width:38px;height:38px;font-size:1rem;">
+                                <i class="fas fa-building"></i>
+                            </div>
+                        {% endif %}
                         <h5><i class="fas fa-briefcase me-2"></i>{{ internship.title }}</h5>
                     </div>
                     <div class="card-body">
-                        <div class="company-info">
+
+                        <!-- Company Info Bar -->
+                        <div class="company-info-bar">
                             {% if internship.company.logo %}
-                                <div class="company-logo">
+                                <div class="company-avatar" style="padding:0;">
                                     <img src="{{ internship.company.logo.url }}" alt="{{ internship.company.name }}">
                                 </div>
                             {% else %}
-                                <div class="company-logo">
-                                    <i class="fas fa-building fa-2x"></i>
+                                <div class="company-avatar">
+                                    <i class="fas fa-building"></i>
                                 </div>
                             {% endif %}
-                            <div>
-                                <h5 class="mb-1">{{ internship.company.name }}</h5>
-                                <p class="text-muted mb-0">
-                                    <i class="fas fa-map-marker-alt me-1"></i>
-                                    {{ internship.company.get_full_address }}
-                                </p>
+                            <div class="company-info-text">
+                                <h5>{{ internship.company.name }}</h5>
+                                <p><i class="fas fa-map-marker-alt me-1"></i>{{ internship.company.get_full_address }}</p>
                             </div>
                         </div>
 
-                        <div class="info-section">
-                            <strong><i class="fas fa-address-card me-2"></i>Company Contact Information</strong>
-                            <ul class="list-unstyled mb-0">
-                                <li class="mb-1">
-                                    <i class="fas fa-user-tie me-2 text-muted"></i>
-                                    <strong class="d-inline">HR Email:</strong>
-                                    {% if internship.company.hr_email %}
-                                        <a href="mailto:{{ internship.company.hr_email }}">{{ internship.company.hr_email }}</a>
-                                    {% else %}
-                                        <span class="text-muted">Not provided</span>
-                                    {% endif %}
-                                </li>
-                                <li class="mb-1">
-                                    <i class="fas fa-envelope me-2 text-muted"></i>
-                                    <strong class="d-inline">Company Email:</strong>
-                                    {% if internship.company.company_email %}
-                                        <a href="mailto:{{ internship.company.company_email }}">{{ internship.company.company_email }}</a>
-                                    {% else %}
-                                        <span class="text-muted">Not provided</span>
-                                    {% endif %}
-                                </li>
-                                <li class="mb-0">
-                                    <i class="fas fa-phone me-2 text-muted"></i>
-                                    <strong class="d-inline">Phone Number:</strong>
-                                    {% if internship.company.phone_number %}
-                                        <a href="tel:{{ internship.company.phone_number }}">{{ internship.company.phone_number }}</a>
-                                    {% else %}
-                                        <span class="text-muted">Not provided</span>
-                                    {% endif %}
-                                </li>
-                            </ul>
-                        </div>
-                        
-                        <div class="info-section">
-                            <strong><i class="fas fa-file-alt me-2"></i>Description</strong>
-                            <p>{{ internship.description }}</p>
+                        <!-- ═══ AI MATCH SCORE ═══ -->
+                        <div class="section-divider"><i class="fas fa-brain"></i> AI Match Analysis</div>
+
+                        <div class="score-ring-container">
+                            <div class="score-ring" data-score="{{ match_score }}">
+                                <svg viewBox="0 0 36 36">
+                                    <circle class="ring-bg" cx="18" cy="18" r="15.5"/>
+                                    <circle class="ring-fill {% if match_score >= 70 %}score-high{% elif match_score >= 40 %}score-mid{% else %}score-low{% endif %}"
+                                            cx="18" cy="18" r="15.5"
+                                            stroke-dasharray="97.4"
+                                            stroke-dashoffset="97.4"/>
+                                </svg>
+                                <div class="score-text">{{ match_score }}%</div>
+                            </div>
+                            <div class="score-ring-label">
+                                <strong>AI Match Score</strong>
+                                Overall compatibility based on resume analysis, skills, and course relevance
+                            </div>
                         </div>
 
-                        <div class="row mb-4">
-                            <div class="col-md-6">
-                                <div class="info-section">
-                                    <strong><i class="fas fa-graduation-cap me-2"></i>Recommended Courses</strong>
-                                    <ul class="list-unstyled mt-2">
-                                        {% for course in internship.recommended_courses.all %}
-                                            <li class="mb-1">
-                                                <i class="fas fa-check-circle text-success me-1"></i>
-                                                {{ course.name }}
-                                                {% if course == profile.course %}
-                                                    <span class="badge badge-success ms-1">Your Course</span>
-                                                {% endif %}
-                                            </li>
-                                        {% endfor %}
-                                    </ul>
+                        <!-- AI Analysis Summary -->
+                        <div class="ai-analysis">
+                            <div class="ai-label"><i class="fas fa-robot"></i> AI Analysis</div>
+                            {{ ai_summary }}
+                        </div>
+
+                        <!-- Breakdown Grid -->
+                        <div class="breakdown-grid">
+                            <div class="breakdown-item">
+                                <div class="mini-ring" data-score="{{ resume_match_pct }}">
+                                    <svg viewBox="0 0 36 36">
+                                        <circle class="ring-bg" cx="18" cy="18" r="15.5"/>
+                                        <circle class="ring-fill {% if resume_match_pct >= 70 %}score-high{% elif resume_match_pct >= 40 %}score-mid{% else %}score-low{% endif %}"
+                                                cx="18" cy="18" r="15.5" stroke-dasharray="97.4" stroke-dashoffset="97.4"/>
+                                    </svg>
+                                    <div class="mini-text">{{ resume_match_pct }}%</div>
                                 </div>
+                                <div class="breakdown-label"><strong>Resume</strong>AI Scan</div>
                             </div>
-                            
-                            <div class="col-md-6">
-                                <div class="info-section">
-                                    <strong><i class="fas fa-users me-2"></i>Available Slots</strong>
-                                    <p class="mb-2">{{ internship.slots_available }}</p>
-                                    
-                                    <strong><i class="fas fa-chart-line me-2"></i>Match Score</strong>
-                                    <div class="progress mt-2 mb-2">
-                                        <div class="progress-bar" role="progressbar" style="width: {{ match_score }}%;" aria-valuenow="{{ match_score }}" aria-valuemin="0" aria-valuemax="100"></div>
-                                    </div>
-                                    <span class="badge badge-success">{{ match_score }}% match with your profile</span>
+                            <div class="breakdown-item">
+                                <div class="mini-ring" data-score="{{ skills_match_pct }}">
+                                    <svg viewBox="0 0 36 36">
+                                        <circle class="ring-bg" cx="18" cy="18" r="15.5"/>
+                                        <circle class="ring-fill {% if skills_match_pct >= 70 %}score-high{% elif skills_match_pct >= 40 %}score-mid{% else %}score-low{% endif %}"
+                                                cx="18" cy="18" r="15.5" stroke-dasharray="97.4" stroke-dashoffset="97.4"/>
+                                    </svg>
+                                    <div class="mini-text">{{ skills_match_pct }}%</div>
                                 </div>
+                                <div class="breakdown-label"><strong>Skills</strong>Match</div>
+                            </div>
+                            <div class="breakdown-item">
+                                <div class="mini-ring" data-score="{{ tech_pct }}">
+                                    <svg viewBox="0 0 36 36">
+                                        <circle class="ring-bg" cx="18" cy="18" r="15.5"/>
+                                        <circle class="ring-fill {% if tech_pct >= 70 %}score-high{% elif tech_pct >= 40 %}score-mid{% else %}score-low{% endif %}"
+                                                cx="18" cy="18" r="15.5" stroke-dasharray="97.4" stroke-dashoffset="97.4"/>
+                                    </svg>
+                                    <div class="mini-text">{{ tech_pct }}%</div>
+                                </div>
+                                <div class="breakdown-label"><strong>Technical</strong>Skills</div>
+                            </div>
+                            <div class="breakdown-item">
+                                <div class="mini-ring" data-score="{{ course_pct }}">
+                                    <svg viewBox="0 0 36 36">
+                                        <circle class="ring-bg" cx="18" cy="18" r="15.5"/>
+                                        <circle class="ring-fill {% if course_pct >= 70 %}score-high{% elif course_pct >= 40 %}score-mid{% else %}score-low{% endif %}"
+                                                cx="18" cy="18" r="15.5" stroke-dasharray="97.4" stroke-dashoffset="97.4"/>
+                                    </svg>
+                                    <div class="mini-text">{{ course_pct }}%</div>
+                                </div>
+                                <div class="breakdown-label"><strong>Course</strong>Fit</div>
+                            </div>
+                            <div class="breakdown-item">
+                                <div class="mini-ring" data-score="{{ map_pct }}">
+                                    <svg viewBox="0 0 36 36">
+                                        <circle class="ring-bg" cx="18" cy="18" r="15.5"/>
+                                        <circle class="ring-fill {% if map_pct >= 70 %}score-high{% elif map_pct >= 40 %}score-mid{% else %}score-low{% endif %}"
+                                                cx="18" cy="18" r="15.5" stroke-dasharray="97.4" stroke-dashoffset="97.4"/>
+                                    </svg>
+                                    <div class="mini-text">{{ map_pct }}%</div>
+                                </div>
+                                <div class="breakdown-label"><strong>Location</strong>Proximity</div>
                             </div>
                         </div>
-                        
-                        <div class="info-section">
-                            <strong><i class="fas fa-tools me-2"></i>Required Skills</strong>
-                            <div class="mt-2">
-                                {% for skill in internship.required_skills.all %}
-                                    <span class="skill-badge {% if skill in profile.skills.all %}skill-match{% else %}skill-missing{% endif %}">{{ skill.name }}</span>
+
+                        <!-- Skills Breakdown -->
+                        <div class="skills-section">
+                            <div class="section-title"><i class="fas fa-check-double"></i> Skills Match ({{ skills_match_pct }}%)</div>
+                            <div class="d-flex flex-wrap gap-1 mb-2">
+                                {% for skill_name in matched_skills %}
+                                    <span class="skill-badge {% if skill_name in resume_bonus_skills %}skill-resume-bonus{% else %}skill-matched{% endif %}">
+                                        {% if skill_name in resume_bonus_skills %}
+                                            <i class="fas fa-file-alt" style="font-size: 0.65rem;"></i>
+                                        {% else %}
+                                            <i class="fas fa-check" style="font-size: 0.65rem;"></i>
+                                        {% endif %}
+                                        {{ skill_name }}
+                                    </span>
+                                {% endfor %}
+                                {% for skill_name in missing_skills %}
+                                    <span class="skill-badge skill-missing">
+                                        <i class="fas fa-times" style="font-size: 0.65rem;"></i>
+                                        {{ skill_name }}
+                                    </span>
                                 {% endfor %}
                             </div>
+                            <div class="skills-match-bar">
+                                <div class="fill {% if skills_match_pct >= 70 %}high{% elif skills_match_pct >= 40 %}mid{% else %}low{% endif %}"
+                                     style="width: 0%;" data-width="{{ skills_match_pct }}%"></div>
+                            </div>
+                            <div class="d-flex flex-wrap gap-2 mt-2">
+                                <small class="d-flex align-items-center gap-1"><span class="skill-badge skill-matched" style="padding: 0.15rem 0.4rem; font-size: 0.65rem;"><i class="fas fa-check" style="font-size: 0.55rem;"></i></span> Profile match</small>
+                                <small class="d-flex align-items-center gap-1"><span class="skill-badge skill-resume-bonus" style="padding: 0.15rem 0.4rem; font-size: 0.65rem;"><i class="fas fa-file-alt" style="font-size: 0.55rem;"></i></span> Found in resume</small>
+                                <small class="d-flex align-items-center gap-1"><span class="skill-badge skill-missing" style="padding: 0.15rem 0.4rem; font-size: 0.65rem;"><i class="fas fa-times" style="font-size: 0.55rem;"></i></span> Missing</small>
+                            </div>
                         </div>
 
-                        {% if internship.company.has_incentives %}
-                            <div class="info-section">
-                                <strong><i class="fas fa-gift me-2"></i>Incentives</strong>
-                                <p class="mt-1">{{ internship.company.incentives_details }}</p>
-                            </div>
-                        {% endif %}
+                        <!-- ═══ INTERNSHIP DETAILS ═══ -->
+                        <div class="section-divider"><i class="fas fa-file-alt"></i> Internship Details</div>
 
-                        {% if internship.company.latitude and internship.company.longitude and profile.latitude and profile.longitude %}
-                        <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-                        <div class="info-section">
-                            <strong><i class="fas fa-map me-2"></i>Location</strong>
-                            <div class="map-container mt-2">
-                                <div id="map-apply"></div>
+                        <p style="color: var(--cvsu-dark-green); line-height: 1.65; font-size: 0.92rem;">{{ internship.description }}</p>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <div class="section-title" style="font-size: 0.85rem; font-weight: 600; color: var(--cvsu-dark-green);"><i class="fas fa-graduation-cap me-1" style="color: var(--cvsu-green);"></i> Recommended Courses</div>
+                                <div class="d-flex flex-wrap gap-1">
+                                    {% for course in internship.recommended_courses.all %}
+                                        <span class="skill-badge {% if course == profile.course %}skill-matched{% else %}skill-missing{% endif %}">
+                                            {% if course == profile.course %}
+                                                <i class="fas fa-check" style="font-size: 0.6rem;"></i>
+                                            {% endif %}
+                                            {{ course.code }}
+                                        </span>
+                                    {% endfor %}
+                                </div>
                             </div>
-                            <span class="badge bg-info text-dark">
-                                <i class="fas fa-route me-1"></i>Distance: {{ distance_km|default:'-' }} km
-                            </span>
-                            <span class="text-muted ms-2 small">(Line shows route from your location to the company)</span>
+                            <div class="col-md-6">
+                                <div class="d-flex flex-wrap gap-2">
+                                    <span class="slots-badge"><i class="fas fa-users me-1"></i>{{ internship.slots_available }} slot{{ internship.slots_available|pluralize:"s" }} available</span>
+                                    {% if internship.company.is_partner %}
+                                        <span class="partner-badge"><i class="fas fa-handshake me-1"></i>Partner</span>
+                                    {% endif %}
+                                    {% if internship.company.has_incentives %}
+                                        <span class="partner-badge"><i class="fas fa-gift me-1"></i>Has Incentives</span>
+                                    {% endif %}
+                                </div>
+                                {% if internship.company.has_incentives and internship.company.incentives_details %}
+                                    <p class="mt-2 mb-0" style="font-size: 0.85rem; color: var(--cvsu-light-gray);">
+                                        <i class="fas fa-gift me-1" style="color: var(--cvsu-gold);"></i>{{ internship.company.incentives_details }}
+                                    </p>
+                                {% endif %}
+                            </div>
                         </div>
-                        <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-                        <script>
-                          document.addEventListener('DOMContentLoaded', function() {
-                            var mapContainer = document.getElementById('map-apply');
-                            if (!mapContainer) return;
-                            
-                            var map = L.map('map-apply').setView([
-                              {{ internship.company.latitude }},
-                              {{ internship.company.longitude }}
-                            ], 13);
-                            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                              maxZoom: 19,
-                              attribution: '© OpenStreetMap'
-                            }).addTo(map);
-                            var companyMarker = L.marker([
-                              {{ internship.company.latitude }},
-                              {{ internship.company.longitude }}
-                            ]).addTo(map).bindPopup('Company: {{ internship.company.name|escapejs }}');
-                            var studentMarker = L.marker([
-                              {{ profile.latitude }},
-                              {{ profile.longitude }}
-                            ], {icon: L.icon({iconUrl: 'https://cdn-icons-png.flaticon.com/512/149/149071.png', iconSize: [32,32]})}).addTo(map).bindPopup('You (Student)');
-                            var latlngs = [
-                              [{{ profile.latitude }}, {{ profile.longitude }}],
-                              [{{ internship.company.latitude }}, {{ internship.company.longitude }}]
-                            ];
-                            var polyline = L.polyline(latlngs, {color: '#064E07', weight: 3, dashArray: '6, 8'}).addTo(map);
-                            map.fitBounds(polyline.getBounds(), {padding: [30, 30]});
 
-                                                        function ensureMapSize() {
-                                                            if (!map) return;
-                                                            map.invalidateSize({pan: false, animate: false});
-                                                        }
+                        <!-- ═══ COMPANY CONTACT ═══ -->
+                        <div class="section-divider"><i class="fas fa-address-card"></i> Company Contact</div>
 
-                                                        function refreshMapForLayoutChanges() {
-                                                            ensureMapSize();
-                                                            var retryDelays = [50, 120, 240, 420, 700, 1100, 1600, 2200];
-                                                            retryDelays.forEach(function(delay) {
-                                                                setTimeout(ensureMapSize, delay);
-                                                            });
-                                                        }
+                        <div class="contact-grid">
+                            <div class="contact-item">
+                                <i class="fas fa-user-tie"></i>
+                                <div>
+                                    <div class="contact-label">HR Email</div>
+                                    <div class="contact-value">
+                                        {% if internship.company.hr_email %}
+                                            <a href="mailto:{{ internship.company.hr_email }}">{{ internship.company.hr_email }}</a>
+                                        {% else %}
+                                            <span style="color: var(--cvsu-light-gray);">Not provided</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="contact-item">
+                                <i class="fas fa-envelope"></i>
+                                <div>
+                                    <div class="contact-label">Company Email</div>
+                                    <div class="contact-value">
+                                        {% if internship.company.company_email %}
+                                            <a href="mailto:{{ internship.company.company_email }}">{{ internship.company.company_email }}</a>
+                                        {% else %}
+                                            <span style="color: var(--cvsu-light-gray);">Not provided</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="contact-item">
+                                <i class="fas fa-phone"></i>
+                                <div>
+                                    <div class="contact-label">Phone</div>
+                                    <div class="contact-value">
+                                        {% if internship.company.phone_number %}
+                                            <a href="tel:{{ internship.company.phone_number }}">{{ internship.company.phone_number }}</a>
+                                        {% else %}
+                                            <span style="color: var(--cvsu-light-gray);">Not provided</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
-                                                        map.whenReady(refreshMapForLayoutChanges);
-                                                        requestAnimationFrame(refreshMapForLayoutChanges);
-                                                        setTimeout(refreshMapForLayoutChanges, 100);
-                                                        window.addEventListener('load', refreshMapForLayoutChanges);
-                                                        window.addEventListener('resize', refreshMapForLayoutChanges);
-                                                        document.addEventListener('visibilitychange', function() {
-                                                            if (!document.hidden) {
-                                                                refreshMapForLayoutChanges();
-                                                            }
-                                                        });
-
-                                                        var animatedCard = mapContainer.closest('.apply-card');
-                                                        if (animatedCard) {
-                                                            animatedCard.addEventListener('animationend', refreshMapForLayoutChanges);
-                                                            animatedCard.addEventListener('transitionend', refreshMapForLayoutChanges);
-                                                        }
-
-                                                        if (window.ResizeObserver) {
-                                                            var resizeObserver = new ResizeObserver(function() {
-                                                                refreshMapForLayoutChanges();
-                                                            });
-                                                            resizeObserver.observe(mapContainer);
-                                                        }
-                          });
-                        </script>
+                        <!-- ═══ MAP ═══ -->
+                        {% if internship.company.latitude and internship.company.longitude %}
+                        <div class="section-divider"><i class="fas fa-map-marked-alt"></i> Location</div>
+                        <div class="map-container">
+                            <div id="map-apply"></div>
+                        </div>
+                        <div class="d-flex flex-wrap gap-2 mb-3">
+                            {% if distance_km %}
+                                <span class="distance-badge"><i class="fas fa-route me-1"></i>Distance: {{ distance_km }} km</span>
+                            {% endif %}
+                            {% if internship.company.location_link %}
+                                <a href="{{ internship.company.location_link }}" target="_blank" class="btn btn-sm-outline">
+                                    <i class="fas fa-external-link-alt me-1"></i>Open Map
+                                </a>
+                            {% endif %}
+                        </div>
                         {% endif %}
-                        
+
+                        <!-- ═══ SUBMIT APPLICATION ═══ -->
                         <form method="post">
                             {% csrf_token %}
-                            <div class="alert alert-info mt-4">
-                                <h5 class="alert-heading"><i class="fas fa-info-circle me-2"></i>Before you apply</h5>
-                                <p>By submitting this application:</p>
-                                <ul class="mb-0">
-                                    <li>Your CV will be shared with the company.</li>
-                                    <li>Your application will be visible to your OJT adviser.</li>
-                                    <li>You may be contacted by the company via your registered email.</li>
+                            <div class="confirm-alert mt-3">
+                                <h6 class="alert-heading"><i class="fas fa-shield-alt"></i> Before you apply</h6>
+                                <p style="font-size: 0.9rem; margin-bottom: 0.5rem;">By submitting this application:</p>
+                                <ul>
+                                    <li>Your CV and profile will be shared with the company via email.</li>
+                                    <li>Your application will be visible to your OJT adviser for tracking.</li>
+                                    <li>The company may contact you via your registered email address.</li>
                                 </ul>
-                                <p class="mb-0 mt-2"><strong>Make sure your CV and profile are up-to-date.</strong></p>
+                                <p style="font-size: 0.88rem; margin: 0;"><strong><i class="fas fa-info-circle me-1"></i>Make sure your CV and profile are up-to-date before applying.</strong></p>
                             </div>
-                            
+
                             <div class="d-flex justify-content-between mt-4">
-                                <a href="{% url 'internship:matches' %}" class="btn btn-secondary">
+                                <a href="{% url 'internship:matches' %}" class="btn btn-back">
                                     <i class="fas fa-arrow-left me-2"></i>Back to Matches
                                 </a>
-                                <button type="submit" class="btn btn-primary">
+                                <button type="submit" class="btn btn-apply" id="submit-application">
                                     <i class="fas fa-paper-plane me-2"></i>Submit Application
                                 </button>
                             </div>
@@ -508,51 +975,95 @@
                     </div>
                 </div>
             </div>
-            
+
+            <!-- ════════════════ SIDEBAR ════════════════ -->
             <div class="col-lg-4">
-                <div class="profile-card card">
+                <!-- Your Profile Card -->
+                <div class="sidebar-card card mb-4">
                     <div class="card-header">
                         <h5><i class="fas fa-user-circle me-2"></i>Your Profile</h5>
                     </div>
                     <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom">
-                            <h6 class="mb-0"><i class="fas fa-file-pdf me-2"></i>CV Status</h6>
+                        <div class="profile-item">
+                            <div class="label"><i class="fas fa-file-pdf"></i> CV Status</div>
                             {% if profile.cv %}
-                                <span class="badge badge-success">Uploaded</span>
+                                <span class="badge-success">Uploaded</span>
                             {% else %}
-                                <span class="badge badge-danger">Missing</span>
+                                <span class="badge-danger">Missing</span>
                             {% endif %}
                         </div>
-                        
-                        <div class="d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom">
-                            <h6 class="mb-0"><i class="fas fa-graduation-cap me-2"></i>Course</h6>
-                            <span>{{ profile.course.code }}</span>
+                        <div class="profile-item">
+                            <div class="label"><i class="fas fa-graduation-cap"></i> Course</div>
+                            <span style="font-size: 0.88rem; color: var(--cvsu-dark-green); font-weight: 600;">{{ profile.course.code }}</span>
                         </div>
-                        
-                        <div class="mb-3">
-                            <h6><i class="fas fa-tools me-2"></i>Your Skills</h6>
-                            <div class="mt-2">
+                        <div class="profile-item">
+                            <div class="label"><i class="fas fa-layer-group"></i> Year Level</div>
+                            <span style="font-size: 0.88rem; color: var(--cvsu-dark-green);">{{ profile.get_year_level_display }}</span>
+                        </div>
+                        <div class="profile-item">
+                            <div class="label"><i class="fas fa-clock"></i> OJT Hours</div>
+                            <span style="font-size: 0.88rem; color: var(--cvsu-dark-green);">{{ profile.ojt_hours_completed }}/{{ profile.ojt_hours_required }}</span>
+                        </div>
+
+                        <div class="mt-3">
+                            <div class="label mb-2" style="font-size: 0.88rem; font-weight: 600; color: var(--cvsu-dark-green);"><i class="fas fa-tools me-1" style="color: var(--cvsu-green);"></i> Your Skills</div>
+                            <div class="d-flex flex-wrap gap-1">
                                 {% for skill in profile.skills.all %}
-                                    <span class="skill-badge {% if skill in internship.required_skills.all %}skill-match{% else %}skill-missing{% endif %}">{{ skill.name }}</span>
+                                    <span class="skill-badge {% if skill in internship.required_skills.all %}skill-matched{% else %}skill-missing{% endif %}">
+                                        {% if skill in internship.required_skills.all %}
+                                            <i class="fas fa-check" style="font-size: 0.6rem;"></i>
+                                        {% endif %}
+                                        {{ skill.name }}
+                                    </span>
                                 {% empty %}
-                                    <span class="text-muted">No skills added yet</span>
+                                    <span style="color: var(--cvsu-light-gray); font-size: 0.85rem;">No skills added yet</span>
                                 {% endfor %}
                             </div>
                         </div>
-                        
-                        <div class="d-grid gap-2 mt-4">
-                            <a href="{% url 'accounts:edit_profile' %}" class="btn btn-secondary btn-sm">
+
+                        <div class="d-grid gap-2 mt-3">
+                            <a href="{% url 'accounts:edit_profile' %}" class="btn btn-sm-outline">
                                 <i class="fas fa-user-edit me-1"></i>Edit Profile
                             </a>
                             {% if not profile.cv %}
-                                <a href="{% url 'accounts:upload_cv' %}" class="btn btn-danger btn-sm">
+                                <a href="{% url 'accounts:upload_cv' %}" class="btn btn-sm-outline" style="border-color: var(--cvsu-red); color: var(--cvsu-red) !important;">
                                     <i class="fas fa-file-upload me-1"></i>Upload CV
                                 </a>
                             {% else %}
-                                <a href="{{ profile.cv.url }}" target="_blank" class="btn btn-primary btn-sm">
+                                <a href="{{ profile.cv.url }}" target="_blank" class="btn btn-sm-outline">
                                     <i class="fas fa-file-pdf me-1"></i>View CV
                                 </a>
                             {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Company Quick View -->
+                <div class="sidebar-card card">
+                    <div class="card-header">
+                        <h5><i class="fas fa-building me-2"></i>Company Info</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="profile-item">
+                            <div class="label"><i class="fas fa-building"></i> Name</div>
+                            <span style="font-size: 0.85rem; color: var(--cvsu-dark-green); font-weight: 600;">{{ internship.company.name }}</span>
+                        </div>
+                        {% if internship.company.is_partner %}
+                        <div class="profile-item">
+                            <div class="label"><i class="fas fa-handshake"></i> Status</div>
+                            <span class="badge-success">Partner</span>
+                        </div>
+                        {% endif %}
+                        {% if internship.company.has_incentives %}
+                        <div class="profile-item">
+                            <div class="label"><i class="fas fa-gift"></i> Incentives</div>
+                            <span class="badge-success">Available</span>
+                        </div>
+                        {% endif %}
+                        <div class="d-grid mt-3">
+                            <a href="{% url 'internship:company_detail' internship.company.id %}" class="btn btn-sm-outline">
+                                <i class="fas fa-info-circle me-1"></i>Full Company Profile
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -560,4 +1071,100 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // ── Animate Score Rings ──
+    var circumference = 97.4;
+    document.querySelectorAll('.score-ring, .mini-ring').forEach(function(ring) {
+        var score = parseInt(ring.getAttribute('data-score')) || 0;
+        var fillCircle = ring.querySelector('.ring-fill');
+        if (fillCircle) {
+            var offset = circumference - (circumference * score / 100);
+            setTimeout(function() {
+                fillCircle.style.strokeDashoffset = offset;
+            }, 300);
+        }
+    });
+
+    // ── Animate Skills Bars ──
+    document.querySelectorAll('.skills-match-bar .fill').forEach(function(bar) {
+        var targetWidth = bar.getAttribute('data-width');
+        setTimeout(function() {
+            bar.style.width = targetWidth;
+        }, 600);
+    });
+
+    // ── Initialize Map ──
+    {% if internship.company.latitude and internship.company.longitude %}
+    (function() {
+        var mapEl = document.getElementById('map-apply');
+        if (!mapEl) return;
+
+        var map = L.map('map-apply').setView([
+            {{ internship.company.latitude }},
+            {{ internship.company.longitude }}
+        ], 13);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; OpenStreetMap'
+        }).addTo(map);
+
+        L.marker([
+            {{ internship.company.latitude }},
+            {{ internship.company.longitude }}
+        ]).addTo(map).bindPopup('<strong>{{ internship.company.name|escapejs }}</strong><br>{{ internship.company.get_full_address|escapejs }}');
+
+        {% if profile.latitude and profile.longitude %}
+        L.marker([{{ profile.latitude }}, {{ profile.longitude }}], {
+            icon: L.icon({iconUrl: 'https://cdn-icons-png.flaticon.com/512/149/149071.png', iconSize: [32,32]})
+        }).addTo(map).bindPopup('You (Student)');
+
+        var latlngs = [
+            [{{ profile.latitude }}, {{ profile.longitude }}],
+            [{{ internship.company.latitude }}, {{ internship.company.longitude }}]
+        ];
+        L.polyline(latlngs, {color: '#064E07', weight: 3, dashArray: '6, 8'}).addTo(map);
+        map.fitBounds(L.latLngBounds(latlngs), {padding: [40, 40]});
+        {% endif %}
+
+        // Refresh map size for animations
+        function ensureMapSize() {
+            if (!map) return;
+            map.invalidateSize({pan: false, animate: false});
+        }
+
+        function refreshMap() {
+            ensureMapSize();
+            [50, 120, 240, 420, 700, 1100, 1600].forEach(function(d) {
+                setTimeout(ensureMapSize, d);
+            });
+        }
+
+        map.whenReady(refreshMap);
+        requestAnimationFrame(refreshMap);
+        setTimeout(refreshMap, 100);
+        window.addEventListener('load', refreshMap);
+        window.addEventListener('resize', refreshMap);
+
+        if (window.ResizeObserver) {
+            new ResizeObserver(refreshMap).observe(mapEl);
+        }
+    })();
+    {% endif %}
+
+    // ── Submit button animation ──
+    var submitBtn = document.getElementById('submit-application');
+    if (submitBtn) {
+        submitBtn.closest('form').addEventListener('submit', function() {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Submitting...';
+        });
+    }
+});
+</script>
 {% endblock %}

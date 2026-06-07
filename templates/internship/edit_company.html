@@ -609,25 +609,54 @@
 
     // Listen for manual changes to location_link field
     if (linkInput) {
+      var errorMsg = document.getElementById('map-link-error');
+      if (!errorMsg) {
+          errorMsg = document.createElement('div');
+          errorMsg.id = 'map-link-error';
+          errorMsg.className = 'text-danger small mt-1 font-weight-bold';
+          linkInput.parentNode.appendChild(errorMsg);
+      }
+
       function updateMapFromLink() {
-                var latlng = extractLatLngFromLink(linkInput.value);
+        var val = linkInput.value.trim();
+        if (!val) {
+            errorMsg.textContent = '';
+            return;
+        }
+
+        // Handle short links
+        if (val.includes('maps.app.goo.gl') || val.includes('goo.gl/maps')) {
+            errorMsg.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Short links cannot be read automatically. Please open the link in your browser and copy the full URL from the address bar, or drag the map pin instead.';
+            return;
+        }
+
+        var latlng = extractLatLngFromLink(val);
         if (latlng && !isNaN(latlng[0]) && !isNaN(latlng[1])) {
+          errorMsg.textContent = '';
           if (latInput) latInput.value = latlng[0].toFixed(6);
           if (lngInput) lngInput.value = latlng[1].toFixed(6);
           map.setView(latlng, 15);
           marker.setLatLng(latlng);
-                    ensureMapSize();
+          ensureMapSize();
+          
+          // Auto convert to OSM format to show success
+          linkInput.value = `https://www.openstreetmap.org/?mlat=${latlng[0].toFixed(6)}&mlon=${latlng[1].toFixed(6)}#map=18/${latlng[0].toFixed(6)}/${latlng[1].toFixed(6)}`;
+        } else if (!val.includes('openstreetmap.org')) {
+            errorMsg.innerHTML = '<i class="fas fa-exclamation-circle"></i> Could not find coordinates in this link. Please paste a full Google Maps link with @lat,lng or drag the map pin manually.';
+        } else {
+            errorMsg.textContent = ''; // Ignore OSM links that didn't parse but are OSM
         }
       }
+
       linkInput.addEventListener('input', updateMapFromLink);
       linkInput.addEventListener('change', updateMapFromLink);
-            linkInput.addEventListener('paste', function() {
-                setTimeout(updateMapFromLink, 0);
-            });
+      linkInput.addEventListener('paste', function() {
+          setTimeout(updateMapFromLink, 100);
+      });
 
-            if (linkInput.value && linkInput.value.trim()) {
-                updateMapFromLink();
-            }
+      if (linkInput.value && linkInput.value.trim()) {
+          updateMapFromLink();
+      }
     }
 
     map.on('click', updateInputs);
