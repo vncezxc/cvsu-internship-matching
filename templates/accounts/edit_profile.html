@@ -499,9 +499,9 @@
                             </div>
                             
                             <input type="hidden" name="latitude" id="id_latitude" 
-                                   value="{{ form.latitude.value|default_if_none:'' }}">
+                                   value="{{ profile.latitude|default_if_none:'' }}">
                             <input type="hidden" name="longitude" id="id_longitude" 
-                                   value="{{ form.longitude.value|default_if_none:'' }}">
+                                   value="{{ profile.longitude|default_if_none:'' }}">
                             
                             <div id="student-map" style="height: 350px;"></div>
                             <div class="map-instructions">
@@ -666,7 +666,7 @@
 <script>
 var COURSE_SKILLS_MAP = {{ course_skill_map|safe }};
 var INITIAL_SELECTED_SKILLS = [
-  {% for skill in profile.skills.all %}{ id: {{ skill.id }}, name: "{{ skill.name|escapejs }}" },{% endfor %}
+  {% for skill in profile.skills.all %}{% if skill.skill_type != 'SOFT' %}{ id: {{ skill.id }}, name: "{{ skill.name|escapejs }}" },{% endif %}{% endfor %}
 ];
 
 // ---- Soft Skills Logic ----

@@ -21,11 +21,12 @@ FEATURE_ORDER = [
 ]
 
 # ---------- Scoring weights ----------
-WEIGHT_RESUME = 0.35
-WEIGHT_SKILLS = 0.30
+WEIGHT_RESUME = 0.30
+WEIGHT_SKILLS = 0.35
 WEIGHT_COURSE = 0.15
 WEIGHT_DISTANCE = 0.10
-WEIGHT_PARTNER = 0.10
+WEIGHT_PARTNER = 0.05
+# Reserve 5% for a "coverage penalty" applied at the end
 
 
 # ---------- Distance helpers ----------
@@ -147,11 +148,11 @@ def compute_detailed_skills_match(profile, internship, resume_keywords=None):
         1 for s in req_soft_skills if s.name.lower() in matched_names_lower
     )
 
-    tech_match = tech_matched / len(req_tech_skills) if req_tech_skills else 1.0
-    soft_match = soft_matched / len(req_soft_skills) if req_soft_skills else 1.0
+    tech_match = tech_matched / len(req_tech_skills) if req_tech_skills else 0.5
+    soft_match = soft_matched / len(req_soft_skills) if req_soft_skills else 0.5
 
     total_required = len(all_required)
-    overall_pct = int(round(len(matched_skills) / total_required * 100)) if total_required else 100
+    overall_pct = int(round(len(matched_skills) / total_required * 100)) if total_required else 50
 
     return {
         "tech_match": tech_match,
@@ -184,15 +185,16 @@ def build_features(profile, internship, distance_km, resume_data=None):
     # Course match
     course_match = 1.0 if profile.course in internship.recommended_courses.all() else 0.0
 
-    # Distance score
+    # Distance score — use a smoother curve
+    # If location data is missing, treat as neutral (0.5) rather than penalizing
     if distance_km is None:
-        distance_score = 0.0
+        distance_score = 0.5  # neutral when unknown
     else:
-        capped = min(distance_km, 50.0)
-        distance_score = max(0.0, 1.0 - (capped / 50.0))
+        # Exponential decay: close = high score, >50km = very low
+        distance_score = max(0.0, exp(-distance_km / 25.0))
 
-    # Partner bonus
-    partner_bonus = 1.0 if internship.company.is_partner else 0.0
+    # Partner bonus — scaled to 0.5 so it doesn't dominate
+    partner_bonus = 0.5 if internship.company.is_partner else 0.0
 
     # AI Resume similarity (TF-IDF)
     resume_match = 0.0
@@ -248,6 +250,7 @@ def compute_ai_score(features):
     """
     Compute the AI-powered composite score.
     Combines resume similarity, skills match, course, distance, and partner bonus.
+    Produces more honest, differentiated scores.
     """
     resume_match = features.get("resume_match", 0.0)
     skills_result = features.get("skills_result", {})
@@ -257,8 +260,10 @@ def compute_ai_score(features):
     distance_score = features["distance_score"]
     partner_bonus = features["partner_bonus"]
 
-    # If student has a resume, use the full AI scoring
-    if resume_match > 0:
+    has_resume = resume_match > 0
+
+    if has_resume:
+        # Full AI scoring with all components
         composite = (
             resume_match * WEIGHT_RESUME
             + overall_skills * WEIGHT_SKILLS
@@ -267,15 +272,30 @@ def compute_ai_score(features):
             + partner_bonus * WEIGHT_PARTNER
         )
     else:
-        # No resume — redistribute resume weight to skills and course
+        # No resume — skills and course carry the weight, but cap lower
+        # because we have less confidence without resume data
         composite = (
-            overall_skills * (WEIGHT_SKILLS + WEIGHT_RESUME * 0.6)
-            + course_match * (WEIGHT_COURSE + WEIGHT_RESUME * 0.4)
+            overall_skills * 0.50
+            + course_match * 0.25
             + distance_score * WEIGHT_DISTANCE
             + partner_bonus * WEIGHT_PARTNER
         )
+        # Apply a confidence penalty: without a resume we cap at 75%
+        composite = min(composite, 0.75)
 
-    return int(round(composite * 100))
+    # Apply a coverage penalty: if skills are 0%, heavily penalize
+    if overall_skills == 0 and len(skills_result.get("missing_skills", [])) > 0:
+        composite *= 0.5
+
+    # Convert to percentage and apply non-linear scaling
+    # This spreads scores out more naturally instead of clustering around 40-60%
+    raw_pct = composite * 100
+
+    # Ensure minimum floor of 5% when there's at least some data
+    if raw_pct < 5 and (overall_skills > 0 or course_match > 0 or resume_match > 0):
+        raw_pct = 5
+
+    return int(round(min(raw_pct, 100)))
 
 
 def generate_ai_summary(features, internship):
@@ -288,6 +308,7 @@ def generate_ai_summary(features, internship):
     missing = skills_result.get("missing_skills", [])
     resume_bonus = skills_result.get("resume_bonus_skills", [])
     course_match = features["course_match"]
+    distance_score = features.get("distance_score", 0.0)
 
     parts = []
 
@@ -298,18 +319,26 @@ def generate_ai_summary(features, internship):
             parts.append(f"Your resume is an excellent match ({pct}% similarity) with this position.")
         elif pct >= 40:
             parts.append(f"Your resume shows good alignment ({pct}% similarity) with this role.")
-        else:
+        elif pct >= 15:
             parts.append(f"Your resume has some relevant content ({pct}% similarity) for this position.")
+        else:
+            parts.append(f"Your resume has limited overlap ({pct}% similarity) with this role's requirements.")
     else:
         parts.append("Upload your resume/CV to get a more accurate AI match analysis.")
 
     # Skills analysis
-    if matched:
-        top_skills = matched[:5]
-        parts.append(f"You match in: {', '.join(top_skills)}.")
+    total_required = len(matched) + len(missing)
+    if total_required > 0:
+        skills_pct = int(round(len(matched) / total_required * 100))
+        if matched and skills_pct >= 70:
+            parts.append(f"Strong skills match ({len(matched)}/{total_required}): {', '.join(matched[:4])}.")
+        elif matched:
+            parts.append(f"Partial skills match ({len(matched)}/{total_required}): {', '.join(matched[:4])}.")
+        else:
+            parts.append(f"No matching skills found out of {total_required} required.")
 
     if resume_bonus:
-        parts.append(f"AI found additional skills in your resume: {', '.join(resume_bonus)}.")
+        parts.append(f"AI found additional skills in your resume: {', '.join(resume_bonus[:3])}.")
 
     if missing:
         top_missing = missing[:3]
@@ -318,6 +347,8 @@ def generate_ai_summary(features, internship):
     # Course analysis
     if course_match >= 1.0:
         parts.append("Your course is a recommended fit for this internship.")
+    else:
+        parts.append("Your course is not listed as recommended for this position.")
 
     return " ".join(parts)
 
