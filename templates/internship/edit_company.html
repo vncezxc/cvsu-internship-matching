@@ -333,6 +333,12 @@
                                 {% endif %}
                             </div>
                             <div class="col-md-6">
+                                {{ form.company_type|as_crispy_field }}
+                                {% if form.company_type.errors %}
+                                    <div class="text-danger small">{% for error in form.company_type.errors %}{{ error }}<br>{% endfor %}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
                                 {{ form.hr_email|as_crispy_field }}
                                 {% if form.hr_email.errors %}
                                     <div class="text-danger small">{% for error in form.hr_email.errors %}{{ error }}<br>{% endfor %}</div>
@@ -389,8 +395,8 @@
                                     Paste Google Maps, short links, OpenStreetMap, Waze, Bing, Apple Maps, or plain coordinates (lat, lng). The map pin updates automatically.
                                 </div>
                             </div>
-                            <input type="hidden" name="latitude" id="id_latitude" value="{{ form.latitude.value|default_if_none:'' }}">
-                            <input type="hidden" name="longitude" id="id_longitude" value="{{ form.longitude.value|default_if_none:'' }}">
+                            <input type="hidden" name="latitude" id="id_latitude" value="{{ request.POST.latitude|default_if_none:company.latitude|default_if_none:'' }}">
+                            <input type="hidden" name="longitude" id="id_longitude" value="{{ request.POST.longitude|default_if_none:company.longitude|default_if_none:'' }}">
                         </div>
                         <div class="section-divider">
                             <i class="fas fa-map-marker-alt"></i>Address Information

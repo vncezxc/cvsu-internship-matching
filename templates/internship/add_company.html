@@ -394,8 +394,8 @@
                                     Paste Google Maps, short links, OpenStreetMap, Waze, Bing, Apple Maps, or plain coordinates (lat, lng). The map pin updates automatically.
                                 </div>
                             </div>
-                            <input type="hidden" name="latitude" id="id_latitude" value="{{ form.latitude.value|default_if_none:'' }}">
-                            <input type="hidden" name="longitude" id="id_longitude" value="{{ form.longitude.value|default_if_none:'' }}">
+                            <input type="hidden" name="latitude" id="id_latitude" value="{{ request.POST.latitude|default_if_none:'' }}">
+                            <input type="hidden" name="longitude" id="id_longitude" value="{{ request.POST.longitude|default_if_none:'' }}">
                         </div>
                         <div class="section-divider">
                             <i class="fas fa-map-marker-alt"></i>Address Information
