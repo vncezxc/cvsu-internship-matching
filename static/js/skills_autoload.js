@@ -7,10 +7,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const selectedSkillsDiv = document.getElementById('selected-skills');
     const searchInput = document.getElementById('skill-search-input') || document.getElementById('custom-skill-input');
     const suggestionsDiv = document.getElementById('skill-suggestions');
+    const skillChipsDiv = document.getElementById('skill-chips');
     const addCustomSkillBtn = document.getElementById('add-custom-skill');
     const skillsJsonInput = document.getElementById('id_skills_json');
 
-    if (!searchInput || !selectedSkillsDiv || !skillsJsonInput) {
+    if (!selectedSkillsDiv || !skillsJsonInput) {
         return;
     }
 
@@ -36,6 +37,36 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
         return Object.values(skillMap);
+    }
+
+    function renderAvailableSkillChips() {
+        if (!skillChipsDiv) return;
+        const courseIds = getSelectedCourseIds();
+        const skills = getUnionSkills(courseIds);
+        
+        skillChipsDiv.innerHTML = '';
+        const unselectedSkills = skills.filter(skill => {
+            return !selectedSkills.some(s => s.id === skill.id && !s.custom);
+        });
+
+        if (unselectedSkills.length === 0) {
+            if (courseIds.length === 0) {
+                skillChipsDiv.innerHTML = '<span class="text-muted small">Select a course to see suggested skills.</span>';
+            } else {
+                skillChipsDiv.innerHTML = '<span class="text-muted small">No more suggested skills available.</span>';
+            }
+            return;
+        }
+
+        unselectedSkills.forEach(skill => {
+            const chip = document.createElement('span');
+            chip.className = 'skill-chip';
+            chip.innerHTML = '<i class="fas fa-plus"></i> ' + skill.name;
+            chip.addEventListener('click', function() {
+                addSkill({id: skill.id, name: skill.name, custom: false});
+            });
+            skillChipsDiv.appendChild(chip);
+        });
     }
 
     function renderSuggestions(query) {
@@ -77,7 +108,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     e.preventDefault();
                 }
                 addSkill({id: skill.id, name: skill.name, custom: false});
-                searchInput.value = '';
+                if (searchInput) searchInput.value = '';
                 renderSuggestions('');
             };
             item.addEventListener('pointerdown', selectSkill);
@@ -91,8 +122,14 @@ document.addEventListener('DOMContentLoaded', function() {
         selectedSkillsDiv.innerHTML = '';
         selectedSkills.forEach(skill => {
             const chip = document.createElement('span');
-            chip.className = 'badge rounded-pill bg-success text-white me-1 mb-1';
-            chip.textContent = skill.name + ' ×';
+            // If in add_internship page, use their chip style, else use badge
+            if (skillChipsDiv) {
+                chip.className = 'skill-chip selected me-1 mb-1';
+                chip.innerHTML = skill.name + ' <i class="fas fa-times ms-1"></i>';
+            } else {
+                chip.className = 'badge rounded-pill bg-success text-white me-1 mb-1';
+                chip.textContent = skill.name + ' ×';
+            }
             chip.style.cursor = 'pointer';
             chip.addEventListener('click', function() {
                 removeSkill(skill);
@@ -101,6 +138,9 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         // Update hidden field
         skillsJsonInput.value = JSON.stringify(selectedSkills);
+        
+        // Render available skill chips if present
+        renderAvailableSkillChips();
     }
 
     function addSkill(skill) {
@@ -128,6 +168,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function addSkillFromInput() {
+        if (!searchInput) return;
         const val = searchInput.value.trim();
         if (!val) {
             return;
@@ -148,29 +189,31 @@ document.addEventListener('DOMContentLoaded', function() {
         addCustomSkillBtn.addEventListener('click', addSkillFromInput);
     }
 
-    searchInput.addEventListener('keydown', function(e) {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            addSkillFromInput();
-        }
-    });
+    if (searchInput) {
+        searchInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                addSkillFromInput();
+            }
+        });
 
-    searchInput.addEventListener('input', function() {
-        renderSuggestions(searchInput.value);
-    });
+        searchInput.addEventListener('input', function() {
+            renderSuggestions(searchInput.value);
+        });
 
-    searchInput.addEventListener('focus', function() {
-        renderSuggestions(searchInput.value);
-    });
+        searchInput.addEventListener('focus', function() {
+            renderSuggestions(searchInput.value);
+        });
 
-    searchInput.addEventListener('blur', function() {
-        if (!suggestionsDiv) {
-            return;
-        }
-        setTimeout(function() {
-            suggestionsDiv.innerHTML = '';
-        }, 150);
-    });
+        searchInput.addEventListener('blur', function() {
+            if (!suggestionsDiv) {
+                return;
+            }
+            setTimeout(function() {
+                suggestionsDiv.innerHTML = '';
+            }, 150);
+        });
+    }
 
     if (suggestionsDiv) {
         suggestionsDiv.addEventListener('mousedown', function(e) {
@@ -186,12 +229,14 @@ document.addEventListener('DOMContentLoaded', function() {
             // Remove all non-custom selected skills when course changes
             selectedSkills = selectedSkills.filter(s => s.custom);
             renderSelectedSkills();
-            renderSuggestions(searchInput.value);
+            if (searchInput) {
+                renderSuggestions(searchInput.value);
+            }
         });
         // For multi-select, also listen for input events
         if (courseDropdown.multiple) {
             courseDropdown.addEventListener('input', function() {
-                renderSuggestions(searchInput.value);
+                if (searchInput) renderSuggestions(searchInput.value);
             });
         }
     }
@@ -203,5 +248,5 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     renderSelectedSkills();
-    renderSuggestions('');
+    if (searchInput) renderSuggestions('');
 });
