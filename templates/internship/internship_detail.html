@@ -15,204 +15,318 @@
         --gray-50: #f8f9fa;
         --gray-100: #e9ecef;
         --gray-200: #dee2e6;
+        --text-dark: #2d3748;
+        --text-muted: #718096;
+        --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
         --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
-        --shadow-lg: 0 10px 30px rgba(0,0,0,0.15);
-        --radius-md: 1rem;
+        --shadow-lg: 0 10px 30px rgba(0,0,0,0.12);
+        --radius-lg: 1.25rem;
+        --radius-md: 0.875rem;
         --radius-sm: 0.5rem;
-        --font-family: 'Nunito', Arial, sans-serif;
-        --font-weight-medium: 600;
-        --font-weight-bold: 700;
+        --font-family: 'Inter', 'Nunito', Arial, sans-serif;
+    }
+
+    body {
+        background-color: #f4f7f6;
+        font-family: var(--font-family);
+        color: var(--text-dark);
     }
 
     .internship-detail-container {
-        min-height: 80vh;
-        padding: 2rem 0;
+        padding: 3rem 0;
     }
 
-    .detail-card {
-        background: var(--cvsu-white);
-        border-radius: var(--radius-md);
-        box-shadow: var(--shadow-lg);
-        border: none;
+    /* Modern Hero Header */
+    .hero-header {
+        background: linear-gradient(135deg, var(--cvsu-green) 0%, #0d3610 100%);
+        border-radius: var(--radius-lg);
+        padding: 3rem 2rem;
+        color: white;
+        position: relative;
         overflow: hidden;
-        animation: fadeIn 0.7s ease-out;
+        box-shadow: var(--shadow-lg);
+        margin-bottom: 2rem;
+        animation: slideDown 0.6s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
-    .detail-card .card-header {
-        background: linear-gradient(135deg, var(--cvsu-green), var(--cvsu-green-light)) !important;
-        color: var(--cvsu-white) !important;
-        padding: 1.5rem;
-        border: none;
+    .hero-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -10%;
+        width: 400px;
+        height: 400px;
+        background: radial-gradient(circle, rgba(239, 182, 10, 0.15) 0%, transparent 70%);
+        border-radius: 50%;
+        pointer-events: none;
     }
 
-    .detail-card .card-header h3 {
-        font-family: var(--font-family);
-        font-weight: var(--font-weight-bold);
-        margin: 0;
-    }
-
-    .detail-card .card-header a {
-        color: var(--cvsu-gold) !important;
-        text-decoration: none;
-    }
-
-    .detail-card .card-header a:hover {
-        text-decoration: underline;
-    }
-
-    .detail-card .card-body {
-        padding: 2rem;
-    }
-
-    .badge-active {
-        background: linear-gradient(135deg, var(--cvsu-green), var(--cvsu-green-light)) !important;
-        color: var(--cvsu-white) !important;
-    }
-
-    .badge-inactive {
-        background: var(--gray-200) !important;
-        color: var(--cvsu-dark-green) !important;
-    }
-
-    .info-badge {
-        display: inline-block;
-        padding: 0.4rem 0.8rem;
-        border-radius: 20px;
-        font-size: 0.875rem;
-        font-weight: var(--font-weight-medium);
-        margin: 0.2rem;
-    }
-
-    .badge-course {
-        background: linear-gradient(135deg, var(--cvsu-gold), var(--cvsu-gold-light));
-        color: var(--cvsu-dark-green);
-    }
-
-    .badge-skill {
-        background: var(--gray-200);
-        color: var(--cvsu-dark-green);
-    }
-
-    .section-title {
-        color: var(--cvsu-green);
-        font-family: var(--font-family);
-        font-weight: var(--font-weight-bold);
+    .hero-title {
+        font-weight: 800;
+        font-size: 2.25rem;
         margin-bottom: 0.5rem;
+        letter-spacing: -0.02em;
+    }
+
+    .hero-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1.5rem;
+        font-size: 1rem;
+        opacity: 0.9;
+        margin-top: 1rem;
+    }
+
+    .hero-meta-item {
         display: flex;
         align-items: center;
         gap: 0.5rem;
     }
 
-    .description-box {
-        background: var(--gray-50);
-        border-radius: var(--radius-sm);
-        padding: 1rem;
-        border: 1px solid var(--gray-200);
+    .hero-meta-item i {
+        color: var(--cvsu-gold);
     }
 
-    .applications-card {
-        background: var(--cvsu-white);
-        border-radius: var(--radius-md);
+    .status-badge {
+        position: absolute;
+        top: 2rem;
+        right: 2rem;
+        padding: 0.5rem 1.25rem;
+        border-radius: 2rem;
+        font-weight: 700;
+        font-size: 0.875rem;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        backdrop-filter: blur(8px);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+
+    .status-active {
+        background: rgba(255, 255, 255, 0.15);
+        color: #a7f3d0;
+        border: 1px solid rgba(167, 243, 208, 0.3);
+    }
+
+    .status-inactive {
+        background: rgba(255, 255, 255, 0.1);
+        color: #fca5a5;
+        border: 1px solid rgba(252, 165, 165, 0.3);
+    }
+
+    /* Cards Styling */
+    .premium-card {
+        background: white;
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-sm);
+        border: 1px solid rgba(0,0,0,0.04);
+        padding: 2rem;
+        height: 100%;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        animation: fadeIn 0.8s ease-out;
+    }
+
+    .premium-card:hover {
+        transform: translateY(-4px);
         box-shadow: var(--shadow-md);
-        border: none;
-        overflow: hidden;
     }
 
-    .applications-card .card-header {
-        background: linear-gradient(135deg, var(--cvsu-gold), var(--cvsu-gold-light));
-        color: var(--cvsu-dark-green);
-        padding: 1.25rem;
-        border: none;
-    }
-
-    .applications-card .card-header h5 {
-        font-family: var(--font-family);
-        font-weight: var(--font-weight-bold);
-        margin: 0;
-    }
-
-    .table th {
-        background: var(--gray-50);
-        color: var(--cvsu-dark-green);
-        font-weight: var(--font-weight-bold);
-        font-family: var(--font-family);
-    }
-
-    .company-card {
-        background: var(--cvsu-white);
-        border-radius: var(--radius-md);
-        box-shadow: var(--shadow-md);
-        border: none;
-        overflow: hidden;
-    }
-
-    .company-card .card-header {
-        background: linear-gradient(135deg, var(--cvsu-gold), var(--cvsu-gold-light));
-        color: var(--cvsu-dark-green);
-        padding: 1.25rem;
-        border: none;
-    }
-
-    .company-card .card-header h5 {
-        font-family: var(--font-family);
-        font-weight: var(--font-weight-bold);
-        margin: 0;
-    }
-
-    .company-card .card-body {
-        padding: 1.5rem;
-    }
-
-    .company-info-item {
+    .card-title-modern {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--cvsu-green);
+        margin-bottom: 1.5rem;
         display: flex;
-        align-items: flex-start;
+        align-items: center;
+        gap: 0.75rem;
+        border-bottom: 2px solid var(--gray-100);
+        padding-bottom: 1rem;
+    }
+
+    .card-title-modern i {
+        background: rgba(6, 78, 7, 0.1);
+        padding: 0.6rem;
+        border-radius: 0.5rem;
+        color: var(--cvsu-green);
+    }
+
+    /* Tags */
+    .tag-container {
+        display: flex;
+        flex-wrap: wrap;
         gap: 0.5rem;
-        margin-bottom: 0.75rem;
-        padding-bottom: 0.75rem;
+    }
+
+    .modern-tag {
+        padding: 0.4rem 1rem;
+        border-radius: 2rem;
+        font-size: 0.85rem;
+        font-weight: 600;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+    }
+
+    .tag-course {
+        background: rgba(239, 182, 10, 0.15);
+        color: #b08605;
+        border: 1px solid rgba(239, 182, 10, 0.3);
+    }
+
+    .tag-course:hover {
+        background: rgba(239, 182, 10, 0.25);
+    }
+
+    .tag-skill {
+        background: rgba(10, 109, 11, 0.1);
+        color: var(--cvsu-green);
+        border: 1px solid rgba(10, 109, 11, 0.2);
+    }
+
+    .tag-skill:hover {
+        background: rgba(10, 109, 11, 0.2);
+    }
+
+    /* Description */
+    .desc-text {
+        font-size: 1rem;
+        line-height: 1.7;
+        color: var(--text-muted);
+        background: #fafafa;
+        padding: 1.5rem;
+        border-radius: var(--radius-md);
+        border-left: 4px solid var(--cvsu-green);
+    }
+
+    /* Table Styling */
+    .modern-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0 0.5rem;
+    }
+
+    .modern-table th {
+        color: var(--text-muted);
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.05em;
+        padding: 0.75rem 1rem;
+        border-bottom: 2px solid var(--gray-100);
+    }
+
+    .modern-table td {
+        background: white;
+        padding: 1rem;
+        vertical-align: middle;
+        border-top: 1px solid var(--gray-100);
         border-bottom: 1px solid var(--gray-100);
     }
 
-    .company-info-item:last-child {
-        margin-bottom: 0;
-        padding-bottom: 0;
+    .modern-table tr td:first-child {
+        border-left: 1px solid var(--gray-100);
+        border-top-left-radius: var(--radius-sm);
+        border-bottom-left-radius: var(--radius-sm);
+    }
+
+    .modern-table tr td:last-child {
+        border-right: 1px solid var(--gray-100);
+        border-top-right-radius: var(--radius-sm);
+        border-bottom-right-radius: var(--radius-sm);
+    }
+
+    .modern-table tbody tr {
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .modern-table tbody tr:hover {
+        transform: scale(1.01);
+        box-shadow: var(--shadow-sm);
+        position: relative;
+        z-index: 2;
+    }
+
+    .score-badge {
+        font-weight: 700;
+        font-size: 0.9rem;
+        padding: 0.25rem 0.75rem;
+        border-radius: 1rem;
+    }
+
+    /* Company Info List */
+    .info-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .info-list li {
+        display: flex;
+        align-items: flex-start;
+        gap: 1rem;
+        padding: 1rem 0;
+        border-bottom: 1px dashed var(--gray-200);
+    }
+
+    .info-list li:last-child {
         border-bottom: none;
     }
 
-    .company-info-item i {
+    .info-icon {
+        width: 36px;
+        height: 36px;
+        background: rgba(239, 182, 10, 0.15);
+        color: var(--cvsu-gold);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+        flex-shrink: 0;
+    }
+
+    .info-content strong {
+        display: block;
+        color: var(--text-dark);
+        margin-bottom: 0.2rem;
+        font-size: 0.9rem;
+    }
+
+    .info-content span {
+        color: var(--text-muted);
+        font-size: 0.95rem;
+    }
+
+    /* Buttons */
+    .btn-map {
+        background: white;
         color: var(--cvsu-green);
-        margin-top: 0.25rem;
-    }
-
-    .btn {
-        border-radius: var(--radius-sm);
-        font-family: var(--font-family);
-        font-weight: var(--font-weight-medium);
-        padding: 0.5rem 1rem;
+        border: 2px solid var(--cvsu-green);
+        border-radius: var(--radius-md);
+        padding: 0.75rem 1.5rem;
+        font-weight: 700;
+        width: 100%;
         transition: all 0.3s ease;
-        border: 2px solid transparent;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
     }
 
-    .btn-outline-primary {
-        border-color: var(--cvsu-green);
-        color: var(--cvsu-green) !important;
-    }
-
-    .btn-outline-primary:hover {
+    .btn-map:hover {
         background: var(--cvsu-green);
-        border-color: var(--cvsu-green);
-        color: var(--cvsu-white) !important;
+        color: white;
+        box-shadow: 0 4px 12px rgba(6, 78, 7, 0.2);
     }
 
-    .alert-info {
-        background: linear-gradient(135deg, rgba(6, 78, 7, 0.1), rgba(10, 109, 11, 0.1));
-        border: 1px solid var(--cvsu-green);
-        border-radius: var(--radius-sm);
-        color: var(--cvsu-dark-green);
+    @keyframes slideDown {
+        from { opacity: 0; transform: translateY(-20px); }
+        to { opacity: 1; transform: translateY(0); }
     }
 
     @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(20px); }
-        to { opacity: 1; transform: translateY(0); }
+        from { opacity: 0; }
+        to { opacity: 1; }
     }
 </style>
 {% endblock %}
@@ -220,122 +334,187 @@
 {% block content %}
 <div class="internship-detail-container">
     <div class="container">
-        <div class="row g-4">
-            <div class="col-lg-8">
-                <div class="detail-card card mb-4">
-                    <div class="card-header d-flex align-items-center justify-content-between flex-wrap gap-2">
-                        <div>
-                            <h3>{{ internship.title }}</h3>
-                            <div class="small mt-1">
-                                <span class="me-3"><i class="fas fa-building me-1"></i><a href="{% url 'internship:company_detail' internship.company.id %}">{{ internship.company.name }}</a></span>
-                                <span class="me-3"><i class="fas fa-users me-1"></i>{{ internship.slots_available }} slots</span>
-                                <span class="me-3"><i class="fas fa-calendar-plus me-1"></i>{{ internship.created_at|date:"M d, Y" }}</span>
-                            </div>
-                        </div>
-                        <span class="badge fs-6 px-3 py-2 {% if internship.is_active %}badge-active{% else %}badge-inactive{% endif %}">
-                            {% if internship.is_active %}Active{% else %}Inactive{% endif %}
-                        </span>
-                    </div>
-                    <div class="card-body">
-                        <div class="row g-4">
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <div class="section-title"><i class="fas fa-graduation-cap"></i>Recommended Courses</div>
-                                    <div class="mt-2">
-                                        {% for course in internship.recommended_courses.all %}
-                                            <span class="info-badge badge-course"><i class="fas fa-bookmark me-1"></i>{{ course.name }}</span>
-                                        {% empty %}
-                                            <span class="text-muted">None specified</span>
-                                        {% endfor %}
-                                    </div>
-                                </div>
-                                <div class="mb-3">
-                                    <div class="section-title"><i class="fas fa-tools"></i>Required Skills</div>
-                                    <div class="mt-2">
-                                        {% for skill in internship.required_skills.all %}
-                                            <span class="info-badge badge-skill"><i class="fas fa-bolt me-1"></i>{{ skill.name }}</span>
-                                        {% empty %}
-                                            <span class="text-muted">None specified</span>
-                                        {% endfor %}
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="section-title"><i class="fas fa-file-alt"></i>Description</div>
-                                <div class="description-box mt-2">
-                                    {{ internship.description|linebreaksbr }}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="applications-card card">
-                    <div class="card-header d-flex align-items-center justify-content-between">
-                        <h5><i class="fas fa-clipboard-list me-2"></i>Applications</h5>
-                        <span class="badge bg-dark">{{ applications|length }} total</span>
-                    </div>
-                    <div class="card-body p-0">
-                        {% if applications %}
-                            <div class="table-responsive">
-                                <table class="table table-hover align-middle mb-0">
-                                    <thead>
-                                        <tr>
-                                            <th>Student</th>
-                                            <th>Match</th>
-                                            <th>Status</th>
-                                            <th>Applied</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {% for app in applications %}
-                                        <tr>
-                                            <td><i class="fas fa-user-circle me-1 text-muted"></i>{{ app.student.get_full_name }}</td>
-                                            <td><span class="fw-bold text-success">{{ app.match_score }}%</span></td>
-                                            <td><span class="badge bg-{{ app.get_status_display|lower }}">{{ app.get_status_display }}</span></td>
-                                            <td class="text-muted small">{{ app.applied_at|date:"M d, Y h:i A" }}</td>
-                                        </tr>
-                                        {% endfor %}
-                                    </tbody>
-                                </table>
-                            </div>
-                        {% else %}
-                            <div class="alert alert-info m-3"><i class="fas fa-info-circle me-2"></i>No applications yet.</div>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
+        
+        <!-- Hero Header -->
+        <div class="hero-header">
+            <span class="status-badge {% if internship.is_active %}status-active{% else %}status-inactive{% endif %}">
+                {% if internship.is_active %}
+                    <i class="fas fa-circle me-1" style="font-size: 0.6rem; vertical-align: middle;"></i> Active
+                {% else %}
+                    <i class="fas fa-times-circle me-1"></i> Inactive
+                {% endif %}
+            </span>
+            <h1 class="hero-title">{{ internship.title }}</h1>
             
-            <div class="col-lg-4">
-                <div class="company-card card">
-                    <div class="card-header">
-                        <h5><i class="fas fa-building me-2"></i>Company Info</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="company-info-item">
-                            <i class="fas fa-building"></i>
-                            <div><strong>Name:</strong> {{ internship.company.name }}</div>
-                        </div>
-                        <div class="company-info-item">
-                            <i class="fas fa-envelope"></i>
-                            <div><strong>Email:</strong> {{ internship.company.company_email }}</div>
-                        </div>
-                        <div class="company-info-item">
-                            <i class="fas fa-phone"></i>
-                            <div><strong>Phone:</strong> {{ internship.company.phone_number }}</div>
-                        </div>
-                        <div class="company-info-item">
-                            <i class="fas fa-map-marker-alt"></i>
-                            <div><strong>Address:</strong> <span class="text-muted">{{ internship.company.get_full_address }}</span></div>
-                        </div>
-                        {% if internship.company.location_link %}
-                            <a href="{{ internship.company.location_link }}" target="_blank" class="btn btn-outline-primary btn-sm w-100 mt-3">
-                                <i class="fas fa-map me-1"></i>View on Map
-                            </a>
-                        {% endif %}
-                    </div>
+            <div class="hero-meta">
+                <div class="hero-meta-item">
+                    <i class="fas fa-building"></i>
+                    <a href="{% url 'internship:company_detail' internship.company.id %}" class="text-white text-decoration-none hover-underline">
+                        <strong>{{ internship.company.name }}</strong>
+                    </a>
+                </div>
+                <div class="hero-meta-item">
+                    <i class="fas fa-users"></i>
+                    <span>{{ internship.slots_available }} Slots Available</span>
+                </div>
+                <div class="hero-meta-item">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span>Posted {{ internship.created_at|date:"F d, Y" }}</span>
                 </div>
             </div>
+        </div>
+
+        <div class="row g-4">
+            <!-- Left Column: Details & Apps -->
+            <div class="col-lg-8">
+                
+                <!-- Requirements Card -->
+                <div class="premium-card mb-4">
+                    <h3 class="card-title-modern"><i class="fas fa-clipboard-check"></i> Requirements</h3>
+                    
+                    <div class="row g-4 mt-1">
+                        <div class="col-md-6">
+                            <h6 class="text-muted fw-bold text-uppercase mb-3" style="font-size: 0.8rem; letter-spacing: 0.05em;">Recommended Courses</h6>
+                            <div class="tag-container">
+                                {% for course in internship.recommended_courses.all %}
+                                    <span class="modern-tag tag-course"><i class="fas fa-graduation-cap"></i> {{ course.code }}</span>
+                                {% empty %}
+                                    <span class="text-muted fst-italic">None specified</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-muted fw-bold text-uppercase mb-3" style="font-size: 0.8rem; letter-spacing: 0.05em;">Required Skills</h6>
+                            <div class="tag-container">
+                                {% for skill in internship.required_skills.all %}
+                                    <span class="modern-tag tag-skill"><i class="fas fa-check"></i> {{ skill.name }}</span>
+                                {% empty %}
+                                    <span class="text-muted fst-italic">None specified</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Description Card -->
+                <div class="premium-card mb-4">
+                    <h3 class="card-title-modern"><i class="fas fa-align-left"></i> Internship Description</h3>
+                    <div class="desc-text mt-3">
+                        {{ internship.description|linebreaksbr }}
+                    </div>
+                </div>
+
+                <!-- Applications Card -->
+                <div class="premium-card mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+                        <h3 class="card-title-modern mb-0 border-0 pb-0"><i class="fas fa-users-cog"></i> Applicants</h3>
+                        <span class="badge bg-dark rounded-pill px-3 py-2 fs-6 shadow-sm">{{ applications|length }} Total</span>
+                    </div>
+                    
+                    {% if applications %}
+                        <div class="table-responsive">
+                            <table class="modern-table">
+                                <thead>
+                                    <tr>
+                                        <th>Student</th>
+                                        <th>AI Match</th>
+                                        <th>Status</th>
+                                        <th>Date Applied</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for app in applications %}
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center gap-2 fw-semibold text-dark">
+                                                <i class="fas fa-user-circle text-muted fs-4"></i>
+                                                {{ app.student.get_full_name }}
+                                            </div>
+                                        </td>
+                                        <td>
+                                            {% if app.match_score >= 80 %}
+                                                <span class="score-badge bg-success bg-opacity-10 text-success border border-success border-opacity-25">{{ app.match_score }}%</span>
+                                            {% elif app.match_score >= 50 %}
+                                                <span class="score-badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25">{{ app.match_score }}%</span>
+                                            {% else %}
+                                                <span class="score-badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25">{{ app.match_score }}%</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if app.status == 'PENDING' %}
+                                                <span class="badge bg-warning text-dark px-2 py-1 rounded-pill"><i class="fas fa-clock me-1"></i> Pending</span>
+                                            {% elif app.status == 'APPROVED' %}
+                                                <span class="badge bg-success px-2 py-1 rounded-pill"><i class="fas fa-check-circle me-1"></i> Approved</span>
+                                            {% elif app.status == 'REJECTED' %}
+                                                <span class="badge bg-danger px-2 py-1 rounded-pill"><i class="fas fa-times-circle me-1"></i> Rejected</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary px-2 py-1 rounded-pill">{{ app.get_status_display }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-muted small">
+                                            {{ app.applied_at|date:"M d, Y" }}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center p-5 bg-light rounded-3 border border-dashed border-secondary border-opacity-25">
+                            <i class="fas fa-folder-open text-muted fs-1 mb-3"></i>
+                            <h5 class="text-dark fw-bold">No Applicants Yet</h5>
+                            <p class="text-muted mb-0">Students haven't applied for this position yet.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Right Column: Company Info -->
+            <div class="col-lg-4">
+                <div class="premium-card sticky-top" style="top: 2rem;">
+                    <h3 class="card-title-modern"><i class="fas fa-building"></i> Company Info</h3>
+                    
+                    <ul class="info-list mt-4">
+                        <li>
+                            <div class="info-icon"><i class="fas fa-briefcase"></i></div>
+                            <div class="info-content">
+                                <strong>Company Name</strong>
+                                <span>{{ internship.company.name }}</span>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="info-icon"><i class="fas fa-envelope"></i></div>
+                            <div class="info-content">
+                                <strong>Contact Email</strong>
+                                <span><a href="mailto:{{ internship.company.company_email }}" class="text-decoration-none text-muted hover-primary">{{ internship.company.company_email }}</a></span>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="info-icon"><i class="fas fa-phone-alt"></i></div>
+                            <div class="info-content">
+                                <strong>Phone Number</strong>
+                                <span>{{ internship.company.phone_number }}</span>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="info-icon"><i class="fas fa-map-marker-alt"></i></div>
+                            <div class="info-content">
+                                <strong>Location</strong>
+                                <span>{{ internship.company.get_full_address }}</span>
+                            </div>
+                        </li>
+                    </ul>
+
+                    {% if internship.company.location_link %}
+                        <div class="mt-4 pt-3 border-top border-gray-100">
+                            <a href="{{ internship.company.location_link }}" target="_blank" class="btn-map text-decoration-none">
+                                <i class="fas fa-map-marked-alt"></i> View on Map
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
         </div>
     </div>
 </div>
