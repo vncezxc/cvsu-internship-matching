@@ -183,16 +183,49 @@
                     </div>
                 </div>
                 <div class="card-body">
-                    <div class="mb-3">
-                        <form method="get" class="row g-2">
-                            <div class="col-md-3">
-                                <select name="status" class="form-select" onchange="this.form.submit()">
+                    <div class="mb-4 bg-light p-3 rounded">
+                        <form method="get" class="row g-3 align-items-end">
+                            <div class="col-md-4">
+                                <label class="form-label small text-muted">Search</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white border-end-0"><i class="fas fa-search text-muted"></i></span>
+                                    <input type="text" name="q" class="form-control border-start-0 ps-0" placeholder="Name, city, province..." value="{{ search_query }}">
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label small text-muted">Status</label>
+                                <select name="status" class="form-select">
                                     <option value="">All Status</option>
                                     <option value="ACTIVE" {% if status_filter == 'ACTIVE' %}selected{% endif %}>Active</option>
                                     <option value="INACTIVE" {% if status_filter == 'INACTIVE' %}selected{% endif %}>Inactive</option>
                                 </select>
                             </div>
+                            <div class="col-md-2">
+                                <label class="form-label small text-muted">Company Type</label>
+                                <select name="company_type" class="form-select">
+                                    <option value="">All Types</option>
+                                    {% for value, label in company_types %}
+                                        <option value="{{ value }}" {% if company_type_filter == value %}selected{% endif %}>{{ label }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label small text-muted">Partnership</label>
+                                <select name="is_partner" class="form-select">
+                                    <option value="">Any</option>
+                                    <option value="true" {% if is_partner_filter == 'true' %}selected{% endif %}>Partner Only</option>
+                                    <option value="false" {% if is_partner_filter == 'false' %}selected{% endif %}>Non-Partner</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <button type="submit" class="btn btn-primary w-100">Apply Filters</button>
+                            </div>
                         </form>
+                        {% if search_query or status_filter or company_type_filter or is_partner_filter %}
+                        <div class="mt-2 text-end">
+                            <a href="{% url 'internship:company_list' %}" class="btn btn-sm btn-link text-muted"><i class="fas fa-times-circle me-1"></i>Clear Filters</a>
+                        </div>
+                        {% endif %}
                     </div>
 
                     {% if companies %}

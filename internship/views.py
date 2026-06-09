@@ -502,10 +502,30 @@ def company_list(request):
     
     companies = Company.objects.all().order_by('name')
     
-    # Filter by status if specified
+    # Advanced search filters
+    search_query = request.GET.get('q', '').strip()
     status = request.GET.get('status')
+    company_type = request.GET.get('company_type')
+    is_partner = request.GET.get('is_partner')
+
+    if search_query:
+        companies = companies.filter(
+            Q(name__icontains=search_query) |
+            Q(city__icontains=search_query) |
+            Q(province__icontains=search_query) |
+            Q(description__icontains=search_query)
+        )
+
     if status in [Company.Status.ACTIVE, Company.Status.INACTIVE]:
         companies = companies.filter(status=status)
+        
+    if company_type:
+        companies = companies.filter(company_type=company_type)
+        
+    if is_partner == 'true':
+        companies = companies.filter(is_partner=True)
+    elif is_partner == 'false':
+        companies = companies.filter(is_partner=False)
     
     # Pagination
     paginator = Paginator(companies, 10)  # Show 10 companies per page
@@ -517,8 +537,12 @@ def company_list(request):
     
     context = {
         'companies': page_obj,
+        'search_query': search_query,
         'status_filter': status,
+        'company_type_filter': company_type,
+        'is_partner_filter': is_partner,
         'active_companies_count': active_companies_count,
+        'company_types': Company.CompanyType.choices,
     }
     return render(request, 'internship/company_list.html', context)
 
@@ -651,18 +675,32 @@ def internship_list(request):
         messages.error(request, 'Only OJT Coordinators can access internship management.')
         return redirect('dashboard:home')
     
-    internships = Internship.objects.all().order_by('-created_at')
+    internships = Internship.objects.all().select_related('company').prefetch_related('recommended_courses', 'required_skills').order_by('-created_at')
     
-    # Filter by company if specified
+    # Advanced search filters
+    search_query = request.GET.get('q', '').strip()
     company_id = request.GET.get('company')
+    is_active_str = request.GET.get('is_active')
+    course_id = request.GET.get('course')
+    
+    if search_query:
+        internships = internships.filter(
+            Q(title__icontains=search_query) |
+            Q(description__icontains=search_query) |
+            Q(company__name__icontains=search_query)
+        )
+        
     if company_id:
         internships = internships.filter(company_id=company_id)
-    
-    # Filter by status if specified
-    is_active = request.GET.get('is_active')
-    if is_active is not None:
-        is_active = is_active.lower() == 'true'
+        
+    if is_active_str:
+        is_active = is_active_str.lower() == 'true'
         internships = internships.filter(is_active=is_active)
+    else:
+        is_active = None
+        
+    if course_id:
+        internships = internships.filter(recommended_courses__id=course_id)
     
     # Pagination
     paginator = Paginator(internships, 10)  # Show 10 internships per page
@@ -677,9 +715,12 @@ def internship_list(request):
 
     context = {
         'internships': page_obj,
+        'search_query': search_query,
         'companies': Company.objects.filter(status=Company.Status.ACTIVE),
         'company_filter': company_id,
-        'status_filter': is_active,
+        'status_filter': is_active_str,
+        'course_filter': course_id,
+        'courses': Course.objects.all(),
         'first_internship_slots': first_internship_slots,
     }
     return render(request, 'internship/internship_list.html', context)

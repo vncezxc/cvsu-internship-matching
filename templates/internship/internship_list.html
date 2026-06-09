@@ -204,16 +204,50 @@
                     </div>
                 </div>
                 <div class="card-body">
-                    <div class="mb-3">
-                        <form method="get" class="row g-2 align-items-center">
+                    <div class="mb-4 bg-light p-3 rounded">
+                        <form method="get" class="row g-3 align-items-end">
                             <div class="col-md-3">
-                                <select name="is_active" class="form-select" onchange="this.form.submit()">
-                                    <option value="">All Status</option>
-                                    <option value="true" {% if status_filter == True or status_filter == 'true' %}selected{% endif %}>Active</option>
-                                    <option value="false" {% if status_filter == False or status_filter == 'false' %}selected{% endif %}>Inactive</option>
+                                <label class="form-label small text-muted">Search</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white border-end-0"><i class="fas fa-search text-muted"></i></span>
+                                    <input type="text" name="q" class="form-control border-start-0 ps-0" placeholder="Title, description..." value="{{ search_query }}">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small text-muted">Company</label>
+                                <select name="company" class="form-select">
+                                    <option value="">All Companies</option>
+                                    {% for c in companies %}
+                                        <option value="{{ c.id }}" {% if company_filter == c.id|stringformat:"s" %}selected{% endif %}>{{ c.name }}</option>
+                                    {% endfor %}
                                 </select>
                             </div>
+                            <div class="col-md-2">
+                                <label class="form-label small text-muted">Course</label>
+                                <select name="course" class="form-select">
+                                    <option value="">All Courses</option>
+                                    {% for c in courses %}
+                                        <option value="{{ c.id }}" {% if course_filter == c.id|stringformat:"s" %}selected{% endif %}>{{ c.abbreviation }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label small text-muted">Status</label>
+                                <select name="is_active" class="form-select">
+                                    <option value="">All Status</option>
+                                    <option value="true" {% if status_filter == 'true' %}selected{% endif %}>Active</option>
+                                    <option value="false" {% if status_filter == 'false' %}selected{% endif %}>Inactive</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <button type="submit" class="btn btn-primary w-100">Apply Filters</button>
+                            </div>
                         </form>
+                        {% if search_query or company_filter or course_filter or status_filter %}
+                        <div class="mt-2 text-end">
+                            <a href="{% url 'internship:internship_list' %}" class="btn btn-sm btn-link text-muted"><i class="fas fa-times-circle me-1"></i>Clear Filters</a>
+                        </div>
+                        {% endif %}
                     </div>
 
                     {% if internships %}
