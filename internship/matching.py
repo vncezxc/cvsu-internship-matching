@@ -88,7 +88,7 @@ def compute_resume_similarity(resume_text, internship_text):
 
 # ---------- Skills matching ----------
 
-def compute_detailed_skills_match(profile, internship, resume_keywords=None):
+def compute_detailed_skills_match(profile, internship, resume_data=None):
     """
     Compute detailed skills matching between student and internship.
 
@@ -119,15 +119,23 @@ def compute_detailed_skills_match(profile, internship, resume_keywords=None):
     missing_skills = []
     resume_bonus_skills = []
 
+    # Get raw text for direct substring matching (helps with C++, C#, Node.js, etc.)
+    resume_raw_text = resume_data.get("raw_text", "").lower() if resume_data else ""
+    resume_keywords = resume_data.get("keywords", set()) if resume_data else set()
+
     for skill in all_required:
         if skill.id in student_skill_ids:
             matched_skills.append(skill.name)
+        elif resume_raw_text and skill.name.lower() in resume_raw_text:
+            # Direct match in the raw text (handles special chars like C++, HTML/CSS)
+            matched_skills.append(skill.name)
+            resume_bonus_skills.append(skill.name)
         elif resume_keywords and skill.name.lower() in resume_keywords:
-            # Skill found in resume text but not in profile — still counts!
+            # Exact token match
             matched_skills.append(skill.name)
             resume_bonus_skills.append(skill.name)
         else:
-            # Check for partial keyword match in resume
+            # Check for partial keyword match in resume (handles multi-word without special chars)
             skill_words = set(skill.name.lower().split())
             if resume_keywords and skill_words and skill_words.issubset(resume_keywords):
                 matched_skills.append(skill.name)
@@ -177,7 +185,7 @@ def build_features(profile, internship, distance_km, resume_data=None):
     resume_keywords = resume_data.get("keywords", set())
 
     # Detailed skills match (with resume keyword bonus)
-    skills_result = compute_detailed_skills_match(profile, internship, resume_keywords)
+    skills_result = compute_detailed_skills_match(profile, internship, resume_data)
 
     tech_match = skills_result["tech_match"]
     soft_match = skills_result["soft_match"]
