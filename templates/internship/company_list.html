@@ -223,7 +223,7 @@
                         </form>
                         {% if search_query or status_filter or company_type_filter or is_partner_filter %}
                         <div class="mt-2 text-end">
-                            <a href="{% url 'internship:company_list' %}" class="btn btn-sm btn-link text-muted"><i class="fas fa-times-circle me-1"></i>Clear Filters</a>
+                            <a href="{% url 'internship:companies' %}" class="btn btn-sm btn-link text-muted"><i class="fas fa-times-circle me-1"></i>Clear Filters</a>
                         </div>
                         {% endif %}
                     </div>
