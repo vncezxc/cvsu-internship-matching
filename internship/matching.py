@@ -400,9 +400,15 @@ def generate_ai_summary(features, internship):
 
 # ---------- Main scoring function ----------
 
-def score_internship(profile, internship):
+def score_internship(profile, internship, resume_data=None):
     """
     AI-powered internship scoring.
+
+    Args:
+        profile: StudentProfile instance
+        internship: Internship instance
+        resume_data: Optional pre-parsed resume data dict (from parse_student_resume).
+                     If provided, skips re-parsing the resume for performance.
 
     Returns a comprehensive dict with:
         - score: Overall match percentage (0-100)
@@ -422,8 +428,9 @@ def score_internship(profile, internship):
         - model_score: ML model score (if available)
         - features: Raw feature dict
     """
-    # Parse resume once (reused across feature building)
-    resume_data = parse_student_resume(profile)
+    # Parse resume once (reuse if already parsed)
+    if resume_data is None:
+        resume_data = parse_student_resume(profile)
 
     distance_km = compute_distance_km(profile, internship)
     features = build_features(profile, internship, distance_km, resume_data)

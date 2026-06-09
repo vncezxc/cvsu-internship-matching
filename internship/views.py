@@ -87,25 +87,38 @@ def internship_matches(request):
             messages.warning(request, 'Please complete your profile before applying.')
             return redirect('accounts:edit_profile')
         
-        # Get all active and approved internships
+        # Get all active and approved internships — prefetch related data to avoid N+1
         internships = Internship.objects.filter(
             is_active=True,
             approval_status=Internship.ApprovalStatus.APPROVED,
             company__approval_status=Company.ApprovalStatus.APPROVED
+        ).select_related('company').prefetch_related(
+            'required_skills', 'recommended_courses'
         )
 
         # Filter by course if specified (recommended_courses is a M2M field)
         if profile.course:
             internships = internships.filter(recommended_courses=profile.course)
 
+        # Batch-check which internships the student already applied to (avoid N+1)
+        applied_ids = set(
+            Application.objects.filter(
+                student=profile
+            ).values_list('internship_id', flat=True)
+        )
+
+        # Parse resume ONCE — reused for all internship comparisons
+        from .resume_parser import parse_student_resume
+        resume_data = parse_student_resume(profile)
+
         # Calculate match scores for each internship
         matches = []
         for internship in internships:
             # Skip internships the student has already applied to
-            if Application.objects.filter(student=profile, internship=internship).exists():
+            if internship.id in applied_ids:
                 continue
 
-            match_result = score_internship(profile, internship)
+            match_result = score_internship(profile, internship, resume_data=resume_data)
             if match_result["score"] > 0:
                 matches.append({
                     'internship': internship,
