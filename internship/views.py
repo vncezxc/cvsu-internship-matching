@@ -10,7 +10,8 @@ from .matching import score_internship
 from accounts.models import StudentProfile, Skill, Course
 from .forms import InternshipForm
 from .forms import CompanyForm, CompanyReviewForm, ApplicationStatusUpdateForm, CustomCompanyInternshipForm
-from django.db.models import Q
+from django.db import models
+from django.db.models import Q, Avg
 import re
 
 # Create your views here.
@@ -377,8 +378,13 @@ Best regards,
             if student_profile.cv:
                 try:
                     cv_name = student_profile.cv.name.split('/')[-1]
+                    import mimetypes
+                    content_type, _ = mimetypes.guess_type(student_profile.cv.name)
+                    if not content_type:
+                        content_type = 'application/pdf'
+                    
                     student_profile.cv.open('rb')
-                    email.attach(cv_name, student_profile.cv.read(), student_profile.cv.file.content_type or 'application/octet-stream')
+                    email.attach(cv_name, student_profile.cv.read(), content_type)
                     student_profile.cv.close()
                 except Exception as e:
                     logger.error(f"Error attaching CV: {e}")
