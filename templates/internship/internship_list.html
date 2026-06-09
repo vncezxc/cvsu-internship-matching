@@ -227,7 +227,7 @@
                                 <select name="course" class="form-select">
                                     <option value="">All Courses</option>
                                     {% for c in courses %}
-                                        <option value="{{ c.id }}" {% if course_filter == c.id|stringformat:"s" %}selected{% endif %}>{{ c.abbreviation }}</option>
+                                        <option value="{{ c.id }}" {% if course_filter == c.id|stringformat:"s" %}selected{% endif %}>{{ c.code }}</option>
                                     {% endfor %}
                                 </select>
                             </div>
