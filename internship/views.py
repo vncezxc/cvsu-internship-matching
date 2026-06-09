@@ -10,7 +10,7 @@ from .matching import score_internship
 from accounts.models import StudentProfile, Skill, Course
 from .forms import InternshipForm
 from .forms import CompanyForm, CompanyReviewForm, ApplicationStatusUpdateForm, CustomCompanyInternshipForm
-from django.db import models
+from django.db.models import Q
 import re
 
 # Create your views here.
