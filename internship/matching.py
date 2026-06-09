@@ -119,25 +119,62 @@ def compute_detailed_skills_match(profile, internship, resume_data=None):
     missing_skills = []
     resume_bonus_skills = []
 
-    # Get raw text for direct substring matching (helps with C++, C#, Node.js, etc.)
-    resume_raw_text = resume_data.get("raw_text", "").lower() if resume_data else ""
-    resume_keywords = resume_data.get("keywords", set()) if resume_data else set()
+    # Prepare multiple text representations for robust matching
+    resume_raw_text = ""
+    resume_normalized = ""  # Raw text with whitespace collapsed (keeps special chars)
+    resume_cleaned = ""     # Fully cleaned text (no special chars, good for multi-word)
+    resume_keywords = set()
+
+    if resume_data:
+        resume_raw_text = resume_data.get("raw_text", "")
+        resume_cleaned = resume_data.get("cleaned_text", "")
+        resume_keywords = resume_data.get("keywords", set())
+
+        # Create a normalized version: lowercase + collapse ALL whitespace to single space
+        # This preserves special chars (C++, C#, Node.js) while fixing line breaks
+        import re as _re
+        resume_normalized = _re.sub(r"\s+", " ", resume_raw_text.lower())
 
     for skill in all_required:
+        skill_lower = skill.name.lower()
+
         if skill.id in student_skill_ids:
+            # 1. Direct profile match (student manually selected this skill)
             matched_skills.append(skill.name)
-        elif resume_raw_text and skill.name.lower() in resume_raw_text:
-            # Direct match in the raw text (handles special chars like C++, HTML/CSS)
+
+        elif resume_normalized and skill_lower in resume_normalized:
+            # 2. Substring match in normalized raw text
+            #    Catches: "C++", "Node.js", "Web Development", "Machine Learning"
+            #    because whitespace is collapsed but special chars are preserved
             matched_skills.append(skill.name)
             resume_bonus_skills.append(skill.name)
-        elif resume_keywords and skill.name.lower() in resume_keywords:
-            # Exact token match
+
+        elif resume_cleaned and skill_lower in resume_cleaned:
+            # 3. Substring match in cleaned text (all lowercase, no special chars)
+            #    Catches multi-word skills where special chars were stripped
             matched_skills.append(skill.name)
             resume_bonus_skills.append(skill.name)
+
+        elif resume_keywords and skill_lower in resume_keywords:
+            # 4. Exact single-token match in extracted keywords
+            matched_skills.append(skill.name)
+            resume_bonus_skills.append(skill.name)
+
         else:
-            # Check for partial keyword match in resume (handles multi-word without special chars)
-            skill_words = set(skill.name.lower().split())
-            if resume_keywords and skill_words and skill_words.issubset(resume_keywords):
+            # 5. Partial keyword match: all significant words of skill found in resume
+            #    Catches "Data Structures and Algorithms" if "data", "structures",
+            #    "algorithms" are all present as keywords
+            skill_words = set(skill_lower.split())
+            # Remove very short words (1 char) and common stop words for matching
+            significant_words = {
+                w for w in skill_words
+                if len(w) > 2  # Skip "of", "in", "it", etc.
+            }
+            # Need at least 1 significant word to match
+            if not significant_words:
+                significant_words = skill_words  # Fallback to all words
+
+            if resume_keywords and significant_words and significant_words.issubset(resume_keywords):
                 matched_skills.append(skill.name)
                 resume_bonus_skills.append(skill.name)
             else:
