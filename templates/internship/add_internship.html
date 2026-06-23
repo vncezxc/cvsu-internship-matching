@@ -233,14 +233,99 @@
                             {% endif %}
                             {% csrf_token %}
                             {{ form.company|as_crispy_field }}
-                            {{ form.title|as_crispy_field }}
-                            {{ form.description|as_crispy_field }}
-                            
-                            <h5 class="section-title"><i class="fas fa-graduation-cap"></i>Recommended Course</h5>
+
                             <div class="mb-3">
-                                <label for="id_recommended_courses" class="form-label">Recommended Course</label>
-                                <select id="id_recommended_courses" name="recommended_courses" class="form-select">
-                                    <option value="" selected disabled>Select a course...</option>
+                                <label for="id_title" class="form-label">Internship Title</label>
+                                <div class="form-text mb-1"><i class="fas fa-info-circle me-1" style="color: var(--cvsu-gold);"></i>Enter or select a position title. Start typing to see suggestions from common internship roles.</div>
+                                <input type="text" name="title" id="id_title" class="form-control" list="job-title-suggestions" placeholder="e.g. Software Developer Intern" value="{{ form.title.value|default_if_none:'' }}" required autocomplete="off">
+                                <datalist id="job-title-suggestions">
+                                    <option value="Software Developer Intern">
+                                    <option value="Web Developer Intern">
+                                    <option value="Full Stack Developer Intern">
+                                    <option value="Frontend Developer Intern">
+                                    <option value="Backend Developer Intern">
+                                    <option value="Mobile App Developer Intern">
+                                    <option value="Data Analyst Intern">
+                                    <option value="Data Science Intern">
+                                    <option value="IT Support Intern">
+                                    <option value="Network Administrator Intern">
+                                    <option value="QA Tester Intern">
+                                    <option value="Quality Assurance Intern">
+                                    <option value="UI/UX Designer Intern">
+                                    <option value="Graphic Designer Intern">
+                                    <option value="Database Administrator Intern">
+                                    <option value="System Administrator Intern">
+                                    <option value="Digital Marketing Intern">
+                                    <option value="Content Writer Intern">
+                                    <option value="Social Media Manager Intern">
+                                    <option value="HR Assistant Intern">
+                                    <option value="Accounting Intern">
+                                    <option value="Administrative Assistant Intern">
+                                    <option value="Marketing Intern">
+                                    <option value="Project Management Intern">
+                                    <option value="Business Analyst Intern">
+                                    <option value="Cybersecurity Intern">
+                                    <option value="DevOps Intern">
+                                    <option value="Cloud Computing Intern">
+                                    <option value="Machine Learning Intern">
+                                    <option value="Game Developer Intern">
+                                    <option value="Technical Writer Intern">
+                                    <option value="Research Assistant Intern">
+                                    <option value="Computer Technician Intern">
+                                    <option value="Helpdesk Support Intern">
+                                    <option value="Software Tester Intern">
+                                    <option value="IT Intern">
+                                    <option value="Programmer Intern">
+                                    <option value="Multimedia Arts Intern">
+                                    <option value="Animation Intern">
+                                    <option value="Video Editor Intern">
+                                    <option value="Office Staff Intern">
+                                    <option value="Encoder Intern">
+                                    <option value="Bookkeeper Intern">
+                                    <option value="Audit Assistant Intern">
+                                    <option value="Sales Assistant Intern">
+                                    <option value="Customer Service Intern">
+                                    <option value="Supply Chain Intern">
+                                    <option value="Logistics Intern">
+                                    <option value="Civil Engineering Intern">
+                                    <option value="Electrical Engineering Intern">
+                                    <option value="Mechanical Engineering Intern">
+                                    <option value="Electronics Technician Intern">
+                                    <option value="Industrial Engineering Intern">
+                                    <option value="Architecture Intern">
+                                    <option value="Environmental Science Intern">
+                                    <option value="Biology Lab Intern">
+                                    <option value="Chemistry Lab Intern">
+                                    <option value="Teacher Assistant Intern">
+                                    <option value="Guidance Counselor Intern">
+                                    <option value="Library Assistant Intern">
+                                    <option value="Agricultural Technician Intern">
+                                    <option value="Food Technology Intern">
+                                    <option value="Hotel Management Intern">
+                                    <option value="Tourism Intern">
+                                    <option value="Events Coordinator Intern">
+                                    <option value="Public Relations Intern">
+                                </datalist>
+                                {% if form.title.errors %}
+                                    <div class="text-danger small">{% for error in form.title.errors %}{{ error }}<br>{% endfor %}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="id_description" class="form-label">Job Description</label>
+                                <div class="form-text mb-1"><i class="fas fa-info-circle me-1" style="color: var(--cvsu-gold);"></i>Provide a detailed description of the internship role, responsibilities, and qualifications. Use the editor toolbar to format text.</div>
+                                <div id="quill-editor" style="min-height: 200px; background: #fff; border-radius: 0 0 var(--radius-sm) var(--radius-sm);"></div>
+                                <textarea name="description" id="id_description" class="form-control" style="display:none;">{{ form.description.value|default_if_none:'' }}</textarea>
+                                {% if form.description.errors %}
+                                    <div class="text-danger small">{% for error in form.description.errors %}{{ error }}<br>{% endfor %}</div>
+                                {% endif %}
+                            </div>
+                            
+                            <h5 class="section-title"><i class="fas fa-graduation-cap"></i>Recommended Courses</h5>
+                            <div class="mb-3">
+                                <div class="form-text mb-1"><i class="fas fa-info-circle me-1" style="color: var(--cvsu-gold);"></i>Select one or more courses recommended for this internship. Students enrolled in these courses will see this internship in their AI matches. Hold Ctrl (Windows) or Command (Mac) to select multiple.</div>
+                                <label for="id_recommended_courses" class="form-label">Recommended Courses</label>
+                                <select id="id_recommended_courses" name="recommended_courses" class="form-select" multiple style="min-height: 120px;">
                                     {% for course in courses %}
                                         <option value="{{ course.id }}">{{ course }}</option>
                                     {% endfor %}
@@ -249,20 +334,24 @@
                             
                             <h5 class="section-title"><i class="fas fa-tools"></i>Skills</h5>
                             <div class="mb-3">
-                                <label class="form-label">Suggested Skills</label>
-                                <div id="skill-chips" class="skill-chips-container mb-2"></div>
-                                <label for="custom-skill-input" class="form-label">Add Custom Skill</label>
+                                <div class="form-text mb-1"><i class="fas fa-info-circle me-1" style="color: var(--cvsu-gold);"></i>Add the technical and soft skills required for this internship. These skills are used by the AI matching engine to find the best student matches. Search from existing skills or type a custom one.</div>
+                                <label for="skill-search-input" class="form-label">Search and add skills</label>
                                 <div class="input-group mb-2">
-                                    <input type="text" id="custom-skill-input" class="form-control" placeholder="Type a skill and press Enter">
+                                    <input type="text" id="skill-search-input" class="form-control" placeholder="Start typing a skill...">
                                     <button type="button" id="add-custom-skill" class="btn btn-outline-primary">
                                         <i class="fas fa-plus me-1"></i>Add
                                     </button>
                                 </div>
+                                <div id="skill-suggestions" class="skill-suggestions"></div>
+                                <label class="form-label mt-2">Suggested Skills <span class="text-muted small">(click to add)</span></label>
+                                <div id="skill-chips" class="skill-chips-container mb-2"></div>
+                                <label class="form-label">Selected Skills</label>
                                 <div id="selected-skills" class="mb-2"></div>
                                 <input type="hidden" name="skills_json" id="id_skills_json">
                             </div>
                             <input type="hidden" id="id_course" name="course" value="">
                             
+                            <div class="form-text mb-1"><i class="fas fa-info-circle me-1" style="color: var(--cvsu-gold);"></i>Number of student positions available for this internship.</div>
                             {{ form.slots_available|as_crispy_field }}
                             {% if form.slots_available.errors %}
                                 <div class="text-danger small mb-2">
@@ -308,25 +397,93 @@
         </div>
     </div>
 </div>
+
+<!-- Quill.js Rich Text Editor -->
+<link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
+<script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
+<style>
+    .ql-toolbar.ql-snow { border-radius: var(--radius-sm) var(--radius-sm) 0 0; border-color: var(--gray-200); }
+    .ql-container.ql-snow { border-radius: 0 0 var(--radius-sm) var(--radius-sm); border-color: var(--gray-200); font-family: var(--font-family); font-size: 0.95rem; }
+    .ql-editor { min-height: 180px; }
+    /* Skill suggestions dropdown styling */
+    .skill-suggestions {
+        background: var(--cvsu-white);
+        border: 1px solid var(--gray-200);
+        border-radius: var(--radius-sm);
+        box-shadow: var(--shadow-md);
+        margin-top: 0.25rem;
+        overflow: hidden;
+    }
+    .skill-suggestion-item {
+        width: 100%;
+        text-align: left;
+        padding: 0.6rem 0.9rem;
+        border: none;
+        background: transparent;
+        font-family: var(--font-family);
+        cursor: pointer;
+    }
+    .skill-suggestion-item:hover {
+        background: var(--gray-50);
+    }
+    .skill-suggestion-empty {
+        padding: 0.6rem 0.9rem;
+        color: var(--cvsu-light-gray);
+        font-size: 0.9rem;
+    }
+</style>
+
 <script>
   var COURSE_SKILLS_MAP = {{ course_skill_map|safe }};
   var INITIAL_SELECTED_SKILLS = [
     {% for skill in form.initial.required_skills.all %}{ id: {{ skill.id }}, name: "{{ skill.name|escapejs }}" },{% endfor %}
   ];
+
   document.addEventListener('DOMContentLoaded', function() {
+    // Quill editor initialization
+    var quill = new Quill('#quill-editor', {
+        theme: 'snow',
+        modules: {
+            toolbar: [
+                [{ 'header': [1, 2, 3, false] }],
+                ['bold', 'italic', 'underline', 'strike'],
+                [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                ['link'],
+                ['clean']
+            ]
+        },
+        placeholder: 'Describe the internship role, responsibilities, and qualifications...'
+    });
+
+    // Load existing content if any
+    var existingContent = document.getElementById('id_description').value;
+    if (existingContent) {
+        quill.root.innerHTML = existingContent;
+    }
+
+    // Sync Quill content to hidden textarea on form submit
+    document.querySelector('form').addEventListener('submit', function() {
+        document.getElementById('id_description').value = quill.root.innerHTML;
+    });
+
+    // Multi-course handling
     const courseDropdown = document.getElementById('id_recommended_courses');
     const hiddenCourse = document.getElementById('id_course');
     if (courseDropdown && hiddenCourse) {
       courseDropdown.addEventListener('change', function() {
-        hiddenCourse.value = courseDropdown.value;
+        // For multi-select, join selected values
+        var selectedValues = Array.from(courseDropdown.selectedOptions).map(opt => opt.value);
+        hiddenCourse.value = selectedValues.join(',');
         const event = new Event('change', { bubbles: true });
         hiddenCourse.dispatchEvent(event);
       });
       if (courseDropdown.value) {
-        hiddenCourse.value = courseDropdown.value;
+        var selectedValues = Array.from(courseDropdown.selectedOptions).map(opt => opt.value);
+        hiddenCourse.value = selectedValues.join(',');
       }
     }
   });
 </script>
 <script src="/static/js/skills_autoload.js"></script>
 {% endblock %}
+

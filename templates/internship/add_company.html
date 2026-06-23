@@ -647,11 +647,71 @@
           
           // Auto convert to OSM format to show success
           linkInput.value = `https://www.openstreetmap.org/?mlat=${latlng[0].toFixed(6)}&mlon=${latlng[1].toFixed(6)}#map=18/${latlng[0].toFixed(6)}/${latlng[1].toFixed(6)}`;
+          
+          // Reverse geocode to auto-fill address fields
+          reverseGeocode(latlng[0], latlng[1]);
         } else if (!val.includes('openstreetmap.org')) {
             errorMsg.innerHTML = '<i class="fas fa-exclamation-circle"></i> Could not find coordinates in this link. Please paste a full Google Maps link with @lat,lng or drag the map pin manually.';
         } else {
             errorMsg.textContent = ''; // Ignore OSM links that didn't parse but are OSM
         }
+      }
+
+      // Reverse geocoding to auto-fill address fields
+      function reverseGeocode(lat, lng) {
+          var streetInput = document.getElementById('id_street');
+          var barangayInput = document.getElementById('id_barangay');
+          var cityInput = document.getElementById('id_city');
+          var provinceInput = document.getElementById('id_province');
+          if (!streetInput || !barangayInput || !cityInput || !provinceInput) return;
+
+          // Show loading indicator
+          var addrStatus = document.getElementById('address-autofill-status');
+          if (!addrStatus) {
+              addrStatus = document.createElement('div');
+              addrStatus.id = 'address-autofill-status';
+              addrStatus.className = 'small mt-1';
+              var addressSection = streetInput.closest('.row');
+              if (addressSection) addressSection.parentNode.insertBefore(addrStatus, addressSection);
+          }
+          addrStatus.innerHTML = '<i class="fas fa-spinner fa-spin me-1" style="color: var(--cvsu-gold);"></i> <span style="color: var(--cvsu-light-gray);">Auto-detecting address from coordinates...</span>';
+
+          fetch('https://nominatim.openstreetmap.org/reverse?lat=' + lat + '&lon=' + lng + '&format=json&addressdetails=1&accept-language=en', {
+              headers: { 'User-Agent': 'CvSU-Internship-Matching/1.0' }
+          })
+          .then(function(response) { return response.json(); })
+          .then(function(data) {
+              if (data && data.address) {
+                  var addr = data.address;
+                  // Street: road or house_number + road
+                  var street = '';
+                  if (addr.house_number) street += addr.house_number + ' ';
+                  if (addr.road) street += addr.road;
+                  else if (addr.pedestrian) street += addr.pedestrian;
+                  else if (addr.building) street += addr.building;
+                  if (street && !streetInput.value.trim()) streetInput.value = street.trim();
+
+                  // Barangay: suburb, neighbourhood, village, or quarter
+                  var barangay = addr.suburb || addr.neighbourhood || addr.village || addr.quarter || '';
+                  if (barangay && !barangayInput.value.trim()) barangayInput.value = barangay;
+
+                  // City: city, town, municipality, or city_district
+                  var city = addr.city || addr.town || addr.municipality || addr.city_district || '';
+                  if (city && !cityInput.value.trim()) cityInput.value = city;
+
+                  // Province: state, province, region, or county
+                  var province = addr.state || addr.province || addr.region || addr.county || '';
+                  if (province && !provinceInput.value.trim()) provinceInput.value = province;
+
+                  addrStatus.innerHTML = '<i class="fas fa-check-circle me-1" style="color: var(--cvsu-green);"></i> <span style="color: var(--cvsu-green);">Address auto-filled from location. You can edit the fields if needed.</span>';
+                  setTimeout(function() { addrStatus.style.opacity = '0.6'; }, 4000);
+              } else {
+                  addrStatus.innerHTML = '<i class="fas fa-exclamation-circle me-1" style="color: var(--cvsu-gold);"></i> <span style="color: var(--cvsu-light-gray);">Could not auto-detect address. Please fill in manually.</span>';
+              }
+          })
+          .catch(function() {
+              addrStatus.innerHTML = '<i class="fas fa-exclamation-circle me-1" style="color: var(--cvsu-gold);"></i> <span style="color: var(--cvsu-light-gray);">Could not auto-detect address. Please fill in manually.</span>';
+          });
       }
 
       linkInput.addEventListener('input', updateMapFromLink);

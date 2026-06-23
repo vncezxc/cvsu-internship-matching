@@ -62,8 +62,34 @@
                         </div>
                         <div class="mb-3">
                             <label for="id_password" class="form-label">Password</label>
-                            <input type="password" name="password" class="form-control form-control-lg w-100" id="id_password" placeholder="Password" required autocomplete="current-password">
+                            <div style="position: relative;">
+                                <input type="password" name="password" class="form-control form-control-lg w-100" id="id_password" placeholder="Password" required autocomplete="current-password" style="padding-right: 48px;">
+                                <button type="button" id="toggle-password" tabindex="-1" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #787A66; font-size: 1.15rem; padding: 4px 6px; z-index: 2; outline: none;" aria-label="Toggle password visibility">
+                                    <i class="fas fa-eye" id="toggle-password-icon"></i>
+                                </button>
+                            </div>
                         </div>
+                        <script>
+                        (function(){
+                            var toggleBtn = document.getElementById('toggle-password');
+                            var passwordInput = document.getElementById('id_password');
+                            var icon = document.getElementById('toggle-password-icon');
+                            if(toggleBtn && passwordInput && icon){
+                                toggleBtn.addEventListener('click', function(){
+                                    if(passwordInput.type === 'password'){
+                                        passwordInput.type = 'text';
+                                        icon.classList.remove('fa-eye');
+                                        icon.classList.add('fa-eye-slash');
+                                    } else {
+                                        passwordInput.type = 'password';
+                                        icon.classList.remove('fa-eye-slash');
+                                        icon.classList.add('fa-eye');
+                                    }
+                                    passwordInput.focus();
+                                });
+                            }
+                        })();
+                        </script>
                         <div class="mb-3">
                             <div class="form-check" style="display: flex; align-items: center; gap: 0.5rem; padding-left: 0; margin-bottom: 0;">
                                 <input type="checkbox" class="form-check-input" id="id_remember" name="remember" style="width: 18px; height: 18px; margin: 0;">

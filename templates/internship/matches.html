@@ -365,6 +365,46 @@
         color: var(--cvsu-dark-green);
     }
 
+    /* ── Tooltips for breakdown items ── */
+    .breakdown-item {
+        position: relative;
+        cursor: help;
+    }
+    .breakdown-item .breakdown-tooltip {
+        visibility: hidden;
+        opacity: 0;
+        position: absolute;
+        bottom: calc(100% + 8px);
+        left: 50%;
+        transform: translateX(-50%);
+        background: var(--cvsu-dark-green);
+        color: var(--cvsu-white);
+        padding: 0.5rem 0.75rem;
+        border-radius: var(--radius-xs);
+        font-size: 0.72rem;
+        line-height: 1.4;
+        white-space: normal;
+        width: 220px;
+        text-align: center;
+        z-index: 100;
+        box-shadow: var(--shadow-md);
+        transition: opacity 0.2s ease, visibility 0.2s ease;
+        pointer-events: none;
+    }
+    .breakdown-item .breakdown-tooltip::after {
+        content: '';
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        border: 6px solid transparent;
+        border-top-color: var(--cvsu-dark-green);
+    }
+    .breakdown-item:hover .breakdown-tooltip {
+        visibility: visible;
+        opacity: 1;
+    }
+
     /* ── Skills Section ── */
     .skills-section { margin-bottom: 1rem; }
 
@@ -585,8 +625,8 @@
                     <h4 class="mb-3"><i class="fas fa-crown text-warning me-2"></i>Best Match for You</h4>
                 </div>
             </div>
-            <div class="row">
-                <div class="col-lg-7 mb-4">
+            <div class="row justify-content-center">
+                <div class="col-lg-10 col-xl-8 mb-4">
                     <div class="match-card card h-100 best-match-highlight" data-delay style="--delay: 0.05s;">
                         <div class="card-header d-flex align-items-center">
                             {% if best_match.internship.company.logo %}
@@ -637,6 +677,7 @@
                             <!-- Breakdown Grid -->
                             <div class="breakdown-grid">
                                 <div class="breakdown-item">
+                                    <div class="breakdown-tooltip">AI TF-IDF similarity score between your uploaded resume/CV text and this internship's description and requirements (Weight: 5%)</div>
                                     <div class="mini-ring" data-score="{{ best_match.resume_match_pct }}">
                                         <svg viewBox="0 0 36 36">
                                             <circle class="ring-bg" cx="18" cy="18" r="15.5"/>
@@ -650,6 +691,7 @@
                                     <div class="breakdown-label"><strong>Resume</strong>AI Scan</div>
                                 </div>
                                 <div class="breakdown-item">
+                                    <div class="breakdown-tooltip">Percentage of required skills (technical + soft) that match your profile or were found in your resume — {{ best_match.matched_skills|length }} of {{ best_match.matched_skills|length|add:best_match.missing_skills|length }} skills matched (Weight: 40%)</div>
                                     <div class="mini-ring" data-score="{{ best_match.skills_match_pct }}">
                                         <svg viewBox="0 0 36 36">
                                             <circle class="ring-bg" cx="18" cy="18" r="15.5"/>
@@ -663,6 +705,7 @@
                                     <div class="breakdown-label"><strong>Skills</strong>Match</div>
                                 </div>
                                 <div class="breakdown-item">
+                                    <div class="breakdown-tooltip">Percentage of required technical skills (programming languages, frameworks, tools) matched from your profile or resume keywords</div>
                                     <div class="mini-ring" data-score="{{ best_match.tech_pct }}">
                                         <svg viewBox="0 0 36 36">
                                             <circle class="ring-bg" cx="18" cy="18" r="15.5"/>
@@ -676,6 +719,7 @@
                                     <div class="breakdown-label"><strong>Technical</strong>Skills</div>
                                 </div>
                                 <div class="breakdown-item">
+                                    <div class="breakdown-tooltip">Whether your enrolled course is listed as recommended for this internship. 100% = your course is recommended, 0% = not listed (Weight: 15%)</div>
                                     <div class="mini-ring" data-score="{{ best_match.course_pct }}">
                                         <svg viewBox="0 0 36 36">
                                             <circle class="ring-bg" cx="18" cy="18" r="15.5"/>
@@ -689,6 +733,7 @@
                                     <div class="breakdown-label"><strong>Course</strong>Fit</div>
                                 </div>
                                 <div class="breakdown-item">
+                                    <div class="breakdown-tooltip">Proximity score based on distance between your pinned location and the company. Closer distance = higher score.{% if best_match.distance_km %} Distance: {{ best_match.distance_km }} km{% endif %} (Weight: 25%)</div>
                                     <div class="mini-ring" data-score="{{ best_match.map_pct }}">
                                         <svg viewBox="0 0 36 36">
                                             <circle class="ring-bg" cx="18" cy="18" r="15.5"/>
@@ -748,7 +793,7 @@
                             </div>
                             {% endif %}
 
-                            <p class="card-text text-muted small" style="display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">{{ best_match.internship.description }}</p>
+                            <p class="card-text text-muted small" style="display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">{{ best_match.internship.description|safe }}</p>
                         </div>
                         <div class="card-footer border-0">
                             <div class="d-flex justify-content-between">
@@ -823,6 +868,7 @@
                                 <!-- Mini Breakdown -->
                                 <div class="breakdown-grid" style="grid-template-columns: repeat(3, 1fr);">
                                     <div class="breakdown-item">
+                                        <div class="breakdown-tooltip">AI TF-IDF similarity score between your resume/CV and this internship's requirements (Weight: 5%)</div>
                                         <div class="mini-ring" data-score="{{ match.resume_match_pct }}">
                                             <svg viewBox="0 0 36 36">
                                                 <circle class="ring-bg" cx="18" cy="18" r="15.5"/>
@@ -834,6 +880,7 @@
                                         <div class="breakdown-label"><strong>Resume</strong></div>
                                     </div>
                                     <div class="breakdown-item">
+                                        <div class="breakdown-tooltip">Percentage of required skills matched from your profile or resume — {{ match.matched_skills|length }} skill{{ match.matched_skills|length|pluralize:"s" }} matched (Weight: 40%)</div>
                                         <div class="mini-ring" data-score="{{ match.skills_match_pct }}">
                                             <svg viewBox="0 0 36 36">
                                                 <circle class="ring-bg" cx="18" cy="18" r="15.5"/>
@@ -845,6 +892,7 @@
                                         <div class="breakdown-label"><strong>Skills</strong></div>
                                     </div>
                                     <div class="breakdown-item">
+                                        <div class="breakdown-tooltip">Whether your course is recommended for this internship. 100% = recommended, 0% = not listed (Weight: 15%)</div>
                                         <div class="mini-ring" data-score="{{ match.course_pct }}">
                                             <svg viewBox="0 0 36 36">
                                                 <circle class="ring-bg" cx="18" cy="18" r="15.5"/>
@@ -889,7 +937,7 @@
                                 <div class="map-container" id="map-{{ match.internship.id }}" style="height: 140px;"></div>
                                 {% endif %}
 
-                                <p class="card-text text-muted small" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">{{ match.internship.description }}</p>
+                                <p class="card-text text-muted small" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">{{ match.internship.description|safe }}</p>
                             </div>
                             <div class="card-footer border-0">
                                 <div class="d-flex justify-content-between">
@@ -998,7 +1046,7 @@
                         <div class="company-info mb-3">
                             <i class="fas fa-map-marker-alt me-1"></i> {{ internship.company.get_full_address }}
                         </div>
-                        <p class="card-text text-truncate text-muted small">{{ internship.description }}</p>
+                        <p class="card-text text-truncate text-muted small">{{ internship.description|safe }}</p>
                     </div>
                     <div class="card-footer border-0">
                         <div class="d-flex justify-content-between">
