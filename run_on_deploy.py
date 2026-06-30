@@ -60,10 +60,10 @@ try:
     user_count = int(counts[0])
     skill_count = int(counts[1])
 
-    if user_count > 0 or skill_count > 0:
+    if user_count > 0:
         print(
             "Database already has data "
-            f"(users: {user_count}, skills: {skill_count}), skipping restore..."
+            f"(users: {user_count}), skipping restore..."
         )
     else:
         # Database is empty, restore the latest available backup file.
