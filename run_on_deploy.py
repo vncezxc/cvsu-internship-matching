@@ -66,10 +66,12 @@ try:
             f"(users: {user_count}), skipping restore..."
         )
     else:
-        # Database is empty, restore the latest available backup file.
+        # Database has 0 users, so it's fresh/needs restore. Wiping migration-seeded conflicts first.
         backup_file = "database_backup_20260630_101629.json"
         if os.path.exists(backup_file):
             backup_path = os.path.abspath(backup_file)
+            print("Flushing pre-seeded conflicting records...")
+            run_cmd(["python", "manage.py", "flush", "--noinput"], "Database flush failed!")
             print(f"Restoring data from {backup_path}...")
             run_cmd(["python", "manage.py", "loaddata", backup_path], "Data restore failed!")
             print("Data restored successfully!")
