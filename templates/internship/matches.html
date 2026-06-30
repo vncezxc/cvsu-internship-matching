@@ -691,7 +691,7 @@
                                     <div class="breakdown-label"><strong>Resume</strong>AI Scan</div>
                                 </div>
                                 <div class="breakdown-item">
-                                    <div class="breakdown-tooltip">Percentage of required skills (technical + soft) that match your profile or were found in your resume — {{ best_match.matched_skills|length }} of {{ best_match.matched_skills|length|add:best_match.missing_skills|length }} skills matched (Weight: 40%)</div>
+                                    <div class="breakdown-tooltip">Percentage of required skills (technical + soft) that match your profile or were found in your resume — {{ best_match.matched_skills|length }} of {{ best_match.matched_skills|length|add:best_match.missing_skills|length }} skills matched (Weight: 50%)</div>
                                     <div class="mini-ring" data-score="{{ best_match.skills_match_pct }}">
                                         <svg viewBox="0 0 36 36">
                                             <circle class="ring-bg" cx="18" cy="18" r="15.5"/>
@@ -719,7 +719,7 @@
                                     <div class="breakdown-label"><strong>Technical</strong>Skills</div>
                                 </div>
                                 <div class="breakdown-item">
-                                    <div class="breakdown-tooltip">Whether your enrolled course is listed as recommended for this internship. 100% = your course is recommended, 0% = not listed (Weight: 15%)</div>
+                                    <div class="breakdown-tooltip">Whether your enrolled course is listed as recommended for this internship. 100% = your course is recommended, 0% = not listed (Weight: 25%)</div>
                                     <div class="mini-ring" data-score="{{ best_match.course_pct }}">
                                         <svg viewBox="0 0 36 36">
                                             <circle class="ring-bg" cx="18" cy="18" r="15.5"/>
@@ -733,7 +733,7 @@
                                     <div class="breakdown-label"><strong>Course</strong>Fit</div>
                                 </div>
                                 <div class="breakdown-item">
-                                    <div class="breakdown-tooltip">Proximity score based on distance between your pinned location and the company. Closer distance = higher score.{% if best_match.distance_km %} Distance: {{ best_match.distance_km }} km{% endif %} (Weight: 25%)</div>
+                                    <div class="breakdown-tooltip">Proximity score based on distance between your pinned location and the company. Closer distance = higher score.{% if best_match.distance_km %} Distance: {{ best_match.distance_km }} km{% endif %} (Weight: 10%)</div>
                                     <div class="mini-ring" data-score="{{ best_match.map_pct }}">
                                         <svg viewBox="0 0 36 36">
                                             <circle class="ring-bg" cx="18" cy="18" r="15.5"/>
@@ -880,7 +880,7 @@
                                         <div class="breakdown-label"><strong>Resume</strong></div>
                                     </div>
                                     <div class="breakdown-item">
-                                        <div class="breakdown-tooltip">Percentage of required skills matched from your profile or resume — {{ match.matched_skills|length }} skill{{ match.matched_skills|length|pluralize:"s" }} matched (Weight: 40%)</div>
+                                        <div class="breakdown-tooltip">Percentage of required skills matched from your profile or resume — {{ match.matched_skills|length }} skill{{ match.matched_skills|length|pluralize:"s" }} matched (Weight: 50%)</div>
                                         <div class="mini-ring" data-score="{{ match.skills_match_pct }}">
                                             <svg viewBox="0 0 36 36">
                                                 <circle class="ring-bg" cx="18" cy="18" r="15.5"/>
@@ -892,7 +892,7 @@
                                         <div class="breakdown-label"><strong>Skills</strong></div>
                                     </div>
                                     <div class="breakdown-item">
-                                        <div class="breakdown-tooltip">Whether your course is recommended for this internship. 100% = recommended, 0% = not listed (Weight: 15%)</div>
+                                        <div class="breakdown-tooltip">Whether your course is recommended for this internship. 100% = recommended, 0% = not listed (Weight: 25%)</div>
                                         <div class="mini-ring" data-score="{{ match.course_pct }}">
                                             <svg viewBox="0 0 36 36">
                                                 <circle class="ring-bg" cx="18" cy="18" r="15.5"/>

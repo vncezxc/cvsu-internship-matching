@@ -22,11 +22,11 @@ FEATURE_ORDER = [
 
 # ---------- Scoring weights ----------
 WEIGHT_RESUME = 0.05
-WEIGHT_SKILLS = 0.40
-WEIGHT_COURSE = 0.15
-WEIGHT_DISTANCE = 0.25
+WEIGHT_SKILLS = 0.50
+WEIGHT_COURSE = 0.25
+WEIGHT_DISTANCE = 0.10
 WEIGHT_PARTNER = 0.05
-# Reserve 10% absorbed into skills + distance per adviser feedback
+# Remaining 5% reserved for coverage/partner or confidence penalty
 
 
 # ---------- Distance helpers ----------
@@ -320,9 +320,9 @@ def compute_ai_score(features):
         # No resume — skills and distance carry the weight, but cap lower
         # because we have less confidence without resume data
         composite = (
-            overall_skills * 0.55
-            + course_match * 0.20
-            + distance_score * 0.20
+            overall_skills * 0.60
+            + course_match * 0.25
+            + distance_score * 0.10
             + partner_bonus * WEIGHT_PARTNER
         )
         # Apply a confidence penalty: without a resume we cap at 85%

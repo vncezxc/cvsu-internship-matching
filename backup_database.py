@@ -7,11 +7,11 @@ import subprocess
 import sys
 from datetime import datetime
 
-# Your Render database credentials - UPDATED March 31, 2026
-POSTGRES_HOST = "dpg-d7moibhkh4rs73aq7e40-a.virginia-postgres.render.com"
-POSTGRES_DB = "cvsu_internship_6b1k"
+# Your Render database credentials - UPDATED June 30, 2026
+POSTGRES_HOST = "dpg-d8dvbasp3tds73811bs0-a.virginia-postgres.render.com"
+POSTGRES_DB = "cvsu_internship_u92x"
 POSTGRES_USER = "cvsu_internship_user"
-POSTGRES_PASSWORD = "bP9mpWyBnYYHIuELYflHobHj0EmVvi3k"
+POSTGRES_PASSWORD = "N7LyIUg9nK4a8TBhMg0Gvp0uFuQiXCl6"
 POSTGRES_PORT = "5432"
 
 # Create backup filename with timestamp
@@ -65,8 +65,8 @@ try:
     with open(backup_path, 'w', encoding='utf-8') as f:
         f.write(result.stdout)
     
-    print(f"\n✓ Backup successful!")
-    print(f"✓ File saved: {backup_path}")
+    print(f"\n[OK] Backup successful!")
+    print(f"[OK] File saved: {backup_path}")
     print(f"\nYour data is now safely backed up!")
     print(f"\nBackup includes:")
     for app in APPS_TO_BACKUP:
@@ -75,12 +75,12 @@ try:
     print(f"  python manage.py loaddata {backup_file}")
     
 except subprocess.CalledProcessError as e:
-    print(f"\n✗ Error during backup: {e}")
+    print(f"\n[ERROR] Error during backup: {e}")
     if e.stderr:
         print(f"Error output: {e.stderr}")
     if e.stdout:
         print(f"Standard output: {e.stdout}")
     sys.exit(1)
 except Exception as e:
-    print(f"\n✗ Unexpected error: {e}")
+    print(f"\n[ERROR] Unexpected error: {e}")
     sys.exit(1)

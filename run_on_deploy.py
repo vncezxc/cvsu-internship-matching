@@ -26,7 +26,7 @@ print("Migrations completed.")
 
 # Optional full restore: wipe DB then load backup.
 if env_bool("FULL_RESTORE_ON_DEPLOY", default=False):
-    backup_file = "database_backup_20260531_145113.json"
+    backup_file = "database_backup_20260630_101629.json"
     if os.path.exists(backup_file):
         backup_path = os.path.abspath(backup_file)
         print("FULL_RESTORE_ON_DEPLOY enabled. Flushing database...")
@@ -67,7 +67,7 @@ try:
         )
     else:
         # Database is empty, restore the latest available backup file.
-        backup_file = "database_backup_20260531_145113.json"
+        backup_file = "database_backup_20260630_101629.json"
         if os.path.exists(backup_file):
             backup_path = os.path.abspath(backup_file)
             print(f"Restoring data from {backup_path}...")
