@@ -72,6 +72,14 @@ try:
             backup_path = os.path.abspath(backup_file)
             print("Flushing pre-seeded conflicting records...")
             run_cmd(["python", "manage.py", "flush", "--noinput"], "Database flush failed!")
+            print("Clearing auto-recreated skills and courses to avoid integrity conflicts...")
+            run_cmd([
+                "python",
+                "manage.py",
+                "shell",
+                "-c",
+                "from accounts.models import Skill, Course; Skill.objects.all().delete(); Course.objects.all().delete()"
+            ], "Clearing skills/courses failed!")
             print(f"Restoring data from {backup_path}...")
             run_cmd(["python", "manage.py", "loaddata", backup_path], "Data restore failed!")
             print("Data restored successfully!")
