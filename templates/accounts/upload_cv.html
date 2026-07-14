@@ -110,6 +110,27 @@
         font-size: 0.95rem;
     }
 
+    .resume-templates {
+        background: rgba(239, 182, 10, 0.05);
+        border: 1px dashed var(--cvsu-gold);
+        border-radius: var(--radius-sm);
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .resume-templates h5 {
+        color: var(--cvsu-dark-green);
+        font-family: var(--font-family);
+        font-weight: var(--font-weight-bold);
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+    }
+
+    .resume-templates h5 i {
+        color: var(--cvsu-gold);
+    }
+
     .cv-preview {
         background: linear-gradient(135deg, rgba(6, 78, 7, 0.05), rgba(6, 78, 7, 0.02));
         border-radius: var(--radius-sm);
@@ -426,6 +447,17 @@
                                 <li>Save your CV as a PDF for better compatibility</li>
                                 <li>Maximum file size: 10MB</li>
                             </ul>
+                        </div>
+                        
+                        <div class="resume-templates">
+                            <h5><i class="fas fa-file-invoice"></i> Sample Templates</h5>
+                            <p class="text-muted small mb-3">Need help formatting your resume? Download these template examples based on your program (Admin will upload the files soon):</p>
+                            <div class="d-flex flex-wrap gap-2">
+                                <a href="#" class="btn btn-sm btn-outline-secondary" onclick="event.preventDefault(); alert('BSIT template file will be available soon!');"><i class="fas fa-download me-1"></i>BS Information Technology</a>
+                                <a href="#" class="btn btn-sm btn-outline-secondary" onclick="event.preventDefault(); alert('BSCS template file will be available soon!');"><i class="fas fa-download me-1"></i>BS Computer Science</a>
+                                <a href="#" class="btn btn-sm btn-outline-secondary" onclick="event.preventDefault(); alert('BSCpE template file will be available soon!');"><i class="fas fa-download me-1"></i>BS Computer Engineering</a>
+                                <a href="#" class="btn btn-sm btn-outline-secondary" onclick="event.preventDefault(); alert('General template file will be available soon!');"><i class="fas fa-download me-1"></i>General Format</a>
+                            </div>
                         </div>
 
                         {% if profile.cv %}
