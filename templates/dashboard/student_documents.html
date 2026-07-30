@@ -289,15 +289,20 @@
                                     {% if stu_doc %}
                                         {% with file_url=stu_doc.file_url %}
                                             {% if file_url %}
-                                                {% if ".docx" in file_url|lower %}
-                                                    <button type="button" class="btn btn-sm btn-outline-info" onclick="previewDocx('{{ file_url }}')">
-                                                        <i class="bi bi-file-word"></i> Preview
-                                                    </button>
-                                                {% else %}
-                                                    <a href="{{ file_url }}" target="_blank" class="btn btn-sm btn-outline-success">
-                                                        <i class="bi bi-eye"></i> View
+                                                <div class="d-flex flex-column gap-1">
+                                                    {% if ".docx" in file_url|lower %}
+                                                        <button type="button" class="btn btn-sm btn-outline-info w-100" onclick="previewDocx('{{ file_url }}')">
+                                                            <i class="bi bi-file-word"></i> Preview
+                                                        </button>
+                                                    {% else %}
+                                                        <a href="{{ file_url }}" target="_blank" class="btn btn-sm btn-outline-success w-100">
+                                                            <i class="bi bi-eye"></i> View
+                                                        </a>
+                                                    {% endif %}
+                                                    <a href="{{ file_url }}" target="_blank" download class="btn btn-sm btn-outline-primary w-100">
+                                                        <i class="bi bi-download"></i> Download
                                                     </a>
-                                                {% endif %}
+                                                </div>
                                             {% else %}
                                                 <span class="text-muted">Upload pending</span>
                                             {% endif %}
