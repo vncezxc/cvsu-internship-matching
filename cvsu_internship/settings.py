@@ -399,7 +399,7 @@ USE_DIGITAL_OCEAN_SPACES = all([
 
 if USE_CLOUDINARY:
     # Use Cloudinary first when credentials are available
-    DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+    DEFAULT_FILE_STORAGE = 'cvsu_internship.storage.SmartCloudinaryMediaStorage'
 
     import cloudinary
     if CLOUDINARY_URL:
