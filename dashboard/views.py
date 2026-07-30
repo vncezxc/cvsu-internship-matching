@@ -399,10 +399,16 @@ def student_dashboard(request):
         document_status = []
         for req_doc in required_documents:
             doc = uploaded_documents.get(req_doc.id)
+            file_url = None
+            if doc and getattr(doc.file, 'name', None):
+                try:
+                    file_url = doc.file.url
+                except ValueError:
+                    file_url = None
             document_status.append({
                 'required': req_doc,
-                'uploaded': doc is not None,
-                'file': doc.file.url if doc else None,
+                'uploaded': doc is not None and bool(getattr(doc.file, 'name', None)),
+                'file': file_url,
                 'doc_id': doc.id if doc else None,
             })
 
@@ -413,8 +419,8 @@ def student_dashboard(request):
                 'description': 'Student CV or Resume',
                 'id': 'cv',
             })(),
-            'uploaded': bool(profile.cv),
-            'file': profile.cv.url if profile.cv else None,
+            'uploaded': bool(profile.cv and getattr(profile.cv, 'name', None)),
+            'file': profile.cv.url if profile.cv and getattr(profile.cv, 'name', None) else None,
             'doc_id': None,
         }
         document_status.append(cv_entry)
