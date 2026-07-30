@@ -6,6 +6,7 @@ import os
 import sys
 from pathlib import Path
 from datetime import timedelta
+from django.core.files.storage import default_storage
 # For self-signed certificates (add this after imports)
 import urllib3
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -340,11 +341,11 @@ CORS_ALLOW_HEADERS = [
 ]
 
 # ---------------------------------------
-# Storage Configuration (Digital Ocean Spaces/S3)
+# Storage Configuration (Digital Ocean Spaces/S3 + Cloudinary)
 # ---------------------------------------
 # Storage configuration priority:
-# 1. Digital Ocean Spaces (if credentials provided)
-# 2. Cloudinary (if credentials provided)
+# 1. Cloudinary (if credentials provided)
+# 2. Digital Ocean Spaces (if credentials provided)
 # 3. Local storage (fallback)
 
 # Digital Ocean Spaces Configuration
@@ -370,53 +371,50 @@ AWS_S3_SIGNATURE_VERSION = 's3v4'
 AWS_S3_ADDRESSING_STYLE = 'path'
 
 # Cloudinary Configuration
+CLOUDINARY_CLOUD_NAME = get_config('CLOUDINARY_CLOUD_NAME', default='')
+CLOUDINARY_API_KEY = get_config('CLOUDINARY_API_KEY', default='')
+CLOUDINARY_API_SECRET = get_config('CLOUDINARY_API_SECRET', default='')
+CLOUDINARY_URL = get_config('CLOUDINARY_URL', default='')
+
 CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': get_config('CLOUDINARY_CLOUD_NAME', default=''),
-    'API_KEY': get_config('CLOUDINARY_API_KEY', default=''),
-    'API_SECRET': get_config('CLOUDINARY_API_SECRET', default=''),
+    'CLOUD_NAME': CLOUDINARY_CLOUD_NAME,
+    'API_KEY': CLOUDINARY_API_KEY,
+    'API_SECRET': CLOUDINARY_API_SECRET,
     'SECURE': True,
     'EXCLUDE_DELETE_ORPHANED_MEDIA_PATHS': ('media/avatars/',),
 }
 
 # Determine which storage to use
+USE_CLOUDINARY = bool(CLOUDINARY_URL) or all([
+    CLOUDINARY_STORAGE['CLOUD_NAME'],
+    CLOUDINARY_STORAGE['API_KEY'],
+    CLOUDINARY_STORAGE['API_SECRET'],
+])
+
 USE_DIGITAL_OCEAN_SPACES = all([
     AWS_ACCESS_KEY_ID,
     AWS_SECRET_ACCESS_KEY,
     AWS_STORAGE_BUCKET_NAME,
 ])
 
-USE_CLOUDINARY = all([
-    CLOUDINARY_STORAGE['CLOUD_NAME'],
-    CLOUDINARY_STORAGE['API_KEY'],
-    CLOUDINARY_STORAGE['API_SECRET'],
-])
+if USE_CLOUDINARY:
+    # Use Cloudinary first when credentials are available
+    DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
-if USE_DIGITAL_OCEAN_SPACES:
-    # Use Digital Ocean Spaces
-    DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
-    AWS_S3_ENDPOINT_URL = AWS_S3_ENDPOINT_URL
-    
-    # Configure Cloudinary SDK if also available (for possible hybrid use)
-    if USE_CLOUDINARY:
-        import cloudinary
+    import cloudinary
+    if CLOUDINARY_URL:
+        cloudinary.config(secure=True)
+    else:
         cloudinary.config(
             cloud_name=CLOUDINARY_STORAGE['CLOUD_NAME'],
             api_key=CLOUDINARY_STORAGE['API_KEY'],
             api_secret=CLOUDINARY_STORAGE['API_SECRET'],
             secure=True,
         )
-    
-elif USE_CLOUDINARY:
-    # Use Cloudinary
-    DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
-    
-    import cloudinary
-    cloudinary.config(
-        cloud_name=CLOUDINARY_STORAGE['CLOUD_NAME'],
-        api_key=CLOUDINARY_STORAGE['API_KEY'],
-        api_secret=CLOUDINARY_STORAGE['API_SECRET'],
-        secure=True,
-    )
+elif USE_DIGITAL_OCEAN_SPACES:
+    # Use Digital Ocean Spaces as fallback
+    DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+    AWS_S3_ENDPOINT_URL = AWS_S3_ENDPOINT_URL
 else:
     # Fallback to local storage
     DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
@@ -637,14 +635,16 @@ ALLOWED_FILE_EXTENSIONS = {
 # Helper Functions
 # ---------------------------------------
 def get_absolute_media_url(relative_url):
-    """Convert relative media URL to absolute URL for OnlyOffice"""
+    """Convert relative media URL to absolute URL for OnlyOffice and other file consumers."""
     if not relative_url:
         return ""
 
-    # If already absolute (Cloudinary or Spaces)
+    # If already absolute (Cloudinary, Spaces, or other remote URLs)
     if relative_url.startswith(('http://', 'https://')):
         return relative_url
 
+    if USE_CLOUDINARY:
+        return default_storage.url(relative_url)
 
     # Always ensure the path starts with 'cvsu-internship-moa/' for DigitalOcean Spaces
     NESTED_PREFIX = 'cvsu-internship-moa/'
