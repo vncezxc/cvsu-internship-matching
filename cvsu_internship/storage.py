@@ -13,3 +13,10 @@ class SmartCloudinaryMediaStorage(MediaCloudinaryStorage):
         if extension in {'.mp4', '.mov', '.avi', '.mkv', '.webm'}:
             return 'video'
         return 'raw'
+
+    def _upload(self, name, content):
+        options = {'use_filename': True, 'resource_type': self._get_resource_type(name), 'tags': self.TAG}
+        folder = os.path.dirname(name)
+        if folder:
+            options['folder'] = folder
+        return super()._upload(name, content)
