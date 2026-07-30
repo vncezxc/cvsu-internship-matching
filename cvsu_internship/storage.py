@@ -25,6 +25,12 @@ class SmartCloudinaryMediaStorage(MediaCloudinaryStorage):
             return 'image'
         if extension in {'.mp4', '.mov', '.avi', '.mkv', '.webm'}:
             return 'video'
+            
+        # Fallback to check folder names for images without extensions (e.g. FB downloads)
+        image_folders = ['student_profiles', 'avatars', 'logos', 'company_logos', 'banners']
+        if any(folder in name for folder in image_folders):
+            return 'image'
+            
         return 'raw'
 
     def _upload(self, name, content):

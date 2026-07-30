@@ -28,17 +28,30 @@ def download_edited_required_document(request, doc_id):
             # Get the file from storage
             file_obj = required_doc.template_file
             
-            # Generate filename
+            # Generate filename with correct extension
             original_name = file_obj.name
-            base_name = os.path.splitext(os.path.basename(original_name))[0]
-            filename = f"{slugify(base_name)}_template.docx"
+            base_name, ext = os.path.splitext(os.path.basename(original_name))
+            if not ext:
+                ext = '.docx'
+            filename = f"{slugify(base_name)}_template{ext}"
             
             # Try to get file content directly
             if hasattr(file_obj, 'read'):
                 # FileField supports read()
                 file_content = file_obj.read()
-                response = HttpResponse(file_content, content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
-                response['Content-Disposition'] = f'attachment; filename="{filename}"'
+                
+                import mimetypes
+                content_type, _ = mimetypes.guess_type(filename)
+                if not content_type:
+                    content_type = 'application/octet-stream'
+                
+                response = HttpResponse(file_content, content_type=content_type)
+                
+                if content_type.startswith('image/') or content_type == 'application/pdf':
+                    response['Content-Disposition'] = f'inline; filename="{filename}"'
+                else:
+                    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+                
                 return response
             else:
                 # Fallback: redirect to URL
@@ -47,7 +60,12 @@ def download_edited_required_document(request, doc_id):
         # Fallback to direct download
         file_path = required_doc.template_file.path
         if os.path.exists(file_path):
-            return FileResponse(open(file_path, 'rb'), as_attachment=True, filename=filename)
+            import mimetypes
+            content_type, _ = mimetypes.guess_type(filename)
+            if not content_type:
+                content_type = 'application/octet-stream'
+            as_attachment = not (content_type.startswith('image/') or content_type == 'application/pdf')
+            return FileResponse(open(file_path, 'rb'), as_attachment=as_attachment, filename=filename)
         
     except Exception as e:
         print(f"Error downloading file: {e}")
@@ -70,16 +88,25 @@ def download_edited_moa(request, doc_id):
         
         if student_doc and student_doc.file:
             file_to_download = student_doc.file
-            filename = f"moa_{slugify(request.user.get_full_name())}_{slugify(required_doc.name)}.docx"
+            ext = os.path.splitext(file_to_download.name)[1]
+            if not ext:
+                ext = '.docx'
+            filename = f"moa_{slugify(request.user.get_full_name())}_{slugify(required_doc.name)}{ext}"
         else:
             # Fallback to template
             file_to_download = required_doc.template_file
-            filename = f"moa_template_{slugify(required_doc.name)}.docx"
+            ext = os.path.splitext(file_to_download.name)[1]
+            if not ext:
+                ext = '.docx'
+            filename = f"moa_template_{slugify(required_doc.name)}{ext}"
             
     elif request.user.is_coordinator:
         # Coordinators get the template
         file_to_download = required_doc.template_file
-        filename = f"moa_template_{slugify(required_doc.name)}.docx"
+        ext = os.path.splitext(file_to_download.name)[1]
+        if not ext:
+            ext = '.docx'
+        filename = f"moa_template_{slugify(required_doc.name)}{ext}"
         
     else:
         raise Http404("Permission denied")
@@ -94,11 +121,16 @@ def download_edited_moa(request, doc_id):
             if hasattr(file_to_download, 'read'):
                 # Read directly from storage
                 file_content = file_to_download.read()
-                response = HttpResponse(
-                    file_content,
-                    content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-                )
-                response['Content-Disposition'] = f'attachment; filename="{filename}"'
+                import mimetypes
+                content_type, _ = mimetypes.guess_type(filename)
+                if not content_type:
+                    content_type = 'application/octet-stream'
+                
+                response = HttpResponse(file_content, content_type=content_type)
+                if content_type.startswith('image/') or content_type == 'application/pdf':
+                    response['Content-Disposition'] = f'inline; filename="{filename}"'
+                else:
+                    response['Content-Disposition'] = f'attachment; filename="{filename}"'
                 return response
             else:
                 # Redirect to the file URL
@@ -107,7 +139,12 @@ def download_edited_moa(request, doc_id):
         # Local file fallback
         file_path = file_to_download.path
         if os.path.exists(file_path):
-            return FileResponse(open(file_path, 'rb'), as_attachment=True, filename=filename)
+            import mimetypes
+            content_type, _ = mimetypes.guess_type(filename)
+            if not content_type:
+                content_type = 'application/octet-stream'
+            as_attachment = not (content_type.startswith('image/') or content_type == 'application/pdf')
+            return FileResponse(open(file_path, 'rb'), as_attachment=as_attachment, filename=filename)
         
     except Exception as e:
         print(f"Error downloading MOA: {e}")
@@ -117,7 +154,12 @@ def download_edited_moa(request, doc_id):
                 response = requests.get(file_to_download.url)
                 if response.status_code == 200:
                     file_content = io.BytesIO(response.content)
-                    return FileResponse(file_content, as_attachment=True, filename=filename)
+                    import mimetypes
+                    content_type, _ = mimetypes.guess_type(filename)
+                    if not content_type:
+                        content_type = 'application/octet-stream'
+                    as_attachment = not (content_type.startswith('image/') or content_type == 'application/pdf')
+                    return FileResponse(file_content, as_attachment=as_attachment, filename=filename)
             except:
                 pass
     
