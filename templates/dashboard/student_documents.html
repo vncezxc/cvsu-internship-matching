@@ -287,15 +287,21 @@
                             <td>
                                 {% with stu_doc=doc_map|get_item:doc.id %}
                                     {% if stu_doc %}
-                                        {% if ".docx" in stu_doc.file.url|lower %}
-                                            <button type="button" class="btn btn-sm btn-outline-info" onclick="previewDocx('{{ stu_doc.file.url }}')">
-                                                <i class="bi bi-file-word"></i> Preview
-                                            </button>
-                                        {% else %}
-                                            <a href="{{ stu_doc.file.url }}" target="_blank" class="btn btn-sm btn-outline-success">
-                                                <i class="bi bi-eye"></i> View
-                                            </a>
-                                        {% endif %}
+                                        {% with file_url=stu_doc.file_url %}
+                                            {% if file_url %}
+                                                {% if ".docx" in file_url|lower %}
+                                                    <button type="button" class="btn btn-sm btn-outline-info" onclick="previewDocx('{{ file_url }}')">
+                                                        <i class="bi bi-file-word"></i> Preview
+                                                    </button>
+                                                {% else %}
+                                                    <a href="{{ file_url }}" target="_blank" class="btn btn-sm btn-outline-success">
+                                                        <i class="bi bi-eye"></i> View
+                                                    </a>
+                                                {% endif %}
+                                            {% else %}
+                                                <span class="text-muted">Upload pending</span>
+                                            {% endif %}
+                                        {% endwith %}
                                     {% else %}
                                         <span class="text-muted">Not uploaded</span>
                                     {% endif %}
@@ -304,7 +310,7 @@
                             <td>
                                 {% with stu_doc=doc_map|get_item:doc.id %}
                                     {% if stu_doc %}
-                                        {% if stu_doc.approved %}
+                                        {% if stu_doc.instance.approved %}
                                             <span class="badge bg-success">Approved</span>
                                         {% else %}
                                             <span class="badge bg-warning text-dark">Pending</span>

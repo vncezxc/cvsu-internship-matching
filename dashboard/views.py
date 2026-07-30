@@ -35,7 +35,18 @@ def student_documents_view(request):
     student = request.user.student_profile
     required_docs = RequiredDocument.objects.all()
     student_docs = StudentDocument.objects.filter(student=student)
-    doc_map = {doc.document_type_id: doc for doc in student_docs}
+    doc_map = {}
+    for doc in student_docs:
+        file_url = None
+        if getattr(doc.file, 'name', None):
+            try:
+                file_url = doc.file.url
+            except ValueError:
+                file_url = None
+        doc_map[doc.document_type_id] = {
+            'instance': doc,
+            'file_url': file_url,
+        }
     if request.method == 'POST':
         doc_id = request.POST.get('doc_id')
         file = request.FILES.get('file')
